@@ -1,0 +1,24 @@
+General :
+- Fixed Help Command
+- Removed Disable and Enable
+
+Uno :
+- Uno Not yet Ready to be Play!
+- Fix Design Earn Coins
+
+OWS :
+- Make Delete Story Command
+- Every 25 words the bot send the current progress
+- Add some Read Command for read Own Story
+
+Poll and Giveaway :
+- Poll Not yet
+
+Point :
+- Make a Gamer Leaderboard, Top 5 Most Of Coins Collected
+
+Duel :
+- Just Getting Started
+
+Bingo :
+- Coming Soon!

@@ -1,0 +1,178 @@
+# Init Handler and First Sequence of game
+dict_handler = {"co_message":None, "turns":[], "member":{}, "card_on_table":[None], "owner_msg":{}, "channel_host":datas['channel_host'], "dm_id":[]}
+embed_for_display = discord.Embed(colour=discord.Colour(WHITE))
+embed_for_display.add_field(name="Please Wait...", value="Please Wait while Everyone gets their own cards and Preparing Table for play Area!")
+dict_handler["turns"] = datas['players']
+
+# Initialize Cards
+for member in dict_handler["turns"]:
+    deck = []
+    while len(deck) < 8:
+        deck.append(random.choice(this_raw))
+    # Each Member gets the random Cards
+    dict_handler["member"][str(member.id)] = deck
+
+# Init First Game Table Card
+dict_handler["card_on_table"].append(random.choice(this_raw))
+embed_for_display = discord.Embed(title="Game Begins!", description="V Recent Card V", colour=discord.Colour(WHITE))
+embed_for_display.set_image(url=dict_handler["card_on_table"][1][4])
+dict_handler["co_message"] = await dict_handler["channel_host"].send(embed=embed_for_display)
+whos_turn = await dict_handler["channel_host"].send(content="***Wait for Seconds...***")
+
+# Edit All Coroutine Message in Each DM Channel
+for j in dict_handler["turns"]:
+    list_card_deck, deck_names = [], []
+    # Init Player's Cards Display
+    for card in range(1, len(dict_handler["member"][str(j.id)]) + 1):
+        list_card_deck.append(dict_handler["member"][str(j.id)][card - 1])
+        deck_names.append("{}. {}".format(card, dict_handler["member"][str(j.id)][card - 1][3]))
+    # Making a Display Deck of Cards
+    card_embed_for_player = discord.Embed(colour=discord.Colour(WHITE))
+    card_embed_for_player.add_field(name="Choose it by Number; Your Cards :", value="\n".join(deck_names), inline=False)
+    dict_handler["owner_msg"][str(j.id)] = await j.send(embed=card_embed_for_player)
+    # Getting All Member DM Channel
+    await j.create_dm()
+    dict_handler["dm_id"].append(str(j.dm_channel.id))
+
+# In Game Play start
+index_turn, is_reversed, is_skip, stack_plus, is_stacking, can_draw_card = 0, False, False, 0, False, True
+is_reversed, is_skip, stack_plus, is_stacking = check_uno_card_usage(card=dict_handler['card_on_table'][1], cond=[is_reversed, is_skip, stack_plus, is_stacking])
+while run:
+    try:
+        # Who's Next :
+        next_person = dict_handler["turns"][index_turn]
+        deck_of_cards = dict_handler["member"][str(next_person.id)]
+        await whos_turn.edit(content="**{} Turn**, Pick a Card here :".format(next_person.nick))
+        choice_message, card_picked = None, None
+        can_draw_card: bool = check_uno_can_draw(dict_handler['card_on_table'][1], deck_of_cards)
+        # Check if The Mode Stacking activated
+        if can_draw_card is False:
+            is_skip = True
+            if is_stacking:
+                while stack_plus > 0:
+                    deck_of_cards.append(random.choice(this_raw))
+                    stack_plus -= 1
+                is_stacking = False
+            else:
+                deck_of_cards.append(random.choice(this_raw))
+        else:
+            # Waiting for User Response
+            choice_message = await self.bot.wait_for(event="message", check=check_uno_person_chat(next_person, dict_handler["channel_host"]), timeout=80.0)
+            while True:
+                if not check_uno_next_card(choice_message.content, deck_of_cards, next_person, choice_message.author, dict_handler['card_on_table'][1]):
+                    choice_message = await self.bot.wait_for(event="message", check=check_uno_person_chat(next_person, dict_handler["channel_host"]), timeout=80.0)
+                else:
+                    break
+            card_picked = deck_of_cards[int(choice_message.content)]
+    except Exception as exc:
+        # If the Player AFK too Long or Bot in Game
+        if type(exc) == asyncio.TimeoutError:
+            card_picked = random.randint(1, len(dict_handler["member"][str(next_person.id)]))
+            while True:
+                if not check_uno_next_card(card_picked, deck_of_cards, next_person, choice_message.author, dict_handler['card_on_table'][1]):
+                    card_picked = random.randint(1, len(dict_handler["member"][str(next_person.id)]))
+                else:
+                    break
+            card_picked = deck_of_cards[card_picked]
+        else:
+            print(type(exc), exc)
+            raise
+    finally:
+        # Check Usage
+        is_reversed, is_skip, stack_plus, is_stacking = check_uno_card_usage(card=card_picked, cond=[is_reversed, is_skip, stack_plus, is_stacking])
+        dict_handler['card_on_table'].append(dict_handler["member"][str(next_person.id)][int(choice_message.content)])
+        del dict_handler["member"][str(next_person.id)][int(choice_message.content)]
+        dict_handler["member"][str(next_person.id)] = deck_of_cards
+        del dict_handler['card_on_table'][0]
+        # Update Table
+        embed_for_display = discord.Embed(title="Previous Card ->", description="V Recent Card V", colour=discord.Colour(WHITE))
+        embed_for_display.set_thumbnail(url=dict_handler["card_on_table"][0][4])
+        embed_for_display.set_image(url=dict_handler["card_on_table"][1][4])
+        dict_handler["co_message"].edit(embed=embed_for_display)
+        # Update Player Deck if Necessary
+        list_card_deck, deck_names = [], []
+        for card in range(1, len(dict_handler["member"][str(next_person.id)]) + 1):
+            list_card_deck.append(dict_handler["member"][str(next_person.id)][card - 1])
+            deck_names.append("{}. {}".format(card, dict_handler["member"][str(next_person.id)][card - 1][3]))
+        card_embed_for_player = discord.Embed(colout=discord.Colour(WHITE))
+        card_embed_for_player.add_field(name="Choose it by Number; Your Cards :", value="\n".join(deck_names), inline=False)
+        await dict_handler["owner_msg"][str(next_person.id)].edit(embed=card_embed_for_player)
+        # Check Turns
+        index_turn = check_turns(index_turn, len(dict_handler["turns"]), reverse=is_reversed, skip=is_skip)
+        is_skip = False
+        await temporary_msg.delete()
+        # Check Player Cards Empty
+        if len(dict_handler["owner_msg"][str(next_person.id)]) <= 0:
+            run = False
+
+def check_uno_person_chat(player, host):
+    def inner_check(message):
+        if message.channel.id == host:
+            return True
+        else:
+            return False
+    return inner_check
+
+def check_uno_next_card(index, player_cards, this_person_turn, who_msg, current_card):
+    if this_person_turn == who_msg:
+        if type(index) == int:
+            if int(index) < len(player_cards) and int(index) > 0:
+                next_card = player_cards[int(index)]
+                if next_card[1] == 'black' or current_card[1] == next_card[1]:
+                    return True
+                if current_card[6] == current_card[6] and current_card[6] is not None:
+                    return True
+                if current_card[2] == next_card[2] and current_card[2] != 'normal':
+                    return True
+                return False
+            else:
+                return False
+        else:
+            return False
+    else:
+        return False
+    
+def check_uno_can_draw(current_card, owner_deck: list or tuple):
+    for card in owner_deck:
+        if card[1] == current_card[1] or card[1] == 'black':
+            return True
+        if card[6] == current_card[6] and current_card[6] is not None:
+            return True
+        if card[2] == current_card[2] and current_card[2] != 'normal':
+            return True
+    return False
+
+def check_uno_card_usage(**keys): # cond=[is_reversed, is_skip, stack_plus, is_stacking]
+    if keys["card"][2] == 'skip':
+        keys['cond'][3] = False
+        keys['cond'][1] = True
+    if keys["card"][2] == 'reverse':
+        keys['cond'][3] = False
+        if keys['cond'][0] is True:
+            keys['cond'][0] = False
+        else:
+            keys['cond'][0] = True
+    if keys["card"][2] == 'plus':
+        keys['cond'][3] = True
+        if '2' in keys["card"][3]:
+            keys['cond'][2] += 2
+        if '4' in keys["card"][3]:
+            keys['cond'][2] += 2
+    if keys["card"][2] == "normal":
+        keys['cond'][3] = False
+    return keys['cond'][0], keys['cond'][1], keys['cond'][2], keys['cond'][3]
+
+def check_turns(current_turn, many_players: int, **kwargs):
+    if kwargs['reverse'] is True:
+        current_turn -= 1
+        if kwargs["skip"] is True:
+            current_turn -= 1
+    if kwargs['reverse'] is False:
+        current_turn += 1
+        if kwargs["skip"] is True:
+            current_turn += 1
+    if current_turn < 0:
+        current_turn = current_turn + (many_players - 1)
+    if current_turn > many_players - 1:
+        current_turn = current_turn - (many_players - 1)
+    return current_turn
