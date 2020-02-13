@@ -1,10 +1,8 @@
 General :
-- Fixed Help Command
-- Removed Disable and Enable
+- Fixed Help Command part 2
 
 Uno :
-- Uno Not yet Ready to be Play!
-- Fix Design Earn Coins
+- Make DM Message Killer
 
 OWS :
 - Make Delete Story Command
@@ -12,13 +10,15 @@ OWS :
 - Add some Read Command for read Own Story
 
 Poll and Giveaway :
-- Poll Not yet
+- Poll is Pre-Working
 
 Point :
-- Make a Gamer Leaderboard, Top 5 Most Of Coins Collected
+- Global Leaderboard has been Made
+- Make a Server Leaderboard, Top 5 Most Of Coins Collected
 
 Duel :
-- Just Getting Started
+- Added Person to Duel
+- Started the Design
 
 Bingo :
 - Coming Soon!

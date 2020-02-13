@@ -142,13 +142,13 @@ class DbManager:
         return cls(sqlite3.connect(db_dir))
 
 # if __name__ == '__main__':
-#     conn = DbManager.connect_db("./DataPack/uno_game.db")
+#     conn = DbManager.connect_db("./DataPack/member.db")
 #     # conn.CreateTable("guilds", id="VARCHAR(255) PRIMARY KEY NOT NULL", name="VARCHAR(255)", created_at="DATETIME NOT NULL", region="VARCHAR(255) NOT NULL", prefix="CHAR(10) NOT NULL")
 #     # conn.CreateTable("uno_raw", id="INT(2) PRIMARY KEY NOT NULL", color="CHAR(10) NOT NULL", type="CHAR(10) NOT NULL", name="CHAR(55) NOT NULL", image_url="TEXT", bin="BLOB NOT NULL") + number
 #     # conn.CreateTable("ows_results", server_id="VARCHAR(255) NOT NULL", channel_id="VARCHAR(255)", story_title="VARCHAR(255)", story="TEXT NOT NULL")
 #     # conn.CreateTable("available_game", server_id="VARCHAR(255) PRIMARY KEY NOT NULL", available="TEXT")
 #     # conn.CreateTable("point", id="VARCHAR(255) PRIMARY KEY NOT NULL", coins="INT NOT NULL")
-#     conn.cursor.execute("""SELECT name, type FROM uno_raw;""")
+#     conn.cursor.execute("""SELECT * FROM point;""")
 #     for i in conn.cursor.fetchall():
 #         print(i)
 #     conn.cursor.close()

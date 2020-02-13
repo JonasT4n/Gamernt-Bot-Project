@@ -70,20 +70,29 @@ async def help(ctx, page = None):
             emb.add_field(name="1. 📄 General 📄", value="```Common Commands of Gamern't Bot, Absolutely not Game!```", inline=False)
             emb.add_field(name="2. 🎮 Games 🎮", value="```Play Games with others. Good Luck Have Fun!!!```", inline=False)
             emb.add_field(name="3. 😂 Fun 😂", value="```Fun Things to do here.```", inline=False)
+            emb.add_field(name="4. ⚙️ Util ⚙️", value="```Bot will serve you.```", inline=False)
             emb.set_thumbnail(url=bot_icon)
-            emb.set_footer(text="Example Command : g.ping")
+            emb.set_footer(text="Example Command : g.help games")
             await ctx.send(embed=emb)
         elif page.lower() == 'general':
             emb = discord.Embed(colour=discord.Colour(WHITE))
             emb.add_field(name="📄 General Commands 📄", value=open("./DataPack/help.txt", 'r').read(), inline=False)
+            emb.set_footer(text="Example Command : g.ping")
             await ctx.send(embed=emb)
         elif page.lower() == 'games':
             emb = discord.Embed(colour=discord.Colour(WHITE))
             emb.add_field(name="🎮 All Games 🎮", value=open("./DataPack/games.txt", 'r').read(), inline=False)
+            emb.set_footer(text="Example Command : g.ows how")
             await ctx.send(embed=emb)
         elif page.lower() == 'fun':
             emb = discord.Embed(colour=discord.Colour(WHITE))
             emb.add_field(name="😂 Fun Things 😂", value=open("./DataPack/fun.txt", 'r').read(), inline=False)
+            emb.set_footer(text="Example Command : g.duel Trump#0666")
+            await ctx.send(embed=emb)
+        elif page.lower() == 'util':
+            emb = discord.Embed(colour=discord.Colour(WHITE))
+            emb.add_field(name="⚙️ Utility ⚙️", value=open("./DataPack/utility.txt", 'r').read(), inline=False)
+            emb.set_footer(text="Example Command : g.giveaway 1000$")
             await ctx.send(embed=emb)
         else:
             bot_icon = bot.user.avatar_url
@@ -91,8 +100,9 @@ async def help(ctx, page = None):
             emb.add_field(name="1. 📄 General 📄", value="```Common Commands of Gamern't Bot, Absolutely not Game!```", inline=False)
             emb.add_field(name="2. 🎮 Games 🎮", value="```Play Games with others. Good Luck Have Fun!!!```", inline=False)
             emb.add_field(name="3. 😂 Fun 😂", value="```Fun Things to do here.```", inline=False)
+            emb.add_field(name="4. ⚙️ Util ⚙️", value="```Bot will serve you.```", inline=False)
             emb.set_thumbnail(url=bot_icon)
-            emb.set_footer(text="Example Command : g.ping")
+            emb.set_footer(text="Example Command : g.help games")
             await ctx.send(embed=emb)
     except Exception as exc:
         pass
@@ -128,30 +138,35 @@ async def ping(ctx): # Ping Command, Check Bot Latency
 async def general(ctx):
     emb = discord.Embed(colour=discord.Colour(WHITE))
     emb.add_field(name="📄 General Commands 📄", value=open("./DataPack/help.txt", 'r').read(), inline=False)
+    emb.set_footer(text="Example Command : g.ping")
     await ctx.send(embed=emb)
 
 @bot.command(aliases=['game'])
 async def games(ctx):
     emb = discord.Embed(colour=discord.Colour(WHITE))
     emb.add_field(name="🎮 All Games 🎮", value=open("./DataPack/games.txt", 'r').read(), inline=False)
+    emb.set_footer(text="Example Command : g.ows how")
     await ctx.send(embed=emb)
     
 @bot.command()
 async def fun(ctx):
     emb = discord.Embed(colour=discord.Colour(WHITE))
     emb.add_field(name="😂 Fun Things 😂", value=open("./DataPack/fun.txt", 'r').read(), inline=False)
+    emb.set_footer(text="Example Command : g.duel Trump#0666")
     await ctx.send(embed=emb)
 
-# @bot.command(pass_context=True)
-# @commands.is_owner()
-# async def init(ctx):
-#     temp = database.DbManager.connect_db("./DataPack/member.db")
-#     for guild in bot.guilds:
-#         for member in guild.members:
-#             if not member.bot:
-#                 temp.cursor.execute("""INSERT OR REPLACE INTO point VALUES (:id, :zero)""", {"id":str(member.id), "zero":0})     
-#     temp.connect.commit()
-#     temp.cursor.close()
+@bot.command()
+async def util(ctx):
+    emb = discord.Embed(colour=discord.Colour(WHITE))
+    emb.add_field(name="⚙️ Utility ⚙️", value=open("./DataPack/utility.txt", 'r').read(), inline=False)
+    emb.set_footer(text="Example Command : g.giveaway 1000$")
+    await ctx.send(embed=emb)
+
+@bot.command()
+@commands.is_owner()
+async def shutdown(ctx):
+    await ctx.send("**OOF**")
+    await ctx.bot.logout()
 
 if __name__ == '__main__':
     for game in os.listdir("./GamePack"):

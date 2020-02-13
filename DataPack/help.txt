@@ -2,5 +2,4 @@
 ***Help (h)*** *-> Need any Help?*
 ***About (a)*** *-> Information about This Bot.*
 ***Prefix (pfix)*** *-> Change Server Prefix.*
-***Giveaway (gw)*** *-> Giveaway Stuff Fairly.*
 ***Coin*** *-> Your Coins.*

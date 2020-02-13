@@ -222,3 +222,20 @@ def check_png_many_people(author):
         else:
             return False
     return inner_check
+
+def check_png_description_input(author):
+    def inner_check(message):
+        if author == message.author and len(message.content) <= 1024:
+            return True
+        else:
+            return False
+    return inner_check
+
+# Points Section
+def check_point_user_reaction(author, msg):
+    def inner_check(reaction, user):
+        if str(user.id) == str(author.id) and (str(reaction.emoji) == '▶️' or str(reaction.emoji) == '◀️'):
+            return True
+        else:
+            return False
+    return inner_check

@@ -67,7 +67,7 @@ class UNO(commands.Cog):
         # Initialize Each Member with Cards
         for ppl in players:
             embed_private = discord.Embed(colour=discord.Colour(WHITE))
-            deck = [random.choice(this_raw) for i in range(8)]
+            deck = [random.choice(this_raw) for i in range(6)]
             deck_names = [str(this + 1) + '. ' + deck[this][3] for this in range(len(deck))]
             members_card[str(ppl.id)] = deck # String Id
             embed_private.add_field(name="Your Cards :", value="\n".join(deck_names))
@@ -220,8 +220,22 @@ class UNO(commands.Cog):
         await host.send(embed=emb_leaderboard)
         threading.Thread(target=self.earn_coins([ppl[0] for ppl in all_cards_leftover])).start()
     
-    def earn_coins(self, players): # Earn Coins
+    def earn_coins(self, players: list): # Earn Coins
         temp_conn = dbm.connect_db("./DataPack/member.db")
+        for ppl in range(len(players)):
+            temp_conn.cursor.execute("""SELECT * FROM point WHERE id=:uid""", {"uid":str(players[ppl].id)})
+            get_user_info = temp_conn.cursor.fetchone()
+            if ppl == 0:
+                if get_user_info is None:
+                    temp_conn.cursor.execute("""INSERT INTO point VALUES (:uid, :p)""", {"p":250, "uid":str(players[ppl].id)})
+                else:
+                    temp_conn.cursor.execute("""UPDATE point SET coins = coins + :p WHERE id=:uid""", {"p":250, "uid":str(players[ppl].id)})
+            else:
+                if get_user_info is None:
+                    temp_conn.cursor.execute("""INSERT INTO point VALUES (:uid, :p)""", {"p":100, "uid":str(players[ppl].id)})
+                else:
+                    temp_conn.cursor.execute("""UPDATE point SET coins = coins + :p WHERE id=:uid""", {"p":100, "uid":str(players[ppl].id)})
+        temp_conn.connect.commit()
         temp_conn.cursor.close()
 
     @uno.error

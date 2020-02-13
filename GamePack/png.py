@@ -1,7 +1,7 @@
 import discord
 from discord.ext import tasks, commands
 from discord.utils import get
-import asyncio, os, threading, datetime, time, random
+import asyncio, os, threading, datetime, time, random, re
 from Settings.DbManager import DbManager as dbm
 from Settings.Handler import *
 
@@ -15,10 +15,47 @@ class PollGiveaway(commands.Cog):
         
     @commands.command()
     async def poll(self, ctx, *emoji):
-        print(str(emoji))
+        try:
+            if len(emoji) == 1 and (emoji[0].lower() == 'help' or emoji[0].lower() == 'h'):
+                emb = discord.Embed(title="🗳️ Polling - Help", description="*For a Better Democracy!*", colour=discord.Colour(WHITE))
+                emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/588917150891114516/676383812565073920/PollThumb.png")
+                emb.set_footer(text="Example Command : g.poll 👍🏻👎🏻")
+                await ctx.send(embed=emb)
+            else:
+                all_emoji_list = []
+                for emo in emoji:
+                    if re.search("^<:.*:.*>", emo):
+                        all_emoji_list.append(emo)
+                    else:
+                        s = emo.encode('unicode-escape').decode('ASCII')
+                        if '\\U' in s:
+                            all_emoji_list.append(emo)
+                        else:
+                            continue
+                all_emoji_list = list(set(all_emoji_list))
+                hnd_msg1 = await ctx.send(content="> Send a Title of This Poll Please, {}!".format(ctx.message.author.name))
+                this_msg1 = await self.bot.wait_for(event="message", check=check_png_description_input(ctx.message.author), timeout=60.0)
+                await hnd_msg1.delete()
+                hnd_msg2 = await ctx.send(content="> Send a Description Please, {}!".format(ctx.message.author.name))
+                this_msg2 = await self.bot.wait_for(event="message", check=check_png_description_input(ctx.message.author), timeout=60.0)
+                await hnd_msg2.delete()
+                # Making a Poll
+                emb = discord.Embed(title=this_msg1.content, description=this_msg2.content, colour=discord.Colour(WHITE))
+                emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/588917150891114516/676387305002500116/PollBOI.png")
+                emb.set_footer(text="Poll made on {}".format(datetime.datetime.now().date()))
+                poll_msg = await ctx.send(embed=emb)
+                for emo in all_emoji_list:
+                    await poll_msg.add_reaction(emo)
+                await this_msg1.delete()
+                await this_msg2.delete()
+        except Exception as exc:
+            if type(exc) == asyncio.TimeoutError:
+                await ctx.send("***Request Timeout!***")
+            else:
+                print(type(exc), exc)
                 
     @poll.error
-    async def poll_error(ctx, error):
+    async def poll_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
             emb = discord.Embed(title="~ Poll Event ~ UNDER MAINTENANCE", colour=discord.Colour(WHITE))
             emb.set_footer(text="Command : g.poll <Emojis>")
@@ -42,7 +79,7 @@ class PollGiveaway(commands.Cog):
             await ctx.send("*Request Time Out, Please try again later.*")
         
     @giveaway.error
-    async def giveaway_error(ctx, error):
+    async def giveaway_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
             emb = discord.Embed(title="~ GIVEAWAY Event ~", colour=discord.Colour(WHITE))
             emb.set_footer(text="Example Command : g.giveaway 1000$")
@@ -51,12 +88,11 @@ class PollGiveaway(commands.Cog):
     async def co_gw(self, dur, ctx, desc, ppl: int):
         emb = discord.Embed(title="🎁 GIVEAWAY! 🎁", colour=discord.Colour(WHITE))
         emb.add_field(name="By {}".format(ctx.message.author.name), value="{}".format(desc), inline=False)
-        now = str(datetime.datetime.now(datetime.timezone.utc)).split(' ')
-        emb.set_footer(text="Started on {} at {}; React this TADA to Join".format(now[0], now[1].split('.')[0]))
-        waiting_msg = await ctx.send(embed=emb)
-        await waiting_msg.add_reaction(u"\U0001F389")
+        emb.set_footer(text="Started on {} at {}; React this TADA to Join".format(datetime.datetime.now().date(), datetime.datetime.now().strftime("%H:%M:%S")))
+        wait_msg = await ctx.send(embed=emb)
+        await wait_msg.add_reaction(u"\U0001F389")
         await asyncio.sleep(dur)
-        get_updated_msg = discord.utils.get(self.bot.cached_messages, id=waiting_msg.id)
+        get_updated_msg = discord.utils.get(self.bot.cached_messages, id=wait_msg.id)
         all_ppl_joined = await get_updated_msg.reactions[0].users().flatten()
         del all_ppl_joined[0]
         winner = []
