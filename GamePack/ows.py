@@ -15,7 +15,7 @@ class OWS(commands.Cog):
 
     @commands.command(aliases=["OWS", "OWs", "Ows", "OwS", "oWS", "oWs", "owS"])
     async def ows(self, ctx, stat: str, story_num = None):
-        statuses = ["start", "h", "help", "r", "random", "ourstory", "os", "how", "delete", "del"]
+        statuses = ["start", "h", "help", "rdm", "random", "ourstory", "os", "how", "delete", "del", "read", "r"]
         try:
             if stat.lower() not in statuses:
                 raise commands.BadArgument
@@ -23,7 +23,7 @@ class OWS(commands.Cog):
             if stat.lower() == "help" or stat.lower() == "h": # Help
                 emb = discord.Embed(colour=discord.Colour(WHITE))
                 emb.set_author(name="📖 One Word Story")
-                emb.add_field(name="Commands (alias):", value="""***Start*** *-> Start The Game in the Channel.*\n***Help (h)*** *-> Help about One Word Story.*\n***OurStory (os)*** *-> Books Writen by your Server.*\n***Random (r)*** *-> Generate Random Story from Everywhere.*\n***How*** *-> The Manual to play this Game.*""", inline=False)
+                emb.add_field(name="Commands (alias):", value=open("./DataPack/Help/owsh.txt", 'r').read(), inline=False)
                 emb.set_footer(text="Example Command : g.ows how")
                 await ctx.send(embed=emb)
 
@@ -36,25 +36,39 @@ class OWS(commands.Cog):
                 await ctx.send(embed=emb)
                 
             if stat.lower() == "ourstory" or stat.lower() == "os": # Own Server Story to Look Up
-                emb = discord.Embed(colour=discord.Colour(WHITE))
-                self.conn.cursor.execute("""SELECT * FROM ows_results WHERE server_id=:sid""", {"sid":str(ctx.message.guild.id)})
-                list_of_server_stories, titles = self.conn.cursor.fetchall(), ""
-                if list_of_server_stories is None:
-                    emb.add_field(name="Your Server Stories", value="There is No Stories Yet.")
-                else:
-                    for i in range(len(list_of_server_stories)):
-                        if i == 0:
-                            titles += "{}. ".format(i + 1) + list_of_server_stories[i][2]
-                        else:
-                            titles += "\n{}. {}".format(i + 1, list_of_server_stories[i][2])
-                    emb.add_field(name="Your Server Stories", value="```{}```".format(titles), inline=False)
-                await ctx.send(embed=emb)
+                await self.show_list_story(ctx)
+            
+            if stat.lower() == "read" or stat.lower() == "r":
+                list_svr_story, temp_msg = await self.show_list_story(ctx)
+                try:
+                    xmsg = await ctx.send("***Pick a Story you want to read By Number.***")
+                    temp_msg1 = await self.bot.wait_for(event="message", check=check_choosen_story(ctx.message.author, list_svr_story), timeout=60.0)
+                    picked_story = list_svr_story[int(temp_msg1.content) - 1]
+                    emb_story = discord.Embed(title=picked_story[2], description=picked_story[3], colour=discord.Colour(WHITE))
+                    await ctx.send(embed=emb_story)
+                    await temp_msg1.delete()
+                    await temp_msg.delete()
+                    await xmsg.delete()
+                except asyncio.TimeoutError:
+                    await temp_msg.delete()
+                    await xmsg.delete()
 
-            if stat.lower() == "random" or stat.lower() == "r": # Random Generate Story
+            if stat.lower() == "random" or stat.lower() == "rdm": # Random Generate Story
                 await self.random_call_story(ctx)
                 
-            if (stat.lower() == "delete" or stat.lower() == "del") and (ctx.message.author.guild_permissions.ban_members or ctx.message.author.guild_permissions.administrator) :
-                pass
+            if (stat.lower() == "delete" or stat.lower() == "del") and (ctx.message.author.guild_permissions.ban_members or ctx.message.author.guild_permissions.administrator or ctx.message.author.guild_permissions.kick_members) :
+                list_svr_story, temp_msg = await self.show_list_story(ctx)
+                try:
+                    xmsg = await ctx.send("***Pick a Story you want to read By Number.***")
+                    temp_msg1 = await self.bot.wait_for(event="message", check=check_choosen_story(ctx.message.author, list_svr_story), timeout=60.0)
+                    picked_story = list_svr_story[int(temp_msg1.content) - 1]
+                    self.conn.cursor.execute("""DELETE FROM ows_results WHERE server_id=:sid AND story=:story""", {"sid":str(ctx.message.guild.id), "story":picked_story[3]})
+                    await ctx.send("You have thrown away your **{}** Book.".format(picked_story[2]))
+                    await temp_msg.delete()
+                    await temp_msg1.delete()
+                except asyncio.TimeoutError:
+                    await temp_msg.delete()
+                    await xmsg.delete()
 
         except Exception as exc:
             if type(exc) == commands.BadArgument:
@@ -75,14 +89,14 @@ class OWS(commands.Cog):
         if isinstance(error, commands.MissingRequiredArgument):
             emb = discord.Embed(colour=discord.Colour(WHITE))
             emb.set_author(name="~ One Word Story ~")
-            emb.add_field(name="Commands (alias):", value="""***Start*** *-> Start The Game in the Channel.*\n***Help (h)*** *-> Help about One Word Story.*\n***Random (r)*** *-> Generate Random Story from Everywhere.* """, inline=False)
+            emb.add_field(name="Commands (alias):", value=open("./DataPack/Help/owsh.txt", 'r').read(), inline=False)
             await ctx.send(embed=emb)
             
     async def ows_gameplay(self, ctx):
         # Initialize first Embed
         emb = discord.Embed(colour=discord.Colour(WHITE))
         next_value, on_play, new_emb, this_channel_id = [], True, discord.Embed(colour=discord.Colour(WHITE)), ctx.message.channel.id
-        handler_sent_emb = discord.Embed(description="***Current Progress per Sentence***", colour=discord.Colour(WHITE))
+        handler_sent_emb = discord.Embed(description="***Current Progress***", colour=discord.Colour(WHITE))
         emb.add_field(name="📖 OWS (Game Started)", value="Send a single Word by different person to make a Story.")
         emb.set_footer(text="type 'THE END' to end the Game. type 'UNDO' to undo a word. type 'CANCEL' to cancel the Game.")
         this_message = await ctx.send(embed=emb)
@@ -90,6 +104,7 @@ class OWS(commands.Cog):
         lastPerson = ctx.message.author
         # Game started only in The Channel
         try:
+            chains = 0
             while on_play:
                 new_word = await self.bot.wait_for(event="message", check=check_user_chain(this_channel_id), timeout=86400.0)
                 if new_word.content == "THE END":
@@ -107,8 +122,16 @@ class OWS(commands.Cog):
                     await this_message.delete()
                 else:
                     next_value.append(new_word.content)
-                    handler_sent_emb = discord.Embed(description=" ".join(next_value), colour=discord.Colour(WHITE))
-                    await other_message.edit(embed=handler_sent_emb)
+                    chains += 1
+                    if chains >= 25:
+                        chains -= 25
+                        handler_sent_emb = discord.Embed(description=" ".join(next_value), colour=discord.Colour(WHITE))
+                        await other_message.delete()
+                        other_message = await ctx.send(embed=handler_sent_emb)
+                    else:
+                        handler_sent_emb = discord.Embed(description=" ".join(next_value), colour=discord.Colour(WHITE))
+                        await other_message.edit(embed=handler_sent_emb)
+
         except asyncio.TimeoutError:
             new_emb.add_field(name="Game Time Out!", value=" ".join(next_value), inline=True)
             new_emb.set_footer(text="Consequence : This Story will not be Saved.")
@@ -132,9 +155,25 @@ class OWS(commands.Cog):
         temp_conn.cursor.execute("""SELECT story_title, story FROM ows_results""")
         get_story = random.choice(temp_conn.cursor.fetchall())
         temp_conn.cursor.close()
-        emb = discord.Embed(title="~ Random Story ~", colour=discord.Colour(WHITE))
+        emb = discord.Embed(title="📖 Random Story", colour=discord.Colour(WHITE))
         emb.add_field(name="{}".format(get_story[0]), value="{}".format(get_story[1]))
         await ctx.send(embed=emb)
+
+    async def show_list_story(self, ctx):
+        emb = discord.Embed(colour=discord.Colour(WHITE))
+        self.conn.cursor.execute("""SELECT * FROM ows_results WHERE server_id=:sid""", {"sid":str(ctx.message.guild.id)})
+        list_of_server_stories, titles = self.conn.cursor.fetchall(), ""
+        if list_of_server_stories is None or len(list_of_server_stories) == 0:
+            emb.add_field(name="Your Server Stories", value="```There is No Stories Yet.```")
+        else:
+            long_page = (len(list_of_server_stories) // 20) + 1
+            for i in range(len(list_of_server_stories)):
+                if i == 0:
+                    titles += "{}. ".format(i + 1) + list_of_server_stories[i][2]
+                else:
+                    titles += "\n{}. {}".format(i + 1, list_of_server_stories[i][2])
+            emb.add_field(name="Your Server Stories", value="```{}```".format(titles), inline=False)
+        return list_of_server_stories, await ctx.send(embed=emb)
 
 def setup(bot):
     bot.add_cog(OWS(bot))

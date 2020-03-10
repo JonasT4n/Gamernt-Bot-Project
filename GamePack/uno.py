@@ -59,21 +59,23 @@ class UNO(commands.Cog):
         # Embed Picture Table
         members_card, players, host, dm_msg = {}, datas['players'], datas['channel_host'], {}
         unoTable = [None, random.choice(this_raw)]
-        embed_display = discord.Embed(title="~ Uno Table ~", colour=discord.Colour(WHITE))
+        embed_display = discord.Embed(title="🎮 Uno Table", colour=discord.Colour(WHITE))
         embed_display.add_field(name="Previous Card \> Nothing", value="*First Card won't affect anyone*\n**v** Current Card on Top **v**")
         embed_display.set_image(url=unoTable[1][4])
         table_card = await host.send(embed=embed_display)
         
         # Initialize Each Member with Cards
         for ppl in players:
+            if ppl.dm_channel is None:
+                await ppl.create_dm()
             embed_private = discord.Embed(colour=discord.Colour(WHITE))
             deck = [random.choice(this_raw) for i in range(6)]
             deck_names = [str(this + 1) + '. ' + deck[this][3] for this in range(len(deck))]
             members_card[str(ppl.id)] = deck # String Id
             embed_private.add_field(name="Your Cards :", value="\n".join(deck_names))
+            embed_private.set_footer(text="Draw Card by Sending a Number in the Server")
             dm_msg[str(ppl.id)] = await ppl.send(embed=embed_private)
         run, turn, tnc = True, 0, {"skip":False, "reversed":False, "stack":[False, 0]}
-        names_of_dont_have = []
         
         # Gameplay Started
         while run:
@@ -127,26 +129,22 @@ class UNO(commands.Cog):
                 this_new_embed = discord.Embed(colour=discord.Colour(WHITE))
                 if dont_have is True: # Dont have a Card in current Player's Hand
                     if tnc["stack"][0] is True:
-                        this_new_embed.set_footer(text="You've got {} Card(s) from Stack.".format(tnc["stack"][1]))
+                        embed_display.set_footer(text="Stack Stopped, {} Takes {} Cards.".format(players[turn].name, tnc["stack"][1]))
                         while tnc["stack"][1] > 0:
                             members_card[str(players[turn].id)].append(random.choice(this_raw))
                             tnc["stack"][1] -= 1
                         tnc["stack"][0] = False
                     else:
-                        if players[turn].name in names_of_dont_have: # Skip the same Player Name again
-                            names_of_dont_have.remove(players[turn].name)
-                        names_of_dont_have.append(players[turn].name)
-                    embed_display.set_footer(text="{} don't have it.".format(", ".join(names_of_dont_have)))
+                        embed_display.set_footer(text="{} don't have it and takes One Card".format(players[turn].name))
                     await table_card.edit(embed=embed_display)
                     members_card[str(players[turn].id)].append(random.choice(this_raw))
                 else: # Have this Card
                     # Move Cards on Table
                     del unoTable[0]
-                    names_of_dont_have.clear()
                     unoTable.append(this_picked_card)
                     tnc = check_uno_card_effect(tnc, unoTable[1])
-                    embed_display = discord.Embed(title="~ Uno Table ~", colour=discord.Colour(WHITE))
-                    embed_display.add_field(name="Previous Card \>", value="**v** Current Card on Top **v**")
+                    embed_display = discord.Embed(title="🎮 Uno Table", colour=discord.Colour(WHITE))
+                    embed_display.add_field(name="{} has drawn {}".format(players[turn].name.split('#')[0], unoTable[1][3]), value="**v** Current Card on Top **v**")
                     embed_display.set_thumbnail(url=unoTable[0][4])
                     embed_display.set_image(url=unoTable[1][4])
                     await table_card.delete()
@@ -185,6 +183,7 @@ class UNO(commands.Cog):
                 # Update Current Card Player Has
                 deck_names = [str(card + 1) + '. ' + members_card[str(players[turn].id)][card][3] for card in range(len(members_card[str(players[turn].id)]))]
                 this_new_embed.add_field(name="Your Cards :", value="\n".join(deck_names), inline=False)
+                this_new_embed.set_footer(text="Draw Card by Sending a Number in the Server")
                 await dm_msg[str(players[turn].id)].edit(embed=this_new_embed)
                 # Check Turn
                 turn, tnc = check_uno_person_turn(turn, tnc, len(players) - 1)

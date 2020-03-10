@@ -1,0 +1,4 @@
+***[Tag Someone]*** *-> Duel With Someone you tagged.*
+***[Tag Someone] [Tag Another]*** *-> Duel With Someone you tagged.*
+***Help (h)*** *-> If you Need any Help.*
+***Random (rdm)*** *-> Random Pick 2 Player to Duel.*

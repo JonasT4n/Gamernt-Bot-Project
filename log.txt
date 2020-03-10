@@ -1,24 +1,25 @@
 General :
-- Fixed Help Command part 2
+- Make Website
 
 Uno :
-- Make DM Message Killer
+- Make DM Message Killer (Done but Not Tested)
+- Suggestion : Timer Visual
 
 OWS :
-- Make Delete Story Command
-- Every 25 words the bot send the current progress
-- Add some Read Command for read Own Story
+- Delete Command has been added
 
 Poll and Giveaway :
 - Poll is Pre-Working
 
 Point :
-- Global Leaderboard has been Made
 - Make a Server Leaderboard, Top 5 Most Of Coins Collected
+- Fix the Emoji Page System
 
 Duel :
-- Added Person to Duel
-- Started the Design
+- Balance Update
 
 Bingo :
 - Coming Soon!
+
+Link Invite :
+https://discordapp.com/api/oauth2/authorize?client_id=588179797394456605&permissions=1812987073&redirect_uri=https%3A%2F%2Fdiscordapp.com%2Fapi%2Foauth2%2Fauthorize&scope=bot

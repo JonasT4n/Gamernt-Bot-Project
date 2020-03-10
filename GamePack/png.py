@@ -64,26 +64,35 @@ class PollGiveaway(commands.Cog):
     @commands.command(aliases=['gw'])
     async def giveaway(self, ctx, *description):
         try:
-            handler_msg = await ctx.send(content="**Insert Duration** (Duration : \<hh mm ss\>) :")
-            this_msg = await self.bot.wait_for(event='message', check=check_png_times(ctx.message.author), timeout=120.0)
-            await this_msg.delete()
-            await handler_msg.delete()
-            duration: int = convert_time_for_png(this_msg.content)
-            handler_msg1 = await ctx.send(content="**Insert Many People Win (Many : <num\>) :**")
-            this_msg1 = await self.bot.wait_for(event='message', check=check_png_many_people(ctx.message.author), timeout=120.0)
-            many_ppl = int(this_msg1.content)
-            await this_msg1.delete()
-            await handler_msg1.delete()
-            threading.Thread(target=await self.co_gw(duration, ctx, " ".join(description), many_ppl)).start()
-        except asyncio.TimeoutError:
-            await ctx.send("*Request Time Out, Please try again later.*")
+            if len(description) == 0:
+                raise commands.MissingRequiredArgument
+            elif description[0].lower() == "h" or description[0].lower() == "help":
+                emb = discord.Embed(title="🎉 Giveaway", description="Example Command : g.giveaway 1000$", colour=discord.Colour(WHITE))
+                await ctx.send(embed = emb)
+            else:
+                handler_msg = await ctx.send(content="**Insert Duration** (Duration : \<hh mm ss\>) :")
+                this_msg = await self.bot.wait_for(event='message', check=check_png_times(ctx.message.author), timeout=120.0)
+                await this_msg.delete()
+                await handler_msg.delete()
+                duration: int = convert_time_for_png(this_msg.content)
+                handler_msg1 = await ctx.send(content="**Insert Many People Win (Many : <num\>) :**")
+                this_msg1 = await self.bot.wait_for(event='message', check=check_png_many_people(ctx.message.author), timeout=120.0)
+                many_ppl = int(this_msg1.content)
+                await this_msg1.delete()
+                await handler_msg1.delete()
+                threading.Thread(target=await self.co_gw(duration, ctx, " ".join(description), many_ppl)).start()
+        except Exception as exc:
+            if type(exc) == asyncio.TimeoutError:
+                await ctx.send("*Request Time Out, Please try again later.*")
+            if type(exc) == commands.MissingRequiredArgument:
+                emb = discord.Embed(title="🎉 Giveaway", description="Example Command : g.giveaway 1000$", colour=discord.Colour(WHITE))
+                await ctx.send(embed = emb)
         
     @giveaway.error
     async def giveaway_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            emb = discord.Embed(title="~ GIVEAWAY Event ~", colour=discord.Colour(WHITE))
-            emb.set_footer(text="Example Command : g.giveaway 1000$")
-            await ctx.send(embed=emb)
+            emb = discord.Embed(title="🎉 Giveaway", description="Example Command : g.giveaway 1000$", colour=discord.Colour(WHITE))
+            await ctx.send(embed = emb)
     
     async def co_gw(self, dur, ctx, desc, ppl: int):
         emb = discord.Embed(title="🎁 GIVEAWAY! 🎁", colour=discord.Colour(WHITE))

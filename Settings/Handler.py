@@ -158,6 +158,18 @@ def check_last_person_ows_give_title(author):
             False
     return inner_check
 
+def check_choosen_story(author, list_story: list):
+    def inner_check(message):
+        try:
+            if message.author == author and (int(message.content) > 0 and int(message.content) <= len(list_story)):
+                return True
+            else:
+                return False
+        except Exception as exc:
+            print(type(exc), exc)
+            return False
+    return inner_check
+
 # Help Command Handler Section
 def main_help_handler(message):
     contents = ["n", "next", "b", "back", "close"]

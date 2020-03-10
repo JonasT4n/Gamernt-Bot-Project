@@ -65,7 +65,7 @@ async def help(ctx, page = None):
     """Custom Help Command"""
     try:
         if page is None:
-            bot_icon = bot.user.avatar_url
+            bot_icon = bot.user.avatar_url # https://cdn.discordapp.com/avatars/588179797394456605/1efc5863f4de47420cbdeeabfc13cd2b.webp?size=1024
             emb = discord.Embed(title="🎮 Gamern't Bot - Help", colour=discord.Colour(WHITE))
             emb.add_field(name="1. 📄 General 📄", value="```Common Commands of Gamern't Bot, Absolutely not Game!```", inline=False)
             emb.add_field(name="2. 🎮 Games 🎮", value="```Play Games with others. Good Luck Have Fun!!!```", inline=False)
@@ -76,22 +76,22 @@ async def help(ctx, page = None):
             await ctx.send(embed=emb)
         elif page.lower() == 'general':
             emb = discord.Embed(colour=discord.Colour(WHITE))
-            emb.add_field(name="📄 General Commands 📄", value=open("./DataPack/help.txt", 'r').read(), inline=False)
+            emb.add_field(name="📄 General Commands 📄", value=open("./DataPack/Help/help.txt", 'r').read(), inline=False)
             emb.set_footer(text="Example Command : g.ping")
             await ctx.send(embed=emb)
         elif page.lower() == 'games':
             emb = discord.Embed(colour=discord.Colour(WHITE))
-            emb.add_field(name="🎮 All Games 🎮", value=open("./DataPack/games.txt", 'r').read(), inline=False)
+            emb.add_field(name="🎮 All Games 🎮", value=open("./DataPack/Help/games.txt", 'r').read(), inline=False)
             emb.set_footer(text="Example Command : g.ows how")
             await ctx.send(embed=emb)
         elif page.lower() == 'fun':
             emb = discord.Embed(colour=discord.Colour(WHITE))
-            emb.add_field(name="😂 Fun Things 😂", value=open("./DataPack/fun.txt", 'r').read(), inline=False)
+            emb.add_field(name="😂 Fun Things 😂", value=open("./DataPack/Help/fun.txt", 'r').read(), inline=False)
             emb.set_footer(text="Example Command : g.duel Trump#0666")
             await ctx.send(embed=emb)
         elif page.lower() == 'util':
             emb = discord.Embed(colour=discord.Colour(WHITE))
-            emb.add_field(name="⚙️ Utility ⚙️", value=open("./DataPack/utility.txt", 'r').read(), inline=False)
+            emb.add_field(name="⚙️ Utility ⚙️", value=open("./DataPack/Help/utility.txt", 'r').read(), inline=False)
             emb.set_footer(text="Example Command : g.giveaway 1000$")
             await ctx.send(embed=emb)
         else:
@@ -137,28 +137,28 @@ async def ping(ctx): # Ping Command, Check Bot Latency
 @bot.command()
 async def general(ctx):
     emb = discord.Embed(colour=discord.Colour(WHITE))
-    emb.add_field(name="📄 General Commands 📄", value=open("./DataPack/help.txt", 'r').read(), inline=False)
+    emb.add_field(name="📄 General Commands 📄", value=open("./DataPack/Help/help.txt", 'r').read(), inline=False)
     emb.set_footer(text="Example Command : g.ping")
     await ctx.send(embed=emb)
 
 @bot.command(aliases=['game'])
 async def games(ctx):
     emb = discord.Embed(colour=discord.Colour(WHITE))
-    emb.add_field(name="🎮 All Games 🎮", value=open("./DataPack/games.txt", 'r').read(), inline=False)
+    emb.add_field(name="🎮 All Games 🎮", value=open("./DataPack/Help/games.txt", 'r').read(), inline=False)
     emb.set_footer(text="Example Command : g.ows how")
     await ctx.send(embed=emb)
     
 @bot.command()
 async def fun(ctx):
     emb = discord.Embed(colour=discord.Colour(WHITE))
-    emb.add_field(name="😂 Fun Things 😂", value=open("./DataPack/fun.txt", 'r').read(), inline=False)
+    emb.add_field(name="😂 Fun Things 😂", value=open("./DataPack/Help/fun.txt", 'r').read(), inline=False)
     emb.set_footer(text="Example Command : g.duel Trump#0666")
     await ctx.send(embed=emb)
 
 @bot.command()
 async def util(ctx):
     emb = discord.Embed(colour=discord.Colour(WHITE))
-    emb.add_field(name="⚙️ Utility ⚙️", value=open("./DataPack/utility.txt", 'r').read(), inline=False)
+    emb.add_field(name="⚙️ Utility ⚙️", value=open("./DataPack/Help/utility.txt", 'r').read(), inline=False)
     emb.set_footer(text="Example Command : g.giveaway 1000$")
     await ctx.send(embed=emb)
 

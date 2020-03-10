@@ -1,5 +1,3 @@
-import re
+a = "Haze Punch Guaka and Dealt {} damage"
 
-a = "<:GWlulurdMegaLul:402868018721456128>"
-
-print(re.search("^<:.*:.*>", a))
+print(a.format(666))
