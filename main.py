@@ -3,6 +3,7 @@ from discord.ext import commands, tasks
 import Settings.Handler as handle
 import Settings.DbManager as database
 import os, asyncio, time, random
+import Settings.config as token_conn
 
 conn = database.DbManager.connect_db("./DataPack/guild.db")
 bot = commands.Bot(command_prefix=handle.check_guild_prefix(conn))
@@ -172,6 +173,6 @@ if __name__ == '__main__':
     for game in os.listdir("./GamePack"):
         if game.endswith(".py"):
             bot.load_extension("GamePack.{}".format(game[:-3]))
-    bot.run('NTg4MTc5Nzk3Mzk0NDU2NjA1.XiagLQ.Ei6nDxQLGpk8A8CbrE9JJLcNaxk')
+    bot.run(token_conn.token_bot)
     conn.cursor.close()
     print("{:^50}".format("~ Session Ended, OOF! ~"))
