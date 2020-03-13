@@ -3,7 +3,7 @@ from discord.ext import commands, tasks
 import Settings.Handler as handle
 import Settings.DbManager as database
 import os, asyncio, time, random
-import config as token_conn
+from botconfig import token_bot
 
 conn = database.DbManager.connect_db("./DataPack/guild.db")
 bot = commands.Bot(command_prefix=handle.check_guild_prefix(conn))
