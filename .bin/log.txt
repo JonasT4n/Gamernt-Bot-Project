@@ -2,8 +2,10 @@ General :
 - Make Website
 
 Uno :
-- Make DM Message Killer (Done but Not Tested)
+- Fix Plus Stack
+- Make DM Message Killer
 - Suggestion : Timer Visual
+- Added extra Card after Stack ?! (BUG)
 
 OWS :
 - Delete Command has been added
