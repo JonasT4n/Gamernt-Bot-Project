@@ -59,6 +59,14 @@ async def about(ctx):
     emb.set_thumbnail(url=bot_icon)
     emb.set_footer(text="Version : 1.0.1; Your Current Prefix : {}".format(this_guild_prefix.fetchone()[0]))
     await ctx.send(embed=emb)
+    
+@bot.command(aliases=['new'])
+async def news(ctx):
+    """News about Current Bot Progress"""
+    bot_icon = bot.user.avatar_url
+    emb = discord.Embed(title="📰 Breaking News!", description="- Uno Commands Currently Disabled due to Buggy Gameplay.")
+    emb.set_thumbnail(bot_icon)
+    await ctx.send(embed=emb)
 
 @bot.command(aliases=['h'])
 async def help(ctx, page = None):
@@ -130,7 +138,7 @@ async def prefix(ctx, new_prefix: str):
 
 @bot.command()
 async def ping(ctx): # Ping Command, Check Bot Latency
-    await ctx.send("🏓 **Pong! {}ms**".format(int(bot.latency * 1000)))
+    this_message = await ctx.send("🏓 **Pong! {}ms**".format(int(bot.latency * 1000)))
     also_this_message = ctx.message
     await also_this_message.delete()
 
@@ -171,6 +179,8 @@ async def shutdown(ctx):
 if __name__ == '__main__':
     for game in os.listdir("./GamePack"):
         if game.endswith(".py"):
+            if "uno" in game:
+                continue
             bot.load_extension("GamePack.{}".format(game[:-3]))
     bot.run(os.getenv("TOKEN_BOT"))
     conn.cursor.close()
