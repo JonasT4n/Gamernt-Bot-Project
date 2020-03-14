@@ -3,7 +3,6 @@ from discord.ext import commands, tasks
 import Settings.Handler as handle
 import Settings.DbManager as database
 import os, asyncio, time, random
-from botconfig import token_bot
 
 conn = database.DbManager.connect_db("./DataPack/guild.db")
 bot = commands.Bot(command_prefix=handle.check_guild_prefix(conn))
@@ -131,7 +130,7 @@ async def prefix(ctx, new_prefix: str):
 
 @bot.command()
 async def ping(ctx): # Ping Command, Check Bot Latency
-    this_message = await ctx.send("🏓 **Pong! {}ms**".format(int(bot.latency * 1000)))
+    await ctx.send("🏓 **Pong! {}ms**".format(int(bot.latency * 1000)))
     also_this_message = ctx.message
     await also_this_message.delete()
 
@@ -173,6 +172,6 @@ if __name__ == '__main__':
     for game in os.listdir("./GamePack"):
         if game.endswith(".py"):
             bot.load_extension("GamePack.{}".format(game[:-3]))
-    bot.run(token_conn.token_bot)
+    bot.run(os.getenv("TOKEN_BOT"))
     conn.cursor.close()
     print("{:^50}".format("~ Session Ended, OOF! ~"))
