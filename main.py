@@ -3,6 +3,7 @@ from discord.ext import commands, tasks
 import Settings.Handler as handle
 import Settings.DbManager as database
 import os, asyncio, time, random
+from Settings.webserver import run_web
 
 conn = database.DbManager.connect_db("./DataPack/guild.db")
 bot = commands.Bot(command_prefix=handle.check_guild_prefix(conn))
@@ -177,6 +178,7 @@ async def shutdown(ctx):
     await ctx.bot.logout()
 
 if __name__ == '__main__':
+    run_web()
     for game in os.listdir("./GamePack"):
         if game.endswith(".py"):
             if "uno" in game:
