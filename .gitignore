@@ -2,7 +2,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
-config.py
 
 # C extensions
 *.so
@@ -21,6 +20,7 @@ parts/
 sdist/
 var/
 wheels/
+Settings/config.py
 pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
