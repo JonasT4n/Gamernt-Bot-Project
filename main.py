@@ -4,6 +4,7 @@ import Settings.Handler as handle
 import Settings.DbManager as database
 import os, asyncio, time, random
 from Settings.webserver import run_web
+from Settings.config import TOKEN_BOT
 
 conn = database.DbManager.connect_db("./DataPack/guild.db")
 bot = commands.Bot(command_prefix=handle.check_guild_prefix(conn))
@@ -184,6 +185,6 @@ if __name__ == '__main__':
             if "uno" in game:
                 continue
             bot.load_extension("GamePack.{}".format(game[:-3]))
-    bot.run(os.getenv("TOKEN_BOT"))
+    bot.run(TOKEN_BOT)
     conn.cursor.close()
     print("{:^50}".format("~ Session Ended, OOF! ~"))
