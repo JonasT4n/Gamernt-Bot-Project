@@ -3,7 +3,6 @@ from discord.ext import commands, tasks
 import Settings.Handler as handle
 import Settings.DbManager as database
 import os, asyncio, time, random
-from Settings.config import bot_secret
 from Settings.webserver import run_web
 
 conn = database.DbManager.connect_db("./DataPack/guild.db")
