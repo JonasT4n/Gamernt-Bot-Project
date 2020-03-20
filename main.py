@@ -185,6 +185,6 @@ if __name__ == '__main__':
             if "uno" in game:
                 continue
             bot.load_extension("GamePack.{}".format(game[:-3]))
-    bot.run(bot_secret)
+    bot.run(os.getenv("BOT_SECRET_GAMER"))
     conn.cursor.close()
     print("{:^50}".format("~ Session Ended, OOF! ~"))
