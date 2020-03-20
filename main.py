@@ -3,6 +3,7 @@ from discord.ext import commands, tasks
 import Settings.Handler as handle
 import Settings.DbManager as database
 import os, asyncio, time, random
+from Settings.config import bot_secret
 from Settings.webserver import run_web
 
 conn = database.DbManager.connect_db("./DataPack/guild.db")
@@ -184,6 +185,6 @@ if __name__ == '__main__':
             if "uno" in game:
                 continue
             bot.load_extension("GamePack.{}".format(game[:-3]))
-    bot.run(os.getenv("BOT_SECRET"))
+    bot.run(bot_secret)
     conn.cursor.close()
     print("{:^50}".format("~ Session Ended, OOF! ~"))
