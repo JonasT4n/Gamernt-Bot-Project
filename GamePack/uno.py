@@ -47,6 +47,15 @@ class UNO(commands.Cog):
             else:
                 print(type(exc), exc)
 
+    @uno.error
+    async def uno_error(self, ctx, error):
+        emb = discord.Embed(colour=discord.Colour(WHITE))
+        if isinstance(error, commands.MissingRequiredArgument):
+            emb.set_author(name="~ Uno Game Card ~")
+            emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/588917150891114516/670457799955972096/UNO_MainCard.png")
+            emb.add_field(name="Commands (alias)", value="""***Start (UNDER MAINTENANCE)*** *-> This will Start a New Game.*\n***Help (h)*** *-> Help about Uno Game Card.*""")
+            await ctx.send(embed=emb)
+
     # Game Started, Initialize Everyone's Card and ChatBox Embed
     async def uno_gameplay(self, **datas):
         # What's in Datas : players=players -> [ppl]
@@ -189,12 +198,14 @@ class UNO(commands.Cog):
                 turn, tnc = check_uno_person_turn(turn, tnc, len(players) - 1)
                 # Replace Message Handler
                 await whos_turn.delete()
-                    
+    
+    # Announce the Winner
     async def announce_winner(self, winner, host, players, cards_left: dict):
         # Insert All Data in one Array
         all_cards_leftover = []
         for his_deck in range(len(cards_left)):
             all_cards_leftover.append([players[his_deck], len(cards_left[str(players[his_deck].id)])])
+
         # Insertion Sort
         for identity in range(len(all_cards_leftover)):
             temp_val = all_cards_leftover[identity]
@@ -203,6 +214,7 @@ class UNO(commands.Cog):
                 all_cards_leftover[hole_pos + 1] = all_cards_leftover[hole_pos]
                 hole_pos -= 1
             all_cards_leftover[hole_pos + 1] = temp_val
+
         # Make Display Embed
         emb_leaderboard = discord.Embed(title="~ Game Over ~", colour=discord.Colour(WHITE))
         emb_leaderboard.set_thumbnail(url="https://cdn.discordapp.com/attachments/588917150891114516/670457799955972096/UNO_MainCard.png")
@@ -219,6 +231,7 @@ class UNO(commands.Cog):
         await host.send(embed=emb_leaderboard)
         threading.Thread(target=self.earn_coins([ppl[0] for ppl in all_cards_leftover])).start()
     
+    # Players get the Coins
     def earn_coins(self, players: list): # Earn Coins
         temp_conn = dbm.connect_db("./DataPack/member.db")
         for ppl in range(len(players)):
@@ -236,15 +249,6 @@ class UNO(commands.Cog):
                     temp_conn.cursor.execute("""UPDATE point SET coins = coins + :p WHERE id=:uid""", {"p":100, "uid":str(players[ppl].id)})
         temp_conn.connect.commit()
         temp_conn.cursor.close()
-
-    @uno.error
-    async def uno_error(self, ctx, error):
-        emb = discord.Embed(colour=discord.Colour(WHITE))
-        if isinstance(error, commands.MissingRequiredArgument):
-            emb.set_author(name="~ Uno Game Card ~")
-            emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/588917150891114516/670457799955972096/UNO_MainCard.png")
-            emb.add_field(name="Commands (alias)", value="""***Start (UNDER MAINTENANCE)*** *-> This will Start a New Game.*\n***Help (h)*** *-> Help about Uno Game Card.*""")
-            await ctx.send(embed=emb)
 
     async def queuing(self, ctx):
         # Making a Queue Embed Message

@@ -2,11 +2,20 @@ import discord
 from discord.ext import commands, tasks
 import Settings.Handler as handle
 import Settings.DbManager as database
-import os, asyncio, time, random
+import sys, os, asyncio, time, random
 from Settings.webserver import run_web
 
+def check_guild_prefix(database):
+    def inner_check(bot, message):
+        database.cursor.execute("""SELECT prefix FROM guilds WHERE id='{}';""".format(str(message.guild.id)))
+        n = database.cursor.fetchone()
+        if message.content[0:len(n[0])] == n[0].upper():
+            return n[0].upper()
+        return n[0].lower()
+    return inner_check
+
 conn = database.DbManager.connect_db("./DataPack/guild.db")
-bot = commands.Bot(command_prefix=handle.check_guild_prefix(conn))
+bot = commands.Bot(command_prefix=check_guild_prefix(conn))
 bot.remove_command("help")
 WHITE = 0xfffffe
 
@@ -43,11 +52,10 @@ async def on_guild_join(guild):
 @bot.event
 async def on_message(message):
     """Event Message"""
-    if message.content == bot.user.mention:
+    if str(bot.user.id) in message.content:
         user_said, in_channel = message.author, message.channel
         this_guild_prefix = conn.cursor.execute("""SELECT prefix FROM guilds WHERE id={};""".format(str(message.guild.id)))
         emb = discord.Embed(title="Your Server Prefix is {}".format(this_guild_prefix.fetchone()[0]), color=discord.Color(WHITE))
-        await message.delete()
         await in_channel.send(embed=emb)
     await bot.process_commands(message)
 
@@ -65,8 +73,8 @@ async def about(ctx):
 async def news(ctx):
     """News about Current Bot Progress"""
     bot_icon = bot.user.avatar_url
-    emb = discord.Embed(title="📰 Breaking News!", description="- Uno Commands Currently Disabled due to Buggy Gameplay.")
-    emb.set_thumbnail(bot_icon)
+    emb = discord.Embed(title="📰 Breaking News!", description=open("./DataPack/Help/news.txt", 'r').read(), colour=discord.Colour(WHITE))
+    emb.set_thumbnail(url=bot_icon)
     await ctx.send(embed=emb)
 
 @bot.command(aliases=['h'])
@@ -178,12 +186,12 @@ async def shutdown(ctx):
     await ctx.bot.logout()
 
 if __name__ == '__main__':
-    run_web()
+    # run_web()
     for game in os.listdir("./GamePack"):
         if game.endswith(".py"):
             if "uno" in game:
                 continue
             bot.load_extension("GamePack.{}".format(game[:-3]))
-    bot.run(os.getenv("BOT_SECRET_GAMER"))
+    bot.run("Secret")
     conn.cursor.close()
     print("{:^50}".format("~ Session Ended, OOF! ~"))

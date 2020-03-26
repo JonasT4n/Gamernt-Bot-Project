@@ -1,0 +1,4 @@
+- Minor Fixed One Word Story
+- Added Mine Command for Fun
+- Changing Poll System
+- Giveaway Command Become The Choosen One Command

@@ -55,7 +55,7 @@ class Duel(commands.Cog):
                     await self.begins(ctx.message.channel, Brawler(person1), Brawler(person2))
                 else:
                     for mbr in ctx.message.guild.members:
-                        if person1 in mbr.name:
+                        if person1.lower() in mbr.name.lower():
                             person2 = mbr
                             break
                     else:
@@ -63,17 +63,44 @@ class Duel(commands.Cog):
                     person1 = ctx.message.author
                     await self.begins(ctx.message.channel, Brawler(person1), Brawler(person2))
             elif person1 is not None and person2 is not None:
-                pass
+                if re.search("^<@\S*>$", person1) and re.search("^<@\S*>$", person2):
+                    person1 = self.bot.get_user(int(person1.split('!')[1].split('>')[0]))
+                    person2 = self.bot.get_user(int(person2.split('!')[1].split('>')[0]))
+                    await self.begins(ctx.message.channel, Brawler(person1), Brawler(person2))
+                elif re.search("^<@\S*>$", person1) and not re.search("^<@\S*>$", person2):
+                    person1 = self.bot.get_user(int(person1.split('!')[1].split('>')[0]))
+                    person2 = random.choice(ctx.message.guild.members)
+                    await self.begins(ctx.message.channel, Brawler(person1), Brawler(person2))
+                elif not re.search("^<@\S*>$", person1) and re.search("^<@\S*>$", person2):
+                    person1 = random.choice(ctx.message.guild.members)
+                    person2 = self.bot.get_user(int(person2.split('!')[1].split('>')[0]))
+                    await self.begins(ctx.message.channel, Brawler(person1), Brawler(person2))
+                else:
+                    person1 = random.choice(ctx.message.guild.members)
+                    person2 = random.choice(ctx.message.guild.members)
+                    await self.begins(ctx.message.channel, Brawler(person1), Brawler(person2))
         except Exception as exc:
             print(type(exc), exc)
 
     async def begins(self, chnl, p1: Brawler, p2: Brawler):
-        damage_dealt = ["*{} Punches {} on his Cheekbone.* ***({} dmg)***", "*{} Tripped {} onto the Ground.* ***({} dmg)***", "*{} kicked {} out of the arena.* ***({} dmg)***", "*{} slashed {} with chair.* ***({} dmg)***"]
+        # Funny Description
+        damage_dealt = [
+            "*{} Punches {}.* ***({} dmg)***", 
+            "*{} Tripped {}.* ***({} dmg)***", 
+            "*{} kicked {}.* ***({} dmg)***", 
+            "*{} slashed {}.* ***({} dmg)***",
+            "*{} slapped {}.* ***({} dmg)***"
+        ]
+
+        # System Attribute
         whos_first: int = random.randint(0, 1)
-        p1name: str; p2name: str
-        p1name, p2name = p1.p.name.split('#')[0], p2.p.name.split('#')[0]
+        p1name: str = p1.p.name.split('#')[0]
+        p2name: str = p2.p.name.split('#')[0]
         emb = discord.Embed(title="⚔️", colour=discord.Colour(WHITE))
-        handler_msg, container_log = await chnl.send(embed=emb), []
+        handler_msg = await chnl.send(embed=emb)
+        container_log = []
+        
+        # Duel Begins
         while p1.HP > 0 and p2.HP > 0:
             # Making Turn and Battle
             if whos_first == 0: # Player One Make Move
@@ -98,15 +125,17 @@ class Duel(commands.Cog):
             emb.add_field(name="Battle Log :", value="\n".join(container_log), inline=False)
             await handler_msg.edit(embed = emb)
             await asyncio.sleep(1)
+        
+        # Duel final Result
         await asyncio.sleep(3)
         if p1.HP == 0:
-            emb = discord.Embed(title="⚔️ Duel ⚔️".format(p2name), description="> **{}** : Died\n> **{}** : 🏆 The Champion!".format(p1name, p2name), colour=discord.Colour(WHITE))
+            emb = discord.Embed(title="⚔️ Duel Ended ⚔️", description="> **{}** : Died\n> **{}** : 🏆 The Champion! {} HP left".format(p1name, p2name, p2.HP), colour=discord.Colour(WHITE))
             emb.add_field(name="Battle Log :", value="\n".join(container_log), inline=False)
             emb.set_thumbnail(url=p2.p.avatar_url)
             await handler_msg.edit(embed = emb)
             return p2.p
         else:
-            emb = discord.Embed(title="⚔️ Duel ⚔️".format(p1name), description="> **{}** : 🏆 The Champion!\n> **{}** : Died".format(p1name, p2name), colour=discord.Colour(WHITE))
+            emb = discord.Embed(title="⚔️ Duel Ended ⚔️", description="> **{}** : 🏆 The Champion! {} HP left\n> **{}** : Died".format(p1name, p1.HP, p2name), colour=discord.Colour(WHITE))
             emb.add_field(name="Battle Log :", value="\n".join(container_log), inline=False)
             emb.set_thumbnail(url=p1.p.avatar_url)
             await handler_msg.edit(embed = emb)
