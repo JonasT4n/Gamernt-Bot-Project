@@ -5,6 +5,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 config.json
+test.py
 
 # C extensions
 *.so
