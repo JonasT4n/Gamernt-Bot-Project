@@ -6,6 +6,7 @@ import time
 import json
 import random
 import datetime
+from webserver import app as web
 from discord.ext import commands, tasks
 import Settings.Handler as handle
 import Settings.DbManager as dbm
@@ -258,7 +259,8 @@ async def global_info(ctx):
     emb.add_field(name="Member Count", value=f"{members}")
     await ctx.send(embed = emb)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    web.run(debug = True)
     for game in os.listdir("./GamePack"):
         if game.endswith(".py"):
             bot.load_extension("GamePack.{}".format(game[:-3]))
