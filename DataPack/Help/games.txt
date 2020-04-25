@@ -1,3 +1,8 @@
-***Ows*** *-> One Word Story.*
-***Uno*** *-> Playing Card Uno.*
-***Bingo*** *-> An Idle Bingo Game.*
+```Ows             -> One Word Story.
+Scramble (scr)  -> Guess a Word
+Uno             -> Playing Card Uno. (Underconstruction)
+Bingo           -> An Idle Bingo Game. (Coming Soon)
+RPS             -> Rock Paper Scissor.
+Conquer         -> Conquer the World. (Coming Soon)
+Survival (surv) -> Idle Survival Game. (Coming Soon)
+TicTacToe (ttt) -> Tic Tac Toe Game. (Underconstruction)```

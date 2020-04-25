@@ -1,7 +1,7 @@
-***Start*** *-> Start The Game in the Channel.*
-***Help (h)*** *-> Help about One Word Story.*
-***OurStory (os)*** *-> Books Writen by your Server.*
-***Random (rdm)*** *-> Generate Random Story from Everywhere.*
-***How*** *-> The Manual to play this Game.*
-***Read (r)*** *-> Read your Story.*
-***Delete (del)*** *-> Delete your Story.*
+```Start         -> Start The Game in the Channel.
+Help (h)      -> Help about One Word Story.
+OurStory (os) -> Books Writen by your Server.
+Random (rdm)  -> Generate Random Story from Everywhere.
+How           -> The Manual to play this Game.
+Read (r)      -> Read your Story.
+Delete (del)  -> Delete your Story.```

@@ -1,2 +1,3 @@
-***Duel*** *-> Beating Your Friend is quite Fun.*
-***Mine*** *-> Mining Ores, Let see what you get.*
+```Duel       -> Beating Your Friend is quite Fun.
+Dig (mine) -> Mining Ores, Let see what you get.
+Dice       -> Roll the Dice.```

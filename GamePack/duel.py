@@ -1,6 +1,11 @@
 import discord
 from discord.ext import commands, tasks
-import os, asyncio, threading, random, re
+import os
+import asyncio
+import threading
+import random
+import re
+from Settings.DbManager import DbManager as dbm
 import shutil
 import requests
 
@@ -25,71 +30,23 @@ class Brawler:
         return self.ARMOR
 
 class Duel(commands.Cog):
+
+    winner_get: int = 3
+    loser_get: int = 1
     
     def __init__(self, bot):
         self.bot = bot
-        
-    @commands.command()
-    async def duel(self, ctx, person1 = None, person2 = None):
-        try:
-            if person1 is None and person2 is None:
-                person1 = ctx.message.author
-                person2 = random.choice(ctx.message.guild.members)
-                await self.begins(ctx.message.channel, Brawler(person1), Brawler(person2))
-            elif person1 == "random" or person1 == "rdm":
-                person1 = random.choice(ctx.message.guild.members)
-                person2 = random.choice(ctx.message.guild.members)
-                await self.begins(ctx.message.channel, Brawler(person1), Brawler(person2))
-            elif person1.lower() == 'help' or person1.lower() == 'h':
-                emb = discord.Embed(title="⚔️ Duel Fight", description="Punch, Kick, and Kill your friend. Nothing Else!", colour=discord.Colour(WHITE))
-                emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/588917150891114516/676351507322503168/VSBattle_Logo.png")
-                emb.add_field(name="Command (alias):", value=open("./DataPack/Help/duelh.txt", 'r').read(), inline=False)
-                emb.add_field(name="Others :", value="> You can Duel your Friend without tagging them. Just Enter their Name.")
-                emb.set_footer(text="Example Command : g.duel @Gamern't Bot")
-                await ctx.send(embed = emb)
-            elif person1 is not None and person2 is None:
-                if re.search("^<@\S*>$", person1):
-                    person2 = person1
-                    person1 = ctx.message.author
-                    person2 = self.bot.get_user(int(person2.split('!')[1].split('>')[0]))
-                    await self.begins(ctx.message.channel, Brawler(person1), Brawler(person2))
-                else:
-                    for mbr in ctx.message.guild.members:
-                        if person1.lower() in mbr.name.lower():
-                            person2 = mbr
-                            break
-                    else:
-                        person2 = random.choice(ctx.message.guild.members)
-                    person1 = ctx.message.author
-                    await self.begins(ctx.message.channel, Brawler(person1), Brawler(person2))
-            elif person1 is not None and person2 is not None:
-                if re.search("^<@\S*>$", person1) and re.search("^<@\S*>$", person2):
-                    person1 = self.bot.get_user(int(person1.split('!')[1].split('>')[0]))
-                    person2 = self.bot.get_user(int(person2.split('!')[1].split('>')[0]))
-                    await self.begins(ctx.message.channel, Brawler(person1), Brawler(person2))
-                elif re.search("^<@\S*>$", person1) and not re.search("^<@\S*>$", person2):
-                    person1 = self.bot.get_user(int(person1.split('!')[1].split('>')[0]))
-                    person2 = random.choice(ctx.message.guild.members)
-                    await self.begins(ctx.message.channel, Brawler(person1), Brawler(person2))
-                elif not re.search("^<@\S*>$", person1) and re.search("^<@\S*>$", person2):
-                    person1 = random.choice(ctx.message.guild.members)
-                    person2 = self.bot.get_user(int(person2.split('!')[1].split('>')[0]))
-                    await self.begins(ctx.message.channel, Brawler(person1), Brawler(person2))
-                else:
-                    person1 = random.choice(ctx.message.guild.members)
-                    person2 = random.choice(ctx.message.guild.members)
-                    await self.begins(ctx.message.channel, Brawler(person1), Brawler(person2))
-        except Exception as exc:
-            print(type(exc), exc)
+        self.db = dbm.connect_db("./DataPack/guild.db")
 
     async def begins(self, chnl, p1: Brawler, p2: Brawler):
         # Funny Description
         damage_dealt = [
-            "*{} Punches {}.* ***({} dmg)***", 
-            "*{} Tripped {}.* ***({} dmg)***", 
+            "*{} punches {}.* ***({} dmg)***", 
+            "*{} tripped {}.* ***({} dmg)***", 
             "*{} kicked {}.* ***({} dmg)***", 
             "*{} slashed {}.* ***({} dmg)***",
-            "*{} slapped {}.* ***({} dmg)***"
+            "*{} slapped {}.* ***({} dmg)***",
+            "*{} shooted {}.* ***({} dmg)***"
         ]
 
         # System Attribute
@@ -129,17 +86,87 @@ class Duel(commands.Cog):
         # Duel final Result
         await asyncio.sleep(3)
         if p1.HP == 0:
-            emb = discord.Embed(title="⚔️ Duel Ended ⚔️", description="> **{}** : Died\n> **{}** : 🏆 The Champion! {} HP left".format(p1name, p2name, p2.HP), colour=discord.Colour(WHITE))
+            emb = discord.Embed(title="⚔️ Duel Ended ⚔️", description="> **{}** : Died\n> **{}** : {} HP left\n`🏆 Congratulation {}!`".format(p1name, p2name, p2.HP, p2name), colour=discord.Colour(WHITE))
             emb.add_field(name="Battle Log :", value="\n".join(container_log), inline=False)
             emb.set_thumbnail(url=p2.p.avatar_url)
             await handler_msg.edit(embed = emb)
-            return p2.p
+            threading.Thread(target=self.get_point(p2.p, p1.p)).start()
         else:
-            emb = discord.Embed(title="⚔️ Duel Ended ⚔️", description="> **{}** : 🏆 The Champion! {} HP left\n> **{}** : Died".format(p1name, p1.HP, p2name), colour=discord.Colour(WHITE))
+            emb = discord.Embed(title="⚔️ Duel Ended ⚔️", description="> **{}** : {} HP left\n> **{}** : Died\n`🏆 Congratulations {}!`".format(p1name, p1.HP, p2name, p1name), colour=discord.Colour(WHITE))
             emb.add_field(name="Battle Log :", value="\n".join(container_log), inline=False)
             emb.set_thumbnail(url=p1.p.avatar_url)
             await handler_msg.edit(embed = emb)
-            return p1.p
+            threading.Thread(target=self.get_point(p1.p, p2.p)).start()
+
+    def get_point(self, winner, loser):
+        if not self.db.CheckExistence("coin", f"id={str(winner.id)}") and winner.bot is False:
+            self.db.InsertData("coin", id=winner.id, coins=0)
+        if not self.db.CheckExistence("coin", f"id={str(loser.id)}") and loser.bot is False:
+            self.db.InsertData("coin", id=loser.id, coins=0)
+        if not winner.bot:
+            self.db.cursor.execute(f"UPDATE coin SET coins=coins+{self.winner_get} WHERE id=:uid", {"uid":str(winner.id)})
+        if not loser.bot:
+            self.db.cursor.execute(f"UPDATE coin SET coins=coins+{self.loser_get} WHERE id=:uid", {"uid":str(loser.id)})
+        self.db.Save()
+        
+    @commands.command()
+    async def duel(self, ctx, person1 = None, person2 = None):
+        if person1 is None and person2 is None:
+            person1 = ctx.message.author
+            person2 = random.choice(ctx.message.guild.members)
+
+        elif person1 == "random" or person1 == "rdm":
+            person1 = random.choice(ctx.message.guild.members)
+            person2 = random.choice(ctx.message.guild.members)
+
+        elif person1.lower() == 'help' or person1.lower() == 'h':
+            emb = discord.Embed(title="⚔️ Duel Fight", description="Punch, Kick, and Kill your friend. Nothing Else!", colour=discord.Colour(WHITE))
+            emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/588917150891114516/676351507322503168/VSBattle_Logo.png")
+            emb.add_field(name="Command (alias):", value=open("./DataPack/Help/duelh.txt", 'r').read(), inline=False)
+            emb.add_field(name="Others :", value="> You can Duel your Friend without tagging them. Just Enter their Name.")
+            emb.set_footer(text="Example Command : g.duel @Gamern't Bot")
+            await ctx.send(embed = emb)
+            return
+
+        elif person1 is not None and person2 is None:
+            if re.search("^<@\S*>$", person1):
+                person2 = person1
+                person1 = ctx.message.author
+                person2 = self.bot.get_user(int(person2.split('!')[1].split('>')[0]))
+            else:
+                for mbr in ctx.message.guild.members:
+                    if person1.lower() in mbr.name.lower():
+                        person2 = mbr
+                        break
+                else:
+                    person2 = random.choice(ctx.message.guild.members)
+                person1 = ctx.message.author
+
+        elif person1 is not None and person2 is not None:
+            if re.search("^<@\S*>$", person1) and re.search("^<@\S*>$", person2):
+                person1 = self.bot.get_user(int(person1.split('!')[1].split('>')[0]))
+                person2 = self.bot.get_user(int(person2.split('!')[1].split('>')[0]))
+            elif re.search("^<@\S*>$", person1) and not re.search("^<@\S*>$", person2):
+                person1 = self.bot.get_user(int(person1.split('!')[1].split('>')[0]))
+                person2 = random.choice(ctx.message.guild.members)
+            elif not re.search("^<@\S*>$", person1) and re.search("^<@\S*>$", person2):
+                person1 = random.choice(ctx.message.guild.members)
+                person2 = self.bot.get_user(int(person2.split('!')[1].split('>')[0]))
+            else:
+                person1 = random.choice(ctx.message.guild.members)
+                person2 = random.choice(ctx.message.guild.members)
+
+        while person1 == person2:
+            person2 = random.choice(ctx.message.guild.members)
+        await self.begins(ctx.message.channel, Brawler(person1), Brawler(person2))
+
+    @duel.error
+    async def _duel_error(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            emb = discord.Embed(title="💤 Tired 💤", description="Next round can be held in {0:.2f} s".format(error.retry_after), colour=discord.Colour(WHITE))
+            this_msg_coroute = await ctx.send(embed=emb)
+            await asyncio.sleep(3)
+            await this_msg_coroute.delete()
 
 def setup(bot):
     bot.add_cog(Duel(bot))

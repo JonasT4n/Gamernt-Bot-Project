@@ -1,7 +1,10 @@
 import discord
 from discord.ext import commands, tasks
 from Settings.Handler import *
-import asyncio, random, os, threading
+import asyncio
+import random
+import os
+import threading
 from Settings.DbManager import DbManager as dbm
 
 WHITE = 0xfffffe
@@ -9,52 +12,7 @@ WHITE = 0xfffffe
 class UNO(commands.Cog):
 
     def __init__(self, bot):
-        super().__init__()
         self.bot = bot
-
-    @commands.command(aliases=["Uno", "UNo", "UNO", "UnO", "uNO", "unO", "uNo"])
-    async def uno(self, ctx, stat: str):
-        statuses = ["start", "h", "help", "how"]
-        try:
-            if stat.lower() not in statuses:
-                raise commands.BadArgument
-
-            if stat.lower() == "help" or stat.lower() == "h": # Help
-                emb = discord.Embed(colour=discord.Colour(WHITE))
-                emb.set_author(name="~ Uno Game Card ~")
-                emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/588917150891114516/670457799955972096/UNO_MainCard.png")
-                emb.add_field(name="Commands (alias)", value="""***Start*** *-> This will Start a New Game.*\n***Help (h)*** *-> Help about Uno Game Card.*\n***How*** *-> How to Play Uno.*""")
-                emb.set_footer(text="Example Command : g.uno how")
-                await ctx.send(embed=emb)
-
-            if stat.lower() == "start": # Start New Game
-                threading.Thread(target=await self.queuing(ctx)).start()
-                
-            if stat.lower() == "how": # How To Play UNO
-                emb = discord.Embed(title="~ Uno Game Card ~", description="Draw a Card on top of it by Color, Number or Type.\n**Reverse** => If going clockwise, switch to counterclockwise. If going counterclockwise, switch to clockwise.\n**Skip** => When a player places this card, the next player has to skip their turn.\n**Wild** => This card represents all four colors, and can be placed on any card.\n**Wild Draw Four** => This acts just like the wild card except that the next player also has to draw four cards as well as forfeit his/her turn.\n**Draw Two** => When a person places this card, the next player will have to pick up two cards and forfeit his/her turn.", colour=discord.Colour(WHITE))
-                emb.set_footer(text="Source from www.unorules.com")
-                emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/588917150891114516/670457799955972096/UNO_MainCard.png")
-                await ctx.send(embed=emb)
-                
-        except Exception as exc:
-            if type(exc) == commands.BadArgument:
-                emb = discord.Embed(colour=discord.Colour(WHITE))
-                emb.set_author(name="~ Uno Game Card ~")
-                emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/588917150891114516/670457799955972096/UNO_MainCard.png")
-                emb.add_field(name="Commands (alias)", value="""***Start*** *-> This will Start a New Game.*\n***Help (h)*** *-> Help about Uno Game Card.*\n***How*** *-> How to Play Uno.*""")
-                emb.set_footer(text="Example Command : g.uno how")
-                await ctx.send(embed=emb)
-            else:
-                print(type(exc), exc)
-
-    @uno.error
-    async def uno_error(self, ctx, error):
-        emb = discord.Embed(colour=discord.Colour(WHITE))
-        if isinstance(error, commands.MissingRequiredArgument):
-            emb.set_author(name="~ Uno Game Card ~")
-            emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/588917150891114516/670457799955972096/UNO_MainCard.png")
-            emb.add_field(name="Commands (alias)", value="""***Start (UNDER MAINTENANCE)*** *-> This will Start a New Game.*\n***Help (h)*** *-> Help about Uno Game Card.*""")
-            await ctx.send(embed=emb)
 
     # Game Started, Initialize Everyone's Card and ChatBox Embed
     async def uno_gameplay(self, **datas):
@@ -295,6 +253,63 @@ class UNO(commands.Cog):
         else:
             await current_msg.edit(content="**Game will Start in few Seconds!**\nCheck your Cards in **DM**!")
             await self.uno_gameplay(players=players, channel_host=ctx.message.channel)
+
+    async def help_uno(self, ctx):
+        emb = discord.Embed(colour=discord.Colour(WHITE))
+        emb.set_author(name="~ Uno Game Card ~")
+        emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/588917150891114516/670457799955972096/UNO_MainCard.png")
+        emb.add_field(name="Commands (alias)", value="""```Start -> This will Start a New Game.\nHelp (h) -> Help about Uno Game Card.\nHow -> How to Play Uno.```""")
+        emb.set_footer(text="Example Command : g.uno how")
+        await ctx.send(embed=emb)
+
+    @commands.command(aliases=["Uno", "UNo", "UNO", "UnO", "uNO", "unO", "uNo"])
+    async def uno(self, ctx, *, stat: str):
+        statuses = ["start", "h", "help", "how", "bot"]
+        try:
+            if stat.lower() not in statuses:
+                raise commands.BadArgument
+
+            if stat.lower() == "help" or stat.lower() == "h": # Help
+                await self.help_uno(ctx)
+
+            if stat.lower() == "bot":
+                pass # Play Againts the Bot
+
+            if stat.lower() == "start": # Start New Game
+                a = await ctx.send("UnderConstruction...")
+                await asyncio.sleep(3)
+                await a.delete()
+                # threading.Thread(target=await self.queuing(ctx)).start()
+                
+            if stat.lower() == "how": # How To Play UNO
+                emb = discord.Embed(title="~ Uno Game Card ~", 
+                description="""Draw a Card on top of it by Color, Number or Type.\n
+                    **Reverse** => If going clockwise, switch to counterclockwise. If going counterclockwise, switch to clockwise.\n
+                    **Skip** => When a player places this card, the next player has to skip their turn.\n
+                    **Wild** => This card represents all four colors, and can be placed on any card.\n
+                    **Wild Draw Four** => This acts just like the wild card except that the next player also has to draw four cards as well as forfeit his/her turn.\n
+                    **Draw Two** => When a person places this card, the next player will have to pick up two cards and forfeit his/her turn.""", 
+                colour=discord.Colour(WHITE))
+                emb.add_field(name="When the Game Start", value="```All you need to do is check DM and send a card by number in the channel which you are playing in.```")
+                emb.set_footer(text="Source from www.unorules.com")
+                emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/588917150891114516/670457799955972096/UNO_MainCard.png")
+                await ctx.send(embed=emb)
+                
+        except Exception as exc:
+            if type(exc) == commands.BadArgument:
+                emb = discord.Embed(colour=discord.Colour(WHITE))
+                emb.set_author(name="~ Uno Game Card ~")
+                emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/588917150891114516/670457799955972096/UNO_MainCard.png")
+                emb.add_field(name="Commands (alias)", value="""***Start*** *-> This will Start a New Game.*\n***Help (h)*** *-> Help about Uno Game Card.*\n***How*** *-> How to Play Uno.*""")
+                emb.set_footer(text="Example Command : g.uno how")
+                await ctx.send(embed=emb)
+            else:
+                print(type(exc), exc)
+
+    @uno.error
+    async def uno_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await self.help_uno(ctx)
 
 def setup(bot):
     bot.add_cog(UNO(bot))

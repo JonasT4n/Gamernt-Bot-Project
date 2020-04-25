@@ -1,0 +1,2 @@
+```Giveaway (gw) -> Giveaway Tool.
+Prefix (pfix) -> Change Server Prefix.```

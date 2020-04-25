@@ -9,31 +9,24 @@ class Bingo(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
+    async def help_bingo(self, ctx):
+        emb = discord.Embed(title="BINGO!!!", description="```The Building is Under Construction... Coming Soon!```", colour=discord.Colour(WHITE))
+        await ctx.send(embed=emb)
+    
     @commands.command()
     async def bingo(self, ctx, stat: str):
         statuses = ["start", "help", 'h', 'how']
-        try:
-            if stat.lower() not in statuses:
-                raise commands.BadArgument
-            
-            if stat.lower() == 'start': # Idle Game Start
-                raise commands.BadArgument
-            
-            if stat.lower() == 'help' or stat.lower() == 'h': # Help about Bingo
-                raise commands.BadArgument
-            
-            if stat.lower() == 'how': # How to Play
-                raise commands.BadArgument
-            
-        except Exception as exc:
-            if type(exc) == commands.BadArgument:
-                await ctx.message.delete()
-                emb = discord.Embed(title="BINGO!!!", description="```The Building is Under Construction... Coming Soon!```", colour=discord.Colour(WHITE))
-                tempMsg = await ctx.send(embed=emb)
-                await asyncio.sleep(5)
-                await tempMsg.delete()
-            else:
-                print(type(exc), exc)
+        if stat.lower() not in statuses:
+            await self.help_bingo(ctx)
+        
+        if stat.lower() == 'start': # Idle Game Start
+            await self.help_bingo(ctx)
+        
+        if stat.lower() == 'help' or stat.lower() == 'h': # Help about Bingo
+            await self.help_bingo(ctx)
+        
+        if stat.lower() == 'how': # How to Play
+            await self.help_bingo(ctx)
                 
     @bingo.error
     async def bingo_error(self, ctx, error):
@@ -43,5 +36,6 @@ class Bingo(commands.Cog):
             tempMsg = await ctx.send(embed=emb)
             await asyncio.sleep(5)
             await tempMsg.delete()
+
 def setup(bot):
     bot.add_cog(Bingo(bot))

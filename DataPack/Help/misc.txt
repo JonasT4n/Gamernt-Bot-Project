@@ -1,0 +1,2 @@
+```Ores (ore)     -> Your Ores Collection
+Currency (cur) -> Your Currency.```

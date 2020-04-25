@@ -1,72 +1,97 @@
 import discord
+import sys
+import os
+import asyncio
+import time
+import json
+import random
+import datetime
 from discord.ext import commands, tasks
 import Settings.Handler as handle
-import Settings.DbManager as database
-import sys, os, asyncio, time, random
-from Settings.webserver import run_web
+import Settings.DbManager as dbm
+from itertools import cycle
 
-def check_guild_prefix(database):
+def check_guild_prefix(db: dbm):
     def inner_check(bot, message):
-        database.cursor.execute("""SELECT prefix FROM guilds WHERE id='{}';""".format(str(message.guild.id)))
-        n = database.cursor.fetchone()
-        if message.content[0:len(n[0])] == n[0].upper():
-            return n[0].upper()
-        return n[0].lower()
+        if not isinstance(message.channel, discord.DMChannel):
+            guild = message.guild
+            if not db.CheckExistence("guilds", f"id={str(guild.id)}"):
+                db.InsertData("guilds", id=guild.id, name=guild.name, created_at=guild.created_at, region=str(guild.region), prefix="g.", last_update_prefix=datetime.datetime.now())
+            db.SelectRowData("guilds", f"id={str(guild.id)}")
+
+            n = db.cursor.fetchone()
+            if message.content[0:len(n[4])].lower() == n[4].lower():
+                return message.content[0:len(n[4])]
+            else:
+                return "This is Not a Prefix for this Server, Try Again later!..."
+        else:
+            return 'g.'
     return inner_check
 
-conn = database.DbManager.connect_db("./DataPack/guild.db")
+conn = dbm.DbManager.connect_db("./DataPack/guild.db")
 bot = commands.Bot(command_prefix=check_guild_prefix(conn))
 bot.remove_command("help")
+
+# Attributes
 WHITE = 0xfffffe
+STATUS = cycle(["Tag Me for Prefix", "Not Game"])
+
+@tasks.loop(seconds=5)
+async def change_status():
+    await bot.change_presence(activity=discord.Game(name=next(STATUS)))
 
 @bot.event
 async def on_ready():
     print("{:^50}\n{:^50}".format("- Bot is Online! -", "|| It's Gamern't Time ||"))
-    await bot.change_presence(activity=discord.Game("Absolutely Not Game"))
+    change_status.start()
     
 @bot.event
 async def on_member_join(member):
-    temp = database.DbManager.connect_db("./DataPack/member.db")
-    temp.cursor.execute("""SELECT * FROM point WHERE id=:id""", {"id":str(member.id)})
-    ex = temp.cursor.fetchone()
-    if ex is None:
-        temp.cursor.execute("""INSERT INTO point VALUES (:id, :zero)""", {"id":str(member.id), "zero":0})
-        temp.connect.commit()
-    temp.cursor.close()
+    conn.InsertData("member", server_id=str(member.guild.id), member_id=str(member.id))
+    
+@bot.event
+async def on_member_remove(member):
+    conn.DeleteRow("member", server_id=str(member.guild.id), member_id=str(member.id))
 
 @bot.event
 async def on_guild_join(guild):
-    temp = database.DbManager.connect_db("./DataPack/member.db")
-    conn.InsertData("guilds", id=guild.id, name=guild.name, created_at=guild.created_at, region=str(guild.region), prefix="g.")
-    for member in guild.members:
-        if not member.bot:
-            temp.cursor.execute("""SELECT * FROM point WHERE id=:id""", {"id":str(member.id)})
-            ex = temp.cursor.fetchone()
-            if ex is None:
-                temp.cursor.execute("""INSERT INTO point VALUES (:id, :zero)""", {"id":str(member.id), "zero":0})
-            else:
-                continue
-    temp.connect.commit()
-    temp.cursor.close()
+    conn.InsertData("guilds", id=guild.id, name=guild.name, created_at=guild.created_at, region=str(guild.region), prefix="g.", last_update_prefix=datetime.datetime.now())
+    for mbr in guild.members:
+        if not mbr.bot:
+            conn.InsertData("member", server_id=str(guild.id), member_id=str(mbr.id))
+
+@bot.event
+async def on_guild_remove(guild):
+    conn.DeleteRow("guilds", id=str(guild.id))
+    conn.DeleteRow("member", server_id=str(guild.id))
 
 @bot.event
 async def on_message(message):
     """Event Message"""
-    if str(bot.user.id) in message.content:
-        user_said, in_channel = message.author, message.channel
-        this_guild_prefix = conn.cursor.execute("""SELECT prefix FROM guilds WHERE id={};""".format(str(message.guild.id)))
-        emb = discord.Embed(title="Your Server Prefix is {}".format(this_guild_prefix.fetchone()[0]), color=discord.Color(WHITE))
-        await in_channel.send(embed=emb)
+    if not isinstance(message.channel, discord.DMChannel):
+        if not conn.CheckExistence("guilds", f"id='{str(message.guild.id)}'"):
+            guild = message.guild
+            conn.InsertData("guilds", id=guild.id, name=guild.name, created_at=guild.created_at, region=str(guild.region), prefix="g.", last_update_prefix=datetime.datetime.now())
+
+        if not conn.CheckExistence("member", f"server_id={str(message.guild.id)} AND member_id = {str(message.author.id)}") and not message.author.bot:
+            conn.InsertData("member", server_id=str(message.guild.id), member_id=str(message.author.id))
+
+        if str(bot.user.id) in message.content: # Get Prefix but tagging Bot
+            user_said, in_channel = message.author, message.channel
+            this_guild_prefix = conn.cursor.execute("""SELECT prefix FROM guilds WHERE id='{}';""".format(str(message.guild.id)))
+            emb = discord.Embed(title=f"Your Server Prefix is {this_guild_prefix.fetchone()[4]}, do {this_guild_prefix.fetchone()[4]}help for commands.", color=discord.Color(WHITE))
+            await in_channel.send(embed=emb)
+
     await bot.process_commands(message)
 
-@bot.command(aliases=['a'])
+@bot.command(aliases=['info'])
 async def about(ctx):
     """About this Bot"""
     bot_icon = bot.user.avatar_url
     this_guild_prefix = conn.cursor.execute("""SELECT prefix FROM guilds WHERE id={};""".format(str(ctx.message.guild.id)))
-    emb = discord.Embed(title="🎮 Gamern't Bot 🎮", description="Contains Good Games, This is Not a Game Bot, Trust Me!", colour=discord.Colour(WHITE))
+    emb = discord.Embed(title="🎮 Gamern't Bot 🎮", description=open("./DataPack/Help/about_desc.txt").read(), colour=discord.Colour(WHITE))
     emb.set_thumbnail(url=bot_icon)
-    emb.set_footer(text="Version : 1.0.1; Your Current Prefix : {}".format(this_guild_prefix.fetchone()[0]))
+    emb.set_footer(text="Version : 1.0.2b; Your Current Prefix : {}".format(this_guild_prefix.fetchone()[0]))
     await ctx.send(embed=emb)
     
 @bot.command(aliases=['new'])
@@ -87,40 +112,54 @@ async def help(ctx, page = None):
             emb.add_field(name="1. 📄 General 📄", value="```Common Commands of Gamern't Bot, Absolutely not Game!```", inline=False)
             emb.add_field(name="2. 🎮 Games 🎮", value="```Play Games with others. Good Luck Have Fun!!!```", inline=False)
             emb.add_field(name="3. 😂 Fun 😂", value="```Fun Things to do here.```", inline=False)
-            emb.add_field(name="4. ⚙️ Util ⚙️", value="```Bot will serve you.```", inline=False)
+            emb.add_field(name="4. ⚙️ Setting ⚙️", value="```May I help you with Settings?```", inline=False)
+            emb.add_field(name="5. 🌀 Misc 🌀", value="```Your Personal Inventory will keep your progress Safe, Check it Out!```", inline=False)
             emb.set_thumbnail(url=bot_icon)
-            emb.set_footer(text="Example Command : g.help games")
+            emb.set_footer(text="Example Command : g.help games or g.games")
             await ctx.send(embed=emb)
+
         elif page.lower() == 'general':
             emb = discord.Embed(colour=discord.Colour(WHITE))
             emb.add_field(name="📄 General Commands 📄", value=open("./DataPack/Help/help.txt", 'r').read(), inline=False)
             emb.set_footer(text="Example Command : g.ping")
             await ctx.send(embed=emb)
+
         elif page.lower() == 'games':
             emb = discord.Embed(colour=discord.Colour(WHITE))
             emb.add_field(name="🎮 All Games 🎮", value=open("./DataPack/Help/games.txt", 'r').read(), inline=False)
             emb.set_footer(text="Example Command : g.ows how")
             await ctx.send(embed=emb)
+
         elif page.lower() == 'fun':
             emb = discord.Embed(colour=discord.Colour(WHITE))
             emb.add_field(name="😂 Fun Things 😂", value=open("./DataPack/Help/fun.txt", 'r').read(), inline=False)
             emb.set_footer(text="Example Command : g.duel Trump#0666")
             await ctx.send(embed=emb)
-        elif page.lower() == 'util':
+
+        elif page.lower() == 'setting':
             emb = discord.Embed(colour=discord.Colour(WHITE))
-            emb.add_field(name="⚙️ Utility ⚙️", value=open("./DataPack/Help/utility.txt", 'r').read(), inline=False)
+            emb.add_field(name="⚙️ Utility ⚙️", value=open("./DataPack/Help/settings.txt", 'r').read(), inline=False)
             emb.set_footer(text="Example Command : g.giveaway 1000$")
             await ctx.send(embed=emb)
+
+        elif page.lower() == 'misc':
+            emb = discord.Embed(colour=discord.Colour(WHITE))
+            emb.add_field(name="🌀 Misc 🌀", value=open("./DataPack/Help/misc.txt", 'r').read(), inline=False)
+            emb.set_footer(text="Example Command : g.coin")
+            await ctx.send(embed=emb)
+
         else:
             bot_icon = bot.user.avatar_url
             emb = discord.Embed(title="🎮 Gamern't Bot - Help", colour=discord.Colour(WHITE))
             emb.add_field(name="1. 📄 General 📄", value="```Common Commands of Gamern't Bot, Absolutely not Game!```", inline=False)
             emb.add_field(name="2. 🎮 Games 🎮", value="```Play Games with others. Good Luck Have Fun!!!```", inline=False)
             emb.add_field(name="3. 😂 Fun 😂", value="```Fun Things to do here.```", inline=False)
-            emb.add_field(name="4. ⚙️ Util ⚙️", value="```Bot will serve you.```", inline=False)
+            emb.add_field(name="4. ⚙️ Setting ⚙️", value="```May I help you with Settings?```", inline=False)
+            emb.add_field(name="5. 🌀 Misc 🌀", value="```Your Personal Inventory will keep your progress Safe, Check it Out!```", inline=False)
             emb.set_thumbnail(url=bot_icon)
             emb.set_footer(text="Example Command : g.help games")
             await ctx.send(embed=emb)
+
     except Exception as exc:
         pass
 
@@ -173,25 +212,65 @@ async def fun(ctx):
     await ctx.send(embed=emb)
 
 @bot.command()
-async def util(ctx):
+async def setting(ctx):
     emb = discord.Embed(colour=discord.Colour(WHITE))
-    emb.add_field(name="⚙️ Utility ⚙️", value=open("./DataPack/Help/utility.txt", 'r').read(), inline=False)
-    emb.set_footer(text="Example Command : g.giveaway 1000$")
+    emb.add_field(name="⚙️ Setting ⚙️", value=open("./DataPack/Help/settings.txt", 'r').read(), inline=False)
+    emb.set_footer(text="Example Command : g.prefix g!")
     await ctx.send(embed=emb)
+
+@bot.command()
+async def misc(ctx):
+    emb = discord.Embed(colour=discord.Colour(WHITE))
+    emb.add_field(name="🌀 Misc 🌀", value=open("./DataPack/Help/misc.txt", 'r').read(), inline=False)
+    emb.set_footer(text="Example Command : g.coin")
+    await ctx.send(embed=emb)
+
+@bot.command(aliases=['fb', 'report'])
+async def feedback(ctx, *, args: str):
+    """Feedback Report and Bug Glitch Information direct from User"""
+    n = open("./report.txt", 'a')
+    msg = "\n" + str(datetime.datetime.now()) + f" (By {ctx.message.author.name} : {ctx.message.author.id})" + ": " + args
+    n.write(msg)
+    n.close()
+    await ctx.send("Your Report has been Sent.")
+
+@bot.command()
+@commands.is_owner()
+async def purge(ctx, limit: int):
+    await ctx.channel.purge(limit=limit)
 
 @bot.command()
 @commands.is_owner()
 async def shutdown(ctx):
+    # Shutdown the Bot Application
     await ctx.send("**OOF**")
     await ctx.bot.logout()
 
+@bot.command()
+@commands.is_owner()
+async def global_info(ctx):
+    servers = bot.guilds
+    members: int = 0
+    for guild in servers:
+        members += len(guild.members)
+    emb = discord.Embed(title="📈 Stats 📈", colour=discord.Colour(WHITE))
+    emb.add_field(name="Server Count", value=f"{len(servers)}")
+    emb.add_field(name="Member Count", value=f"{members}")
+    await ctx.send(embed = emb)
+
 if __name__ == '__main__':
-    # run_web()
     for game in os.listdir("./GamePack"):
         if game.endswith(".py"):
-            if "uno" in game:
-                continue
             bot.load_extension("GamePack.{}".format(game[:-3]))
-    bot.run("Secret")
+    
+    for info in os.listdir("./InformationPack"):
+        if info.endswith(".py"):
+            bot.load_extension("InformationPack.{}".format(info[:-3]))
+
+    # Run the Bot
+    bot.run(json.load(open('./config.json', 'r'))['token'])
+
+    # Bot Stopped Working and Save Data
+    conn.connect.commit()
     conn.cursor.close()
     print("{:^50}".format("~ Session Ended, OOF! ~"))

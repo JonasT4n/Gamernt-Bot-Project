@@ -1,8 +1,10 @@
 import discord
+import asyncio
+import os 
+import random
 from discord.ext import commands, tasks
 from Settings.DbManager import DbManager as dbm
 from Settings.Handler import *
-import asyncio, os, random, re
 
 WHITE = 0xfffffe
 
@@ -10,67 +12,7 @@ class PointSystem(commands.Cog):
     
     def __init__(self, bot):
         self.bot = bot
-        self.data = dbm.connect_db("./DataPack/member.db")
-        
-    @commands.command()
-    async def coin(self, ctx, stat: str):
-        if re.search("^<@\S*>$", stat):
-            stat = ctx.message.guild.get_member(int(stat.split('!')[1].split('>')[0]))
-            self.data.cursor.execute("SELECT * FROM point WHERE id=:id", {"id":str(stat.id)})
-            info = self.data.cursor.fetchone()
-            if info is None and stat.bot is False:
-                self.data.cursor.execute("INSERT INTO point VALUES (:id, :zero)", {"id":str(stat.id), "zero":0})
-                self.data.connect.commit()
-                self.data.cursor.execute("SELECT * FROM point WHERE id=:id", {"id":str(stat.id)})
-                info = self.data.cursor.fetchone()
-            emb = discord.Embed(title="{}'s Coin".format(stat.name), description="**💰 {} Coin(s)**".format(info[1]), colour=discord.Colour(WHITE))
-            await ctx.send(embed=emb)
-            
-        if stat.lower() == 'h' or stat.lower() == 'help': # Help About Point System
-            emb = discord.Embed(title="💰 Coin Help", description="Might Be Usefull in the Future, **Stay Tune!**", colour=discord.Colour(WHITE))
-            emb.add_field(name="Commands (alias):", value=open("./DataPack/Help/points.txt").read(), inline=False)
-            await ctx.send(embed=emb)
-            
-        if stat.lower() == 'leaderboard' or stat.lower() == 'lb':
-            pass
-        
-        if stat.lower() == 'global':
-            self.data.cursor.execute("""SELECT * FROM point ORDER BY coins DESC LIMIT 100;""")
-            list_user = self.data.cursor.fetchall()
-            user_list, index_show = [], 0
-            for u in range(len(list_user)):
-                person = self.bot.get_user(id=int(list_user[u][0]))
-                person_name = person.name.split('#')[0]
-                if (u + 1) % 20 == 0:
-                    user_list.append("{}. {} => {} Coins".format(u + 1, person_name, list_user[u][1]))
-                else:
-                    user_list.append("{}. {} => {} Coins\n".format(u + 1, person_name, list_user[u][1]))
-            into_str = ""
-            for ul in range(20 * index_show, 20 * (index_show + 1)):
-                into_str += user_list[ul]
-            emb = discord.Embed(title="🌐 Global Leaderboard 🌐", description="```{}```".format(into_str), colour=discord.Colour(WHITE))
-            emb.set_footer(text="The Richest Person in the World!")
-            this_msg = await ctx.send(embed = emb)
-            await this_msg.add_reaction("◀️")
-            await this_msg.add_reaction("▶️")
-            try:
-                while index_show >= 0 and index_show < 5:
-                    await self.bot.wait_for(event="reaction_add", check=self.check_point_user_reaction(ctx.message.author, this_msg), timeout=60.0)
-            except asyncio.TimeoutError:
-                print("Timeout! No Reaction further more.")
-        
-    @coin.error
-    async def coin_error(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            self.data.cursor.execute("SELECT * FROM point WHERE id=:id", {"id":str(ctx.message.author.id)})
-            info = self.data.cursor.fetchone()
-            if info is None and ctx.message.author.bot is False:
-                self.data.cursor.execute("INSERT INTO point VALUES (:id, :zero)", {"id":str(ctx.message.author.id), "zero":0})
-                self.data.connect.commit()
-                self.data.cursor.execute("SELECT * FROM point WHERE id=:id", {"id":str(ctx.message.author.id)})
-                info = self.data.cursor.fetchone()
-            emb = discord.Embed(title="{}'s Coin".format(ctx.message.author.name), description="**💰 {} Coin(s)**".format(info[1]), colour=discord.Colour(WHITE))
-            await ctx.send(embed=emb)
+        self.db = dbm.connect_db("./DataPack/guild.db")
 
     def check_point_user_reaction(self, author, msg):
         def inner_check(reaction, user):
@@ -79,6 +21,55 @@ class PointSystem(commands.Cog):
             else:
                 return False
         return inner_check
+
+    async def help_coin(self, ctx):
+        emb = discord.Embed(title="💰 Coin Help", description="Might Be Usefull in the Future, **Stay Tune!**", colour=discord.Colour(WHITE))
+        emb.add_field(name="Commands (alias):", value=open("./DataPack/Help/points.txt").read(), inline=False)
+        await ctx.send(embed=emb)
         
+    @commands.command(aliases=['cur'])
+    async def currency(self, ctx, *, stat: str, person: discord.User = None):
+        if stat.lower() == 'h' or stat.lower() == 'help': # Help About Point System
+            await self.help_coin(ctx)
+
+        elif person is not None:
+            if not self.db.CheckExistence("coin", f"id={str(person.id)}"):
+                self.db.InsertData("coin", id=str(person.id), coins=0)
+            self.db.SelectRowData("coin", f"id={str(person.id)}")
+            info = self.db.cursor.fetchone()
+            emb = discord.Embed(title="{}'s Coin".format(person.name), description=f"**💰 {info[1]} Coin(s)**", colour=discord.Colour(WHITE))
+            await ctx.send(embed=emb)
+            
+        elif stat.lower() == 'leaderboard' or stat.lower() == 'lb':
+            self.db.cursor.execute("""SELECT m.member_id, c.coins FROM member m INNER JOIN coin c ON m.member_id = c.id WHERE m.server_id = :sid ORDER BY c.coins DESC LIMIT 5;
+            """, {"sid":str(ctx.message.guild.id)})
+            data = self.db.cursor.fetchall()
+            nnc = [[self.bot.get_user(int(idmbr[0])).name, idmbr[1]] for idmbr in data]
+
+            desc: str
+            if len(nnc) < 5:
+                if len(nnc) == 0:
+                    desc = f"""```No One Yet Recorded :v```"""
+                elif len(nnc) == 1:
+                    desc = f"""```1. {nnc[0][0]} - {nnc[0][1]} 💸```"""
+                elif len(nnc) == 2:
+                    desc = f"""```1. {nnc[0][0]} - {nnc[0][1]} 💸\n2. {nnc[1][0]} - {nnc[1][1]} 💸```"""
+                elif len(nnc) == 3:
+                    desc = f"""```1. {nnc[0][0]} - {nnc[0][1]} 💸\n2. {nnc[1][0]} - {nnc[1][1]} 💸\n3. {nnc[2][0]} - {nnc[2][1]} 💸```"""
+                elif len(nnc) == 4:
+                    desc = f"""```1. {nnc[0][0]} - {nnc[0][1]} 💸\n2. {nnc[1][0]} - {nnc[1][1]} 💸\n3. {nnc[2][0]} - {nnc[2][1]} 💸\n4. {nnc[3][0]} - {nnc[3][1]} 💸```"""
+            else:
+                desc = f"""```1. {nnc[0][0]} - {nnc[0][1]} 💸\n2. {nnc[1][0]} - {nnc[1][1]} 💸\n3. {nnc[2][0]} - {nnc[2][1]} 💸\n4. {nnc[3][0]} - {nnc[3][1]} 💸\n5. {nnc[4][0]} - {nnc[4][1]} 💸```"""
+            emb = discord.Embed(title="📋 Top 5 Server Leaderboard", description=desc, colour=discord.Colour(WHITE))
+            await ctx.send(embed=emb)
+
+        elif stat is None:
+            if not self.db.CheckExistence("coin", f"id={str(ctx.message.author.id)}"):
+                self.db.InsertData("coin", id=str(ctx.message.author.id), coins=0)
+            self.db.SelectRowData("coin", f"id={str(ctx.message.author.id)}")
+            info = self.db.cursor.fetchone()
+            emb = discord.Embed(title=f"{ctx.message.author.name}'s Coin", description=f"**💰 {info[1]} Coin(s)**", colour=discord.Colour(WHITE))
+            await ctx.send(embed=emb)
+
 def setup(bot):
     bot.add_cog(PointSystem(bot))

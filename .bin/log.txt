@@ -1,6 +1,5 @@
 General :
 - Make Website
-- Removing Handler
 
 Uno :
 - Fix Plus Stack
@@ -9,15 +8,13 @@ Uno :
 - Added extra Card after Stack ?! (BUG)
 
 Mine :
-- Just Getting Started
-- List Ores [Copper, Lead, Tin, Cobalt, Iron, Coal, Silver, Ruby, Sapphire, Gold, Diamond, Emerald, Titanium, Demonic, Plastanium]
+- Finished, Waiting for another features
 
 OWS :
-- 2 Same Activity Cannot be Executed
+- Now can be played Multi Games
 
 Poll and Choosen One :
-- Poll System has been Changed
-- Change Giveaway to the Choosen One
+- Some Fix needed
 
 Point :
 - Make a Server Leaderboard, Top 5 Most Of Coins Collected
@@ -33,4 +30,4 @@ Test Bot :
 https://discordapp.com/api/oauth2/authorize?client_id=692546626832695296&permissions=8&scope=bot
 
 Link Invite :
-https://discordapp.com/api/oauth2/authorize?client_id=588179797394456605&permissions=522304&redirect_uri=https%3A%2F%2Fdiscordapp.com%2Fapi%2Foauth2%2Fauthorize&scope=bot
+https://discordapp.com/api/oauth2/authorize?client_id=588179797394456605&permissions=1812987073&redirect_uri=https%3A%2F%2Fdiscordapp.com%2Fapi%2Foauth2%2Fauthorize&scope=bot

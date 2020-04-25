@@ -1,5 +1,5 @@
-***Ping*** *-> Check My Ping if you Dare!!!*
-***Help (h)*** *-> Need any Help?*
-***About (a)*** *-> Information about This Bot.*
-***Prefix (pfix)*** *-> Change Server Prefix.*
-***Coin*** *-> Your Coins.*
+```Ping                  -> Check My Ping, if you Dare!!!
+Help (h)              -> Need any Help?
+About (info)          -> Information about This Bot.
+Poll                  -> Polling for a Better Democracy!
+Feedback (fb, report) -> Your Feedback will be send to developer.```

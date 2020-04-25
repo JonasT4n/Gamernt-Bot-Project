@@ -1,5 +1,8 @@
 import sqlite3
-import os, datetime, time, re
+import os
+import datetime
+import time
+import re
 from Settings.Handler import *
 # from Handler import *
 
@@ -8,6 +11,14 @@ class DbManager:
     def __init__(self, db_name):
         self.connect = db_name
         self.cursor = db_name.cursor()
+
+    # @property
+    # def connect(self):
+    #     return self.connect
+
+    # @connect.setter
+    # def connect(self, db_dir: str):
+    #     self.connect = sqlite3.connect(db_dir)
 
     def ClearDatabase(self):
         """Completely Clean the Database\n
@@ -47,7 +58,8 @@ class DbManager:
         return [table_name[0] for table_name in self.cursor.fetchall()]
 
     def SelectTableData(self, table_name: str):
-        """table_name -> Name of Existing Table"""
+        """Select from Table\n
+        table_name -> Name of Existing Table"""
         try:
             self.cursor.execute("""SELECT * FROM {};""".format(table_name))
         except Exception as exc:
@@ -64,6 +76,9 @@ class DbManager:
             print(type(exc), exc)
         else:
             return "Row(s) Data Selected"
+
+    def UpdateTable(self, table_name: str):
+        pass
 
     def AddColumn(self, table_name: str, column_name: str, type):
         """table_name -> Name of Existing Table\n
@@ -123,6 +138,36 @@ class DbManager:
             print(type(exc), exc)
         else:
             return "Table {} Cleaned".format(table_name)
+
+    def CheckExistence(self, table_name: str, condition: str) -> bool:
+        self.SelectRowData(table_name, condition)
+        n = self.cursor.fetchall()
+        if n is None or len(n) == 0:
+            return False
+        else:
+            return True
+
+    def FetchData(self, table_name: str, sample: int = 100) -> list:
+        """Returns Data of Table\n
+        table_name => the name of table\n
+        sample => Get how many amout of data\n
+        Default fetch is 100 Sample"""
+        self.SelectTableData(table_name)
+        data = self.cursor.fetchall()
+        if len(data) < sample:
+            return data
+        return data[0:sample]
+
+    def FetchSpecific(self, table_name: str):
+        pass
+
+    def Save(self):
+        self.connect.commit()
+        return 'Your Database has been Saved.'
+
+    def Close(self):
+        self.cursor.close()
+        return 'Your Database has been Closed'
         
     @classmethod
     def connect_db(cls, db_dir: str):
@@ -142,13 +187,20 @@ class DbManager:
         return cls(sqlite3.connect(db_dir))
 
 # if __name__ == '__main__':
-#     conn = DbManager.connect_db("./DataPack/member.db")
-#     # conn.CreateTable("guilds", id="VARCHAR(255) PRIMARY KEY NOT NULL", name="VARCHAR(255)", created_at="DATETIME NOT NULL", region="VARCHAR(255) NOT NULL", prefix="CHAR(10) NOT NULL")
-#     # conn.CreateTable("uno_raw", id="INT(2) PRIMARY KEY NOT NULL", color="CHAR(10) NOT NULL", type="CHAR(10) NOT NULL", name="CHAR(55) NOT NULL", image_url="TEXT", bin="BLOB NOT NULL") + number
-#     # conn.CreateTable("ows_results", server_id="VARCHAR(255) NOT NULL", channel_id="VARCHAR(255)", story_title="VARCHAR(255)", story="TEXT NOT NULL")
-#     # conn.CreateTable("available_game", server_id="VARCHAR(255) PRIMARY KEY NOT NULL", available="TEXT")
-#     # conn.CreateTable("point", id="VARCHAR(255) PRIMARY KEY NOT NULL", coins="INT NOT NULL")
-#     conn.cursor.execute("""SELECT * FROM point;""")
-#     for i in conn.cursor.fetchall():
-#         print(i)
-#     conn.cursor.close()
+#     guild_conn = DbManager.connect_db("./DataPack/guild.db")
+    
+#     print(guild_conn.GetTables())
+
+#     guild_conn.cursor.execute("""
+#     SELECT m.member_id, c.coins
+#     FROM member m
+#     INNER JOIN coin c ON m.member_id = c.id
+#     WHERE m.server_id = '305792249877364738'
+#     ORDER BY c.coins DESC
+#     LIMIT 5;
+#     """)
+#     data = guild_conn.cursor.fetchall()
+#     print(data)
+
+#     guild_conn.connect.commit()
+#     guild_conn.cursor.close()
