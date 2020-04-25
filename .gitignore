@@ -1,11 +1,11 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
-.bin/
+**/__pycache__/
+bin/
 **/*.db
 *.py[cod]
 *$py.class
 config.json
-test.py
+.test.py
 
 # C extensions
 *.so
