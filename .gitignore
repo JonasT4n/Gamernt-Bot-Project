@@ -5,7 +5,7 @@ bin/
 *.py[cod]
 *$py.class
 config.json
-.test.py
+.azure/
 
 # C extensions
 *.so
