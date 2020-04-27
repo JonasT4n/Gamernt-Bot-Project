@@ -6,5 +6,5 @@ app = Flask(__name__)
 
 @app.route("/")
 def run():
-    main.botrun()
+    Thread(target=main.botrun()).start()
     return "<h1>Hello World<h2>"
