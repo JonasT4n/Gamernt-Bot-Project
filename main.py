@@ -268,7 +268,7 @@ def botrun():
             bot.load_extension("InformationPack.{}".format(info[:-3]))
 
     # Run the Bot
-    bot.run(json.load(open('./config.json', 'r'))['token'])
+    bot.run(os.getenv("STOKEN"))
 
     # Bot Stopped Working and Save Data
     conn.connect.commit()
