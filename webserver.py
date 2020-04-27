@@ -1,8 +1,10 @@
 from flask import Flask
-import main as m
+from threading import Thread
+import main
 
 app = Flask(__name__)
 
 @app.route("/")
 def run():
-    return "Hello World"
+    Thread(target=main.botrun()).start()
+    return "<h1>Hello World<h2>"
