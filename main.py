@@ -6,7 +6,6 @@ import time
 import json
 import random
 import datetime
-from webserver import app as web
 from discord.ext import commands, tasks
 import Settings.Handler as handle
 import Settings.DbManager as dbm
@@ -271,7 +270,7 @@ if __name__ == "__main__":
             bot.load_extension("InformationPack.{}".format(info[:-3]))
 
     # Run the Bot
-    bot.run(json.load(open('./config.json', 'r'))['token'])
+    bot.run(os.getenv("STOKEN"))
 
     # Bot Stopped Working and Save Data
     conn.connect.commit()
