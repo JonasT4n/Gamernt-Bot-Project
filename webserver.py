@@ -11,4 +11,5 @@ def onrun():
     app.run(host="0.0.0.0", port=8080)
 
 def forever():
-    Thread(target=onrun()).start()
+    webrun = Thread(target=onrun())
+    webrun.start()

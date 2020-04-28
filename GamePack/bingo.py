@@ -12,6 +12,10 @@ class Bingo(commands.Cog):
     async def help_bingo(self, ctx):
         emb = discord.Embed(title="BINGO!!!", description="```The Building is Under Construction... Coming Soon!```", colour=discord.Colour(WHITE))
         await ctx.send(embed=emb)
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print("Bingo Ready!")
     
     @commands.command()
     async def bingo(self, ctx, stat: str):
