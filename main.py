@@ -11,6 +11,7 @@ import Settings.Handler as handle
 import Settings.DbManager as dbm
 from itertools import cycle
 from threading import Thread
+import webserver
 
 def check_guild_prefix(db: dbm):
     def inner_check(bot, message):
@@ -260,7 +261,7 @@ async def global_info(ctx):
     await ctx.send(embed = emb)
 
 if __name__ == "__main__":
-    Thread(target=web.run()).start()
+    webserver.forever()
     for game in os.listdir("./GamePack"):
         if game.endswith(".py"):
             bot.load_extension("GamePack.{}".format(game[:-3]))
