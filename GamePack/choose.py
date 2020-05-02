@@ -12,6 +12,10 @@ class Choose(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print("Choosing System is Ready!")
+
     def check_giveaway_duration(self, author):
         def inner_check(message):
             if message.author == author:

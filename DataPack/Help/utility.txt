@@ -1,2 +1,2 @@
-***ChoosenOne (chn)*** *-> Who will be the Choosen One?.*
-***Poll*** *-> Polling for a Better Democracy!*
+```Giveaway (gw) -> Giveaway, YAY!
+Poll          -> Polling for a Better Democracy.```

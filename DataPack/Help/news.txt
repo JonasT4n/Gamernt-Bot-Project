@@ -1,4 +1,2 @@
-- Changed Permission and Save File System
-- Fixing some Commands
-- More action Less messages
-- Added RPS (Rock Paper Scissor), Report if there is a Bug
+- Minor Bug Fixed
+- Added Draw Card Command, Getting Started to make a Playing Card Commands

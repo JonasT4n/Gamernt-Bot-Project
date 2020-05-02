@@ -1,16 +1,10 @@
 import discord
-import sys
 import os
 import asyncio
-import time
-import json
-import random
 import datetime
 from discord.ext import commands, tasks
-import Settings.Handler as handle
 import Settings.DbManager as dbm
 from itertools import cycle
-from threading import Thread
 from webserver import forever
 
 def check_guild_prefix(db: dbm):
@@ -81,7 +75,9 @@ async def on_message(message):
         if str(bot.user.id) in message.content: # Get Prefix but tagging Bot
             user_said, in_channel = message.author, message.channel
             this_guild_prefix = conn.cursor.execute("""SELECT prefix FROM guilds WHERE id='{}';""".format(str(message.guild.id)))
-            emb = discord.Embed(title=f"Your Server Prefix is {this_guild_prefix.fetchone()[4]}, do {this_guild_prefix.fetchone()[4]}help for commands.", color=discord.Color(WHITE))
+            data = this_guild_prefix.fetchone()
+            print(data)
+            emb = discord.Embed(title=f"Your Server Prefix is {data[0]}\ntype {data[0]}help for commands.", color=discord.Color(WHITE))
             await in_channel.send(embed=emb)
 
     await bot.process_commands(message)
@@ -261,7 +257,7 @@ async def global_info(ctx):
     await ctx.send(embed = emb)
 
 if __name__ == "__main__":
-    forever()
+    # forever()
     for game in os.listdir("./GamePack"):
         if game.endswith(".py"):
             bot.load_extension("GamePack.{}".format(game[:-3]))
@@ -271,7 +267,7 @@ if __name__ == "__main__":
             bot.load_extension("InformationPack.{}".format(info[:-3]))
 
     # Run the Bot
-    bot.run(os.environ.get("STOKEN"))
+    bot.run("NjkyNTQ2NjI2ODMyNjk1Mjk2.Xqv9fQ.ixi4GIaTS-WPg84oUaa-XKXe480")
 
     # Bot Stopped Working and Save Data
     conn.connect.commit()

@@ -1,2 +1,3 @@
-***Bingo*** *-> An Idle Bingo Game.*
-***Duel*** *-> Beating Your Friend is quite Fun.*
+```Bingo          -> An Idle Bingo Game.
+Duel           -> Beating Your Friend is quite Fun.
+DrawCard (drc) -> Draw a Playing Card, Randomly```
