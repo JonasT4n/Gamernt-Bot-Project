@@ -267,7 +267,7 @@ if __name__ == "__main__":
             bot.load_extension("InformationPack.{}".format(info[:-3]))
 
     # Run the Bot
-    bot.run("NjkyNTQ2NjI2ODMyNjk1Mjk2.Xqv9fQ.ixi4GIaTS-WPg84oUaa-XKXe480")
+    bot.run(os.environ.get("STOKEN"))
 
     # Bot Stopped Working and Save Data
     conn.connect.commit()
