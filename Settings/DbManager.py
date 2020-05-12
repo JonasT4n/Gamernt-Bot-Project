@@ -10,14 +10,6 @@ class DbManager:
         self.connect = db_name
         self.cursor = db_name.cursor()
 
-    # @property
-    # def connect(self):
-    #     return self.connect
-
-    # @connect.setter
-    # def connect(self, db_dir: str):
-    #     self.connect = sqlite3.connect(db_dir)
-
     def ClearDatabase(self):
         """Completely Clean the Database\n
         WARNING : This will completely delete all your current data inside this Database"""
