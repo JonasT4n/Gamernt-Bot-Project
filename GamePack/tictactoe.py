@@ -2,7 +2,7 @@ import discord
 import asyncio
 import threading
 from discord.ext import commands
-from Settings.DbManager import DbManager as dbm
+from Settings.MongoManager import MongoManager, new_member_data
 
 WHITE = 0xfffffe
 
@@ -26,7 +26,6 @@ class Tictactoe(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.db = dbm.connect_db("./DataPack/guild.db")
 
     def check_challanger_reply(self, person, channel):
         def inner_check(message):

@@ -3,7 +3,6 @@ from discord.ext import tasks, commands
 from discord.utils import get
 import asyncio, os, threading, datetime, time, random, re
 from Settings.DbManager import DbManager as dbm
-from Settings.Handler import *
 
 WHITE = 0xfffffe
 

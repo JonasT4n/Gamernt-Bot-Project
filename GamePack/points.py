@@ -4,7 +4,6 @@ import os
 import random
 from discord.ext import commands, tasks
 from Settings.DbManager import DbManager as dbm
-from Settings.MongoManager import MongoManager, new_member_data
 
 WHITE = 0xfffffe
 

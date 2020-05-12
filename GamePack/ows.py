@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from Settings.Handler import *
 import asyncio, random, threading
 from Settings.DbManager import DbManager as dbm
 
