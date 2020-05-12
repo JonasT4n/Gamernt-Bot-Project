@@ -5,7 +5,6 @@ This Script can be Reuseable.
 """
 
 import pymongo
-import Settings.botconfig as conf
 
 new_member_data = {
     "member_id": 0,
@@ -38,7 +37,7 @@ class MongoManager:
     def __init__(self, address, dbname):
         """Initialize Connection"""
         try:
-            self.client = pymongo.MongoClient(conf.MONGO_ADDRESS)
+            self.client = pymongo.MongoClient(address)
             self.db = self.client[dbname]
             self.database_name = dbname
         except Exception as e:
