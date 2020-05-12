@@ -14,8 +14,8 @@ class Profile(commands.Cog):
         self.mongodbm = MongoManager(MONGO_ADDRESS, DB_NAME)
         self.mongodbm.ConnectCollection("members")
 
-    @commands.command(aliases=["prof", "profile", "user"])
-    async def _player_profile(self, ctx, *args):
+    @commands.command(aliases=["prof", "user"])
+    async def profile(self, ctx, *args):
         # Get Player ID
         person: discord.User
         person_id: int
