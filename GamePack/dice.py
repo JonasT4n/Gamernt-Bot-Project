@@ -10,6 +10,10 @@ class Dice(commands.Cog):
     def __init__(self, bot:commands.Bot):
         self.bot = bot
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print("Dice Game is Ready!")
+
     async def dice_help(self, ctx):
         emb = discord.Embed(title="🎲 Invalid Numbers", description="```g.dice <amount> <dots>\nAmount of Dice : 1 - 100\nDots on Dice : 1 - 100```", colour=discord.Colour(WHITE))
         emb.set_footer(text="Ex : g.dice 2 6")

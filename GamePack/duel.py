@@ -110,13 +110,13 @@ class Duel(commands.Cog):
         
         """
         query: dict = {"member_id":person_id}
-        data: list = self.mongodbm.FindObject(query)
-        if len(data) < 1:
+        u_data: list = self.mongodbm.FindObject(query)
+        if len(u_data) < 1:
             nd: dict = new_member_data
             nd["member_id"] = person_id
             self.mongodbm.InsertOneObject(nd)
-            data = self.mongodbm.FindObject(query)
-        return data[0]
+            u_data = self.mongodbm.FindObject(query)
+        return u_data[0]
 
     def get_point(self, winner: discord.User, loser: discord.User):
         winner_data: dict

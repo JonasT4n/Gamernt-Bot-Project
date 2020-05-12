@@ -11,6 +11,10 @@ class OWS(commands.Cog):
         self.bot = bot
         self.db = dbm.connect_db("./DataPack/ows_game.db")
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print("One Word Story Game is Ready!")
+
     def check_in_game_command(self, channel_id):
         def inner_check(message):
             if channel_id == message.channel.id:

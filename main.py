@@ -131,21 +131,10 @@ async def help(ctx, page = None):
     """Custom Help Command"""
     emb = discord.Embed(
         title="Help Menu",
-        description= f"""```
-
-            GENERAL :
-                ping, about/info, news/new, help/h, prefix/pfix, feedback/suggest/report, profile/user
-            FUN & GAMES :
-                choose, duel, dice, mine/dig, ows, rps, scramble/scr
-            MISC :
-                ores/ore
-            UTILITY :
-                giveaway/gw, poll
-            
-
-        ```""",
+        description= open("./DataPack/Help/help_file.txt", "r").read(),
         colour=discord.Colour(WHITE)
     )
+    await ctx.send(embed = emb)
 
 @bot.command(aliases=['pfix'])
 async def prefix(ctx, new_prefix: str):

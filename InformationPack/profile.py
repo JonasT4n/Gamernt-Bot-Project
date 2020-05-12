@@ -43,7 +43,7 @@ class Profile(commands.Cog):
         
         # Print Out Profile Information
         emb = discord.Embed(
-            title=f"{ctx.message.author.name}'s Profile'", 
+            title=f"{ctx.message.author.name}'s Profile", 
             description=f"""```ID : {person_id}\n🏆 : {user["trophy"]}\n👛 : {user["money"]}```""", 
             colour=discord.Colour(WHITE)
         )

@@ -42,6 +42,23 @@ class Mine(commands.Cog):
                 "Iron": 3,
                 "Cobalt": 2,
                 "Silver": 1
+            },
+            "extras": {
+                "Copper": 500,
+                "Lead": 300,
+                "Tin": 200,
+                "Coal": 150,
+                "Iron": 150,
+                "Cobalt": 100,
+                "Quartz": 50,
+                "Silver": 25,
+                "Gold": 5,
+                "Sapphire": 5,
+                "Ruby": 5,
+                "Diamond": 0,
+                "Emerald": 0,
+                "Titanium": 0,
+                "Meteorite": 0
             }
         },
 
@@ -54,6 +71,23 @@ class Mine(commands.Cog):
                 "Iron": 10,
                 "Silver": 3,
                 "Quartz": 5
+            },
+            "extras": {
+                "Copper": 1000,
+                "Lead": 500,
+                "Tin": 300,
+                "Coal": 250,
+                "Iron": 150,
+                "Cobalt": 120,
+                "Quartz": 150,
+                "Silver": 50,
+                "Gold": 10,
+                "Sapphire": 10,
+                "Ruby": 5,
+                "Diamond": 2,
+                "Emerald": 2,
+                "Titanium": 0,
+                "Meteorite": 0
             }
         },
 
@@ -66,6 +100,23 @@ class Mine(commands.Cog):
                 "Iron": 15,
                 "Quartz": 10,
                 "Gold": 2
+            },
+            "extras": {
+                "Copper": 1200,
+                "Lead": 800,
+                "Tin": 500,
+                "Coal": 300,
+                "Iron": 250,
+                "Cobalt": 200,
+                "Quartz": 500,
+                "Silver": 75,
+                "Gold": 15,
+                "Sapphire": 12,
+                "Ruby": 12,
+                "Diamond": 5,
+                "Emerald": 3,
+                "Titanium": 2,
+                "Meteorite": 0
             }
         }
     }
@@ -139,24 +190,7 @@ class Mine(commands.Cog):
             return None
         else:
             return random.choice(_list_of_gotem)
-
-    def save_bag(self, person: discord.User, sack_of_ores: dict):
-        """
         
-        Overwrite Member Data.
-
-            Parameters :
-                person (discord.User) => Member in the Server
-                sack-of-ores (dict) => User Backpack
-            Returns :
-                (None)
-        
-        """
-        query: dict = {"member_id":person.id}
-        member_data: dict = self.mongodbm.FindObject(query)[0]
-        member_data["ores"] = sack_of_ores
-        self.mongodbm.UpdateOneObject(query, member_data)  
-
     @staticmethod
     def approve(percentage: int) -> bool:
         """Randomize from 0 - 10000."""
@@ -173,7 +207,7 @@ class Mine(commands.Cog):
         # Digging Animation
         dig = "Dig... "
         emb = discord.Embed(title="⛏️ Mining...", description=dig, colour=discord.Colour(WHITE))
-        queing = await ctx.send(embed=emb)
+        queing: discord.Message = await ctx.send(embed=emb)
         await asyncio.sleep(0.5)
         for i in range(2):
             dig += "Dig... "
@@ -189,20 +223,27 @@ class Mine(commands.Cog):
             "OMG Ghost! RUN!!!",
             "You went into the Lava, I told you not to dig straight down :v"
         ]
+
+        # Print Out Result
         if ore is None:
             emb = discord.Embed(title="💨 Better Luck Next Time...", description=f"{random.choice(failed)}", colour=discord.Colour(WHITE))
             await queing.edit(embed=emb)
         else:
+            person: discord.User = ctx.message.author
             emb = discord.Embed(
                 title="💎 Bling!", 
-                description=f"Yay, You have got **{ore}**!", 
+                description=f"Yay {person.name}, You have got **{ore}**!", 
                 colour=discord.Colour(WHITE)
             )
             await queing.edit(embed = emb)
 
-            user_bag: dict = self.checkin_member(ctx.message.author.id)["ores"]
+            # Save Data
+            user_bag: dict = self.checkin_member(person.id)["ores"]
             user_bag[ore] += 1
-            self.save_bag(ctx.message.author, user_bag)
+            query: dict = {"member_id":person.id}
+            member_data: dict = self.mongodbm.FindObject(query)[0]
+            member_data["ores"] = user_bag
+            self.mongodbm.UpdateOneObject(query, member_data)  
 
     @commands.command()
     async def pickup(self, ctx):
