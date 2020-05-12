@@ -6,7 +6,6 @@ bin/
 *$py.class
 
 # custom ignore
-Settings/
 
 # C extensions
 *.so
