@@ -135,7 +135,10 @@ class Mine(commands.Cog):
             ore_name: str = ore_keys[i]
             if self.approve(self.kind_ores[ore_name]) is True:
                 _list_of_gotem.append(ore_name)
-        return random.choice(_list_of_gotem)
+        if len(_list_of_gotem) == 0:
+            return None
+        else:
+            return random.choice(_list_of_gotem)
 
     def save_bag(self, person: discord.User, sack_of_ores: dict):
         """
@@ -179,14 +182,14 @@ class Mine(commands.Cog):
             await asyncio.sleep(0.5)
 
         # Getting an Ore
-        ore = self.rarity_randomize()
+        ore: str = self.rarity_randomize()
         failed = [
             "It's just a Rock... Throw it away!", 
             "Punching rock is hard, did you realize you forgot your pickaxe?", 
             "OMG Ghost! RUN!!!",
             "You went into the Lava, I told you not to dig straight down :v"
         ]
-        if len(ore) <= 0:
+        if ore is None:
             emb = discord.Embed(title="💨 Better Luck Next Time...", description=f"{random.choice(failed)}", colour=discord.Colour(WHITE))
             await queing.edit(embed=emb)
         else:
@@ -198,6 +201,7 @@ class Mine(commands.Cog):
             await queing.edit(embed = emb)
 
             user_bag: dict = self.checkin_member(ctx.message.author.id)["ores"]
+            user_bag[ore] += 1
             self.save_bag(ctx.message.author, user_bag)
 
     @commands.command()
