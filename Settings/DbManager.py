@@ -3,8 +3,7 @@ import os
 import datetime
 import time
 import re
-from Settings.Handler import *
-# from Handler import *
+import json
 
 class DbManager:
 
@@ -187,20 +186,14 @@ class DbManager:
         return cls(sqlite3.connect(db_dir))
 
 # if __name__ == '__main__':
-#     guild_conn = DbManager.connect_db("./DataPack/guild.db")
+#     p = MongoManager(conf.MONGO_ADDRESS, "discord_guild")
     
-#     print(guild_conn.GetTables())
+#     if p.CheckCollection("members")[0] is True:
+#         p.ConnectCollection("members")
+#         # p.InsertOneObject({
+#         #     "name":"Jonas Tan",
+#         #     "address":"jl. Raya Bandung No 83"
+#         # })
 
-#     guild_conn.cursor.execute("""
-#     SELECT m.member_id, c.coins
-#     FROM member m
-#     INNER JOIN coin c ON m.member_id = c.id
-#     WHERE m.server_id = '305792249877364738'
-#     ORDER BY c.coins DESC
-#     LIMIT 5;
-#     """)
-#     data = guild_conn.cursor.fetchall()
-#     print(data)
-
-#     guild_conn.connect.commit()
-#     guild_conn.cursor.close()
+#     print(p.FindObject({"name":"Jonas Tan"}))
+#     p.DeleteOneObject({"name":"Jonas Tan"})

@@ -1,4 +1,0 @@
-***[Tag Someone]*** *-> Peek their Pocket.*
-***Help (h)*** *-> Help for Coins.*
-***Leaderboard (lb)*** *-> Top 5 Current Server Collector.*
-***Global*** *-> See The World Record.*

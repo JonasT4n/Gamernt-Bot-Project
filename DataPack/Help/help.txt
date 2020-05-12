@@ -1,5 +1,0 @@
-```Ping                  -> Check My Ping, if you Dare!!!
-Help (h)              -> Need any Help?
-About (info)          -> Information about This Bot.
-Poll                  -> Polling for a Better Democracy!
-Feedback (fb, report) -> Your Feedback will be send to developer.```

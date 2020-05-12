@@ -1,2 +1,2 @@
-- Minor Bug Fixed
-- Added Draw Card Command, Getting Started to make a Playing Card Commands
+- Minor Update UI and Commands
+- Reset Player Data due to Change Data Saver

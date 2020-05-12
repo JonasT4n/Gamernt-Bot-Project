@@ -4,7 +4,9 @@ bin/
 **/*.db
 *.py[cod]
 *$py.class
-config.json
+
+# custom ignore
+Settings/
 
 # C extensions
 *.so
