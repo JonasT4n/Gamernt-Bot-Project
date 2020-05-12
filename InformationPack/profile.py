@@ -22,9 +22,13 @@ class Profile(commands.Cog):
         if len(args) == 0:
             person = ctx.message.author
             person_id = person.id
-        elif "@!" in args[0] and len(args) == 1:
+        elif "@!" in args[0]:
             person_id = int(args[0].split('!')[1].split('>')[0])
-            person = await self.bot.fetch_user(person_id)
+            person: discord.User = await self.bot.fetch_user(person_id)
+
+        # Check if it is a Bot, not Member
+        if person.bot is True:
+            return
         
         # Make Query
         user: dict
@@ -40,15 +44,11 @@ class Profile(commands.Cog):
         # Print Out Profile Information
         emb = discord.Embed(
             title=f"{ctx.message.author.name}'s Profile'", 
-            description=f"""
-                ```
-                ID : {person_id}
-                🏆 : {user["trophy"]}
-                👛 : {user["money"]}
-                ```
-                """, 
+            description=f"""```ID : {person_id}\n🏆 : {user["trophy"]}\n👛 : {user["money"]}```""", 
             colour=discord.Colour(WHITE)
         )
+        emb.set_thumbnail(url=person.avatar_url)
+        emb.set_footer(text="This is your Current Profile in this Application")
         await ctx.send(embed = emb)
 
 def setup(bot: commands.Bot):

@@ -26,7 +26,8 @@ new_member_data = {
         "Emerald": 0,
         "Titanium": 0,
         "Meteorite": 0
-    }
+    },
+    "pickaxe-level": 0
 }
 
 class MongoManager:
@@ -118,7 +119,7 @@ class MongoManager:
         except:
             print("Error when Inserted, Collection may not defined")
 
-    def UpdateOneObject(self, query: dict, **update):
+    def UpdateOneObject(self, query: dict, update: dict):
         """
         
         Update an Object inside Current Connected Collection.
@@ -130,7 +131,7 @@ class MongoManager:
                 (None)
         
         """
-        self.connected_collection.update_one(query, update)
+        self.connected_collection.update_one(query, {"$set": update})
 
     def DeleteOneObject(self, query: dict):
         """

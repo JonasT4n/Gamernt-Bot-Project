@@ -1,91 +1,162 @@
 import discord
 import asyncio
 import random
-from Settings.DbManager import DbManager as dbm
 from discord.ext import commands
+from Settings.MongoManager import MongoManager, new_member_data
+from Settings.setting import MONGO_ADDRESS, DB_NAME
 
 WHITE = 0xfffffe
 
 class Mine(commands.Cog):
 
     # List of Ores
-    kind_ores = ["Copper", "Lead", "Tin", 
-            "Cobalt", "Iron", "Coal", 
-            "Silver", "Ruby", "Sapphire", 
-            "Gold", "Diamond", "Emerald", 
-            "Titanium", "Meteorite"]
+    kind_ores: dict = {
+        "Copper": 2500,
+        "Lead": 1200,
+        "Tin": 800,
+        "Coal": 500,
+        "Iron": 300,
+        "Cobalt": 250,
+        "Quartz": 200,
+        "Silver": 120,
+        "Gold": 100,
+        "Sapphire": 85,
+        "Ruby": 75,
+        "Diamond": 30,
+        "Emerald": 20,
+        "Titanium": 10,
+        "Meteorite": 5
+    }
 
-    chances = [2500, 1200, 800, 500, 250, 320, 200, 120, 80, 75, 35, 25, 12, 3]
+    pickaxe_identity: dict = {
+        0: {
+            "name": "Stone Pickaxe"
+        },
+
+        1: {
+            "name": "Copper Pickaxe",
+            "requirement": {
+                "Copper": 15,
+                "Lead": 10,
+                "Tin": 8,
+                "Iron": 3,
+                "Cobalt": 2,
+                "Silver": 1
+            }
+        },
+
+        2: {
+            "name": "Lead Pickaxe",
+            "requirement": {
+                "Copper": 12,
+                "Lead": 30,
+                "Coal": 20,
+                "Iron": 10,
+                "Silver": 3,
+                "Quartz": 5
+            }
+        },
+
+        3: {
+            "name": "Tin Pickaxe",
+            "requirement": {
+                "Copper" : 29,
+                "Lead": 12,
+                "Tin": 35,
+                "Iron": 15,
+                "Quartz": 10,
+                "Gold": 2
+            }
+        }
+    }
 
     def __init__(self, bot):
         self.bot = bot
-        self.db = dbm.connect_db("./DataPack/guild.db")
+        self.mongodbm = MongoManager(MONGO_ADDRESS, DB_NAME)
+        self.mongodbm.ConnectCollection("members")
 
-    async def get_ore_inv(self, ctx, person):
-        if not self.db.CheckExistence("ores", f"id={str(person.id)}"):
-            self.db.cursor.execute(f"""INSERT INTO ores VALUES('{str(person.id)}', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);""")
-            self.db.Save()
-        self.db.SelectRowData("ores", f"id={str(person.id)}")
-        data = self.db.cursor.fetchone()
-        description_bag = """
-        ```{:<12} : {} ({}%)\n{:<12} : {} ({}%)\n{:<12} : {} ({}%)\n{:<12} : {} ({}%)\n{:<12} : {} ({}%)\n{:<12} : {} ({}%)\n{:<12} : {} ({}%)\n{:<12} : {} ({}%)\n{:<12} : {} ({}%)\n{:<12} : {} ({}%)\n{:<12} : {} ({}%)\n{:<12} : {} ({}%)\n{:<12} : {} ({}%)\n{:<12} : {} ({}%)```""".format(
-            "Copper", data[1], float(self.chances[0] / 100),
-            "Lead", data[2], float(self.chances[1] / 100),
-            "Tin", data[3], float(self.chances[2] / 100),
-            "Cobalt", data[4], float(self.chances[3] / 100),
-            "Coal", data[6], float(self.chances[5] / 100),
-            "Iron", data[5], float(self.chances[4] / 100),
-            "Silver", data[7], float(self.chances[6] / 100),
-            "Ruby", data[8], float(self.chances[7] / 100),
-            "Sapphire", data[9], float(self.chances[8] / 100),
-            "Gold", data[10], float(self.chances[9] / 100),
-            "Diamond", data[11], float(self.chances[10] / 100),
-            "Emerald", data[12], float(self.chances[11] / 100),
-            "Titanium", data[13], float(self.chances[12] / 100),
-            "Meteorite", data[14], float(self.chances[13] / 100)
-        )
+    async def get_ore_inv(self, ctx, person: discord.User):
+        # Get Member Data
+        if person.bot is True:
+            return
+        user_data: dict = self.checkin_member(person.id)
+        user_sack: dict = user_data["ores"]
+        pick_level: int = user_data["pickaxe-level"]
+
+        # Get Detail Sack of Ores
+        ore_keys: list = list(self.kind_ores.keys())
+        description_bag: str = "```"
+        for i in range(len(ore_keys)):
+            sentence: str
+            ore_name: str = ore_keys[i]
+            if i == ore_keys - 1:
+                sentence = "{:<12} : {} ({}%)".format(ore_name, user_sack[ore_name], self.kind_ores[ore_name] / 100)
+            else:
+                sentence = "{:<12} : {} ({}%)\n".format(ore_name, user_sack[ore_name], self.kind_ores[ore_name] / 100)
+            description_bag += sentence
+        description_bag += "```"
+        
+        # Print out Information
         emb = discord.Embed(title=f"💎 {person.display_name}'s Bag", description=description_bag, colour=discord.Colour(WHITE))
         emb.set_thumbnail(url="https://webstockreview.net/images/clipart-diamond-bunch-7.png")
+        emb.set_footer(text=f"Pickaxe Level : {pick_level}")
         await ctx.send(embed=emb)
 
-    def rarity_randomize(self):
+    def checkin_member(self, person_id: int) -> dict:
+        """
+        
+        Check if Member is in the Database.
+
+            Returns :
+                (dict) => Member Information
+        
+        """
+        query: dict = {"member_id":person_id}
+        data: list = self.mongodbm.FindObject(query)
+        if len(data) < 1:
+            nd: dict = new_member_data
+            nd["member_id"] = person_id
+            self.mongodbm.InsertOneObject(nd)
+            data = self.mongodbm.FindObject(query)
+        return data[0]
+
+    def rarity_randomize(self) -> str:
+        """
+        
+        This is the Place Where you Mine Ores, Are you Lucky enough?
+
+            Returns :
+                (str) => Name of Ore you have Got
+        
+        """
         _list_of_gotem = []
-        if self.approve(self.chances[0]) is True:
-            _list_of_gotem.append("Copper")
-        if self.approve(self.chances[1]) is True:
-            _list_of_gotem.append("Lead")
-        if self.approve(self.chances[2]) is True:
-            _list_of_gotem.append("Tin")
-        if self.approve(self.chances[3]) is True:
-            _list_of_gotem.append("Cobalt")
-        if self.approve(self.chances[4]) is True:
-            _list_of_gotem.append("Iron")
-        if self.approve(self.chances[5]) is True:
-            _list_of_gotem.append("Coal")
-        if self.approve(self.chances[6]) is True:
-            _list_of_gotem.append("Silver")
-        if self.approve(self.chances[7]) is True:
-            _list_of_gotem.append("Ruby")
-        if self.approve(self.chances[8]) is True:
-            _list_of_gotem.append("Sapphire")
-        if self.approve(self.chances[9]) is True:
-            _list_of_gotem.append("Gold")
-        if self.approve(self.chances[10]) is True:
-            _list_of_gotem.append("Diamond")
-        if self.approve(self.chances[11]) is True:
-            _list_of_gotem.append("Emerald")
-        if self.approve(self.chances[12]) is True:
-            _list_of_gotem.append("Titanium")
-        if self.approve(self.chances[13]) is True:
-            _list_of_gotem.append("Meteorite")
-        if len(_list_of_gotem) == 0:
-            return None
-        else:
-            return random.choice(_list_of_gotem)
+        ore_keys: list = list(self.kind_ores.keys())
+        for i in range(len(ore_keys)):
+            ore_name: str = ore_keys[i]
+            if self.approve(self.kind_ores[ore_name]) is True:
+                _list_of_gotem.append(ore_name)
+        return random.choice(_list_of_gotem)
+
+    def save_bag(self, person: discord.User, sack_of_ores: dict):
+        """
+        
+        Overwrite Member Data.
+
+            Parameters :
+                person (discord.User) => Member in the Server
+                sack-of-ores (dict) => User Backpack
+            Returns :
+                (None)
+        
+        """
+        query: dict = {"member_id":person.id}
+        member_data: dict = self.mongodbm.FindObject(query)[0]
+        member_data["ores"] = sack_of_ores
+        self.mongodbm.UpdateOneObject(query, member_data)  
 
     @staticmethod
     def approve(percentage: int) -> bool:
-        """Randomize from 0 - 10000"""
+        """Randomize from 0 - 10000."""
         approved = random.randint(0, 10000)
         failed = 10000 - percentage
         if failed < approved:
@@ -109,20 +180,29 @@ class Mine(commands.Cog):
 
         # Getting an Ore
         ore = self.rarity_randomize()
-        failed = ["It's just a Rock... Throw it away!", 
-        "Punching rock is hard, did you realize you forgot your pickaxe?", 
-        "OMG Ghost! RUN!!!",
-        "You went into the Lava, I told you not to dig straight down :v"]
-        if ore is None:
+        failed = [
+            "It's just a Rock... Throw it away!", 
+            "Punching rock is hard, did you realize you forgot your pickaxe?", 
+            "OMG Ghost! RUN!!!",
+            "You went into the Lava, I told you not to dig straight down :v"
+        ]
+        if len(ore) <= 0:
             emb = discord.Embed(title="💨 Better Luck Next Time...", description=f"{random.choice(failed)}", colour=discord.Colour(WHITE))
             await queing.edit(embed=emb)
         else:
-            emb = discord.Embed(title="💎 Bling!", description="Yay, You have got **{}**!".format(ore), colour=discord.Colour(WHITE))
-            if not self.db.CheckExistence("ores", f"id={str(ctx.message.author.id)}"):
-                self.db.cursor.execute(f"""INSERT INTO ores VALUES('{ctx.message.author.id}', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);""")
-            self.db.cursor.execute(f"UPDATE ores SET {ore.lower()}={ore.lower()} + 1 WHERE id=:uid", {"uid":str(ctx.message.author.id)})
-            self.db.Save()
+            emb = discord.Embed(
+                title="💎 Bling!", 
+                description=f"Yay, You have got **{ore}**!", 
+                colour=discord.Colour(WHITE)
+            )
             await queing.edit(embed = emb)
+
+            user_bag: dict = self.checkin_member(ctx.message.author.id)["ores"]
+            self.save_bag(ctx.message.author, user_bag)
+
+    @commands.command()
+    async def pickup(self, ctx):
+        pass
 
     @dig.error
     async def mine_error(self, ctx, error):

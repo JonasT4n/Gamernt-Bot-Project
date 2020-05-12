@@ -5,9 +5,10 @@ import asyncio
 import threading
 import random
 import re
-from Settings.DbManager import DbManager as dbm
 import shutil
 import requests
+from Settings.MongoManager import MongoManager, new_member_data
+from Settings.setting import MONGO_ADDRESS, DB_NAME
 
 WHITE = 0xfffffe
 
@@ -32,11 +33,12 @@ class Brawler:
 class Duel(commands.Cog):
 
     winner_get: int = 3
-    loser_get: int = 1
+    loser_lost: int = 2
     
     def __init__(self, bot):
         self.bot = bot
-        self.db = dbm.connect_db("./DataPack/guild.db")
+        self.mongodbm = MongoManager(MONGO_ADDRESS, DB_NAME)
+        self.mongodbm.ConnectCollection("members")
 
     async def begins(self, chnl, p1: Brawler, p2: Brawler):
         # Funny Description
@@ -98,16 +100,37 @@ class Duel(commands.Cog):
             await handler_msg.edit(embed = emb)
             threading.Thread(target=self.get_point(p1.p, p2.p)).start()
 
-    def get_point(self, winner, loser):
-        if not self.db.CheckExistence("coin", f"id={str(winner.id)}") and winner.bot is False:
-            self.db.InsertData("coin", id=winner.id, coins=0)
-        if not self.db.CheckExistence("coin", f"id={str(loser.id)}") and loser.bot is False:
-            self.db.InsertData("coin", id=loser.id, coins=0)
-        if not winner.bot:
-            self.db.cursor.execute(f"UPDATE coin SET coins=coins+{self.winner_get} WHERE id=:uid", {"uid":str(winner.id)})
-        if not loser.bot:
-            self.db.cursor.execute(f"UPDATE coin SET coins=coins+{self.loser_get} WHERE id=:uid", {"uid":str(loser.id)})
-        self.db.Save()
+    def checkin_member(self, person_id: int) -> dict:
+        """
+        
+        Check if Member is in the Database.
+
+            Returns :
+                (dict) => Member Information
+        
+        """
+        query: dict = {"member_id":person_id}
+        data: list = self.mongodbm.FindObject(query)
+        if len(data) < 1:
+            nd: dict = new_member_data
+            nd["member_id"] = person_id
+            self.mongodbm.InsertOneObject(nd)
+            data = self.mongodbm.FindObject(query)
+        return data[0]
+
+    def get_point(self, winner: discord.User, loser: discord.User):
+        winner_data: dict
+        loser_data: dict
+        if winner.bot is False:
+            winner_data = self.checkin_member(winner.id)
+            winner_data["trophy"] += self.winner_get
+            self.mongodbm.UpdateOneObject({"member_id": winner.id}, winner_data)
+        if loser.bot is False:
+            loser_data = self.checkin_member(loser.id)
+            loser_data["trophy"] -=  self.loser_lost
+            if loser_data["trophy"] < 0:
+                loser_data["trophy"] = 0
+            self.mongodbm.UpdateOneObject({"member_id": loser.id}, loser_data)
         
     @commands.command()
     async def duel(self, ctx, person1 = None, person2 = None):
@@ -120,7 +143,7 @@ class Duel(commands.Cog):
             person2 = random.choice(ctx.message.guild.members)
 
         elif person1.lower() == 'help' or person1.lower() == 'h':
-            emb = discord.Embed(title="⚔️ Duel Fight", description="Punch, Kick, and Kill your friend. Nothing Else!", colour=discord.Colour(WHITE))
+            emb = discord.Embed(title="⚔️ Duel Fight", description="Punch, Kick, and Kill your friend", colour=discord.Colour(WHITE))
             emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/588917150891114516/676351507322503168/VSBattle_Logo.png")
             emb.add_field(name="Command (alias):", value=open("./DataPack/Help/duelh.txt", 'r').read(), inline=False)
             emb.add_field(name="Others :", value="> You can Duel your Friend without tagging them. Just Enter their Name.")
