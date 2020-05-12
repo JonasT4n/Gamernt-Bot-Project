@@ -89,7 +89,7 @@ class Mine(commands.Cog):
         for i in range(len(ore_keys)):
             sentence: str
             ore_name: str = ore_keys[i]
-            if i == ore_keys - 1:
+            if i == len(ore_keys) - 1:
                 sentence = "{:<12} : {} ({}%)".format(ore_name, user_sack[ore_name], self.kind_ores[ore_name] / 100)
             else:
                 sentence = "{:<12} : {} ({}%)\n".format(ore_name, user_sack[ore_name], self.kind_ores[ore_name] / 100)
