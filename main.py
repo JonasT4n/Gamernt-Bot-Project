@@ -8,7 +8,7 @@ from Settings.MongoManager import MongoManager, new_guild_data, new_member_data
 from Settings.setting import TOKEN, MONGO_ADDRESS, DB_NAME
 
 def get_prefix(dbm: MongoManager, guild: discord.Guild) -> str:
-    guild_data: dict = dbm.FindObject({"guild_id":str(guild.id)})[0]
+    guild_data = dbm.FindObject({"guild_id":str(guild.id)})[0]
     if guild_data is None:
         new_gd: dict = new_guild_data
         new_gd["guild_id"] = str(guild.id)
