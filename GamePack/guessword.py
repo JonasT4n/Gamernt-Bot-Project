@@ -130,15 +130,14 @@ class GuessWord(commands.Cog):
             winner: discord.User = answered.author
 
             # When the Answer is Right
-            reward = random.randint(1, 3)
             _emb = discord.Embed(
                 title="◔‿◔ Correct!", 
-                description=f"Congratulation : **{winner.name}**.\nReward : **{reward}** coins", 
+                description=f"Congratulation : **{winner.name}**.\nReward : **10** 💲", 
                 colour=discord.Colour(WHITE)
             )
             user_data: dict = self.checkin_member(answered.id)
             user_data["money"] += 10
-            self.mongodbm.UpdateOneObject({"member_id": answered.id}, user_data)
+            self.mongodbm.UpdateOneObject({"member_id": str(answered.id)}, user_data)
             await channel.send(embed = _emb)
             
         except asyncio.TimeoutError:
@@ -161,13 +160,13 @@ class GuessWord(commands.Cog):
                 (dict) => Member Information
         
         """
-        query: dict = {"member_id":person_id}
-        u_data: list = self.mongodbm.FindObject(query)
-        if len(u_data) < 1:
+        query: dict = {"member_id":str(person_id)}
+        u_data = self.mongodbm.FindObject(query)
+        if u_data is None:
             nd: dict = new_member_data
-            nd["member_id"] = person_id
+            nd["member_id"] = str(person_id)
             self.mongodbm.InsertOneObject(nd)
-            u_data = self.mongodbm.FindObject(query)
+            u_data = nd
         return u_data[0]
 
     @commands.command(aliases=["scr"])

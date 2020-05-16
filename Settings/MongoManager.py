@@ -6,8 +6,14 @@ This Script can be Reuseable.
 
 import pymongo
 
+new_guild_data = {
+    "guild_id": "0",
+    "prefix": "g.",
+    "members": []
+}
+
 new_member_data = {
-    "member_id": 0,
+    "member_id": "0",
     "trophy": 0,
     "money": 0,
     "ores": {
@@ -131,7 +137,7 @@ class MongoManager:
                 (None)
         
         """
-        self.connected_collection.update_one(query, {"$set": update})
+        self.connected_collection.update_one(query, {"$set": update}, upsert=False)
 
     def DeleteOneObject(self, query: dict):
         """
@@ -149,14 +155,23 @@ class MongoManager:
         """
         self.connected_collection.delete_many({})
 
-    def FindObject(self, query: dict) -> list:
+    def FindObject(self, query: dict):
         """
         
         Find All Objects by Query.
+
+            Parameters : 
+                query (dict) => Find Object Where
+            Returns :
+                (None) => if no Data
+                (list) => if there is
         
         """
         list_objects = [i for i in self.connected_collection.find(query)]
-        return list_objects
+        if len(list_objects) == 0:
+            return None
+        else:
+            return list_objects
 
     def CountObject(self) -> int:
         """

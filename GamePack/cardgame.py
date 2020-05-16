@@ -1,6 +1,8 @@
 import discord
 import random
 from discord.ext import commands
+from Settings.MongoManager import MongoManager, new_member_data
+from Settings.setting import MONGO_ADDRESS, DB_NAME
 
 WHITE = 0xfffffe
 

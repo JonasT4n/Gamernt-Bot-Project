@@ -1,6 +1,8 @@
 import discord
-from discord.ext import commands, tasks
-import os, asyncio, threading
+import asyncio
+import threading
+import os
+from discord.ext import commands
 
 WHITE = 0xfffffe
 

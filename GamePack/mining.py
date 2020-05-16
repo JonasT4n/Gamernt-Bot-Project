@@ -126,6 +126,10 @@ class Mine(commands.Cog):
         self.mongodbm = MongoManager(MONGO_ADDRESS, DB_NAME)
         self.mongodbm.ConnectCollection("members")
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print("Miner is Ready!")
+
     async def get_ore_inv(self, ctx, person: discord.User):
         # Get Member Data
         if person.bot is True:
@@ -162,14 +166,14 @@ class Mine(commands.Cog):
                 (dict) => Member Information
         
         """
-        query: dict = {"member_id":person_id}
-        data: list = self.mongodbm.FindObject(query)
-        if len(data) < 1:
+        query: dict = {"member_id":str(person_id)}
+        u_data = self.mongodbm.FindObject(query)
+        if u_data is None:
             nd: dict = new_member_data
-            nd["member_id"] = person_id
+            nd["member_id"] = str(person_id)
             self.mongodbm.InsertOneObject(nd)
-            data = self.mongodbm.FindObject(query)
-        return data[0]
+            u_data = nd
+        return u_data[0]
 
     def rarity_randomize(self) -> str:
         """
@@ -240,13 +244,13 @@ class Mine(commands.Cog):
             # Save Data
             user_bag: dict = self.checkin_member(person.id)["ores"]
             user_bag[ore] += 1
-            query: dict = {"member_id":person.id}
+            query: dict = {"member_id":str(person.id)}
             member_data: dict = self.mongodbm.FindObject(query)[0]
             member_data["ores"] = user_bag
             self.mongodbm.UpdateOneObject(query, member_data)  
 
     @commands.command()
-    async def pickup(self, ctx):
+    async def pickaxeup(self, ctx):
         pass
 
     @dig.error

@@ -109,11 +109,11 @@ class Duel(commands.Cog):
                 (dict) => Member Information
         
         """
-        query: dict = {"member_id":person_id}
-        u_data: list = self.mongodbm.FindObject(query)
-        if len(u_data) < 1:
+        query: dict = {"member_id":str(person_id)}
+        u_data = self.mongodbm.FindObject(query)
+        if u_data is None:
             nd: dict = new_member_data
-            nd["member_id"] = person_id
+            nd["member_id"] = str(person_id)
             self.mongodbm.InsertOneObject(nd)
             u_data = self.mongodbm.FindObject(query)
         return u_data[0]
@@ -124,13 +124,13 @@ class Duel(commands.Cog):
         if winner.bot is False:
             winner_data = self.checkin_member(winner.id)
             winner_data["trophy"] += self.winner_get
-            self.mongodbm.UpdateOneObject({"member_id": winner.id}, winner_data)
+            self.mongodbm.UpdateOneObject({"member_id": str(winner.id)}, winner_data)
         if loser.bot is False:
             loser_data = self.checkin_member(loser.id)
             loser_data["trophy"] -=  self.loser_lost
             if loser_data["trophy"] < 0:
                 loser_data["trophy"] = 0
-            self.mongodbm.UpdateOneObject({"member_id": loser.id}, loser_data)
+            self.mongodbm.UpdateOneObject({"member_id": str(loser.id)}, loser_data)
         
     @commands.command()
     async def duel(self, ctx, person1 = None, person2 = None):

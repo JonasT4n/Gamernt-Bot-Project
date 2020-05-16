@@ -3,40 +3,78 @@ import os
 import asyncio
 import datetime
 from discord.ext import commands, tasks
-import Settings.DbManager as dbm
 from itertools import cycle
-from Settings.setting import TOKEN
+from Settings.MongoManager import MongoManager, new_guild_data, new_member_data
+from Settings.setting import TOKEN, MONGO_ADDRESS, DB_NAME
 
-def check_guild_prefix(db: dbm):
-    def inner_check(bot, message):
+def get_prefix(dbm: MongoManager, guild: discord.Guild) -> str:
+    guild_data: dict = dbm.FindObject({"guild_id":str(guild.id)})[0]
+    if guild_data is None:
+        new_gd: dict = new_guild_data
+        new_gd["guild_id"] = str(guild.id)
+        dbm.InsertOneObject(new_gd)
+        guild_data = new_gd
+    return guild_data["prefix"]
+
+def set_prefix(dbm: MongoManager, guild: discord.Guild, new_prefix: str):
+    dbm.UpdateOneObject({"guild_id":str(guild.id)}, {"prefix":new_prefix})
+
+def check_guild_prefix(dbm: MongoManager):
+    def inner_check(bot, message: discord.Message):
         if not isinstance(message.channel, discord.DMChannel):
-            guild = message.guild
-            if not db.CheckExistence("guilds", f"id={str(guild.id)}"):
-                db.InsertData("guilds", id=guild.id, name=guild.name, created_at=guild.created_at, region=str(guild.region), prefix="g.", last_update_prefix=datetime.datetime.now())
-            db.SelectRowData("guilds", f"id={str(guild.id)}")
+            guild: discord.Guild = message.guild
 
-            n = db.cursor.fetchone()
-            if message.content[0:len(n[4])].lower() == n[4].lower():
-                return message.content[0:len(n[4])]
+            pref: str = get_prefix(dbm, guild)
+            if message.content[0:len(pref)].lower() == pref.lower():
+                return message.content[0:len(pref)]
             else:
                 return "This is Not a Prefix for this Server, Try Again later!..."
         else:
             return 'g.'
     return inner_check
 
-conn = dbm.DbManager.connect_db("./DataPack/guild.db")
-bot = commands.Bot(command_prefix=check_guild_prefix(conn))
+def add_guild(guild_id: int, members: list):
+    mdb = MongoManager(MONGO_ADDRESS, DB_NAME)
+    mdb.ConnectCollection("guilds")
+    query: dict = {"guild_id":str(guild_id)}
+    if mdb.FindObject(query) is None:
+        return
+    else:
+        new_gd: dict = new_guild_data
+        new_gd["guild_id"] = str(guild_id)
+        for mbr in members:
+            if not mbr.bot:
+                new_gd["members"].append(str(mbr.id))
+        mdb.InsertOneObject(new_gd)
+
+def add_member(guild: discord.Guild, member_id: int):
+    mdb = MongoManager(MONGO_ADDRESS, DB_NAME)
+    mdb.ConnectCollection("guilds")
+    query: dict = {"guild_id":str(guild.id)}
+    u_data = mdb.FindObject(query)
+    if u_data is None:
+        add_guild(guild.id, guild.members)
+        u_data = mdb.FindObject(query)
+    gd: dict = u_data[0]
+    gd["members"].append(str(member_id))
+    mdb.UpdateOneObject(query, gd)
+
+db = MongoManager(MONGO_ADDRESS, DB_NAME)
+db.ConnectCollection("guilds")
+bot = commands.Bot(command_prefix=check_guild_prefix(db))
 bot.remove_command("help")
 
 # Attributes
 WHITE = 0xfffffe
 STATUS = cycle(["Tag Me for Prefix", "Not Game"])
 
-# Events Section
+# Task Section
 
 @tasks.loop(seconds=5)
 async def change_status():
     await bot.change_presence(activity=discord.Game(name=next(STATUS)))
+
+# Events Section
 
 @bot.event
 async def on_ready():
@@ -44,42 +82,23 @@ async def on_ready():
     change_status.start()
     
 @bot.event
-async def on_member_join(member):
-    conn.InsertData("member", server_id=str(member.guild.id), member_id=str(member.id))
-    
-@bot.event
-async def on_member_remove(member):
-    conn.DeleteRow("member", server_id=str(member.guild.id), member_id=str(member.id))
+async def on_member_join(member: discord.Member):
+    add_member(member.guild, member.id)
 
 @bot.event
-async def on_guild_join(guild):
-    conn.InsertData("guilds", id=guild.id, name=guild.name, created_at=guild.created_at, region=str(guild.region), prefix="g.", last_update_prefix=datetime.datetime.now())
-    for mbr in guild.members:
-        if not mbr.bot:
-            conn.InsertData("member", server_id=str(guild.id), member_id=str(mbr.id))
+async def on_guild_join(guild: discord.Guild):
+    add_guild(guild.id, guild.members)
 
 @bot.event
-async def on_guild_remove(guild):
-    conn.DeleteRow("guilds", id=str(guild.id))
-    conn.DeleteRow("member", server_id=str(guild.id))
-
-@bot.event
-async def on_message(message):
+async def on_message(message: discord.Message):
     """Event Message"""
     if not isinstance(message.channel, discord.DMChannel):
-        if not conn.CheckExistence("guilds", f"id='{str(message.guild.id)}'"):
-            guild = message.guild
-            conn.InsertData("guilds", id=guild.id, name=guild.name, created_at=guild.created_at, region=str(guild.region), prefix="g.", last_update_prefix=datetime.datetime.now())
-
-        if not conn.CheckExistence("member", f"server_id={str(message.guild.id)} AND member_id = {str(message.author.id)}") and not message.author.bot:
-            conn.InsertData("member", server_id=str(message.guild.id), member_id=str(message.author.id))
-
+        
         if str(bot.user.id) in message.content: # Get Prefix but tagging Bot
-            user_said, in_channel = message.author, message.channel
-            this_guild_prefix = conn.cursor.execute("""SELECT prefix FROM guilds WHERE id='{}';""".format(str(message.guild.id)))
-            data = this_guild_prefix.fetchone()
-            print(data)
-            emb = discord.Embed(title=f"Your Server Prefix is {data[0]}\ntype {data[0]}help for commands.", color=discord.Color(WHITE))
+            user_said: discord.User = message.author
+            in_channel: discord.TextChannel = message.channel
+            pref: str = get_prefix(db, message.guild)
+            emb = discord.Embed(title=f"Your Server Prefix is {pref}\ntype {pref}help for commands.", color=discord.Color(WHITE))
             await in_channel.send(embed=emb)
     
     await bot.process_commands(message)
@@ -102,20 +121,14 @@ async def ping(ctx): # Ping Command, Check Bot Latency
 async def about(ctx):
     """About this Bot"""
     bot_icon = bot.user.avatar_url
-    this_guild_prefix = conn.cursor.execute("""SELECT prefix FROM guilds WHERE id={};""".format(str(ctx.message.guild.id)))
     emb = discord.Embed(
         title="🎮 Gamern't Bot 🎮", 
-        description=f"""
-
-            Hi, I'm not Gamer, 
-            i have Good Games to offer and play with you even with your friends, 
-            I am Not a Gamer Bot, Trust Me! :D
-        
-        """, 
+        description=f"""Hi, I'm not Gamer, i have Good Games to offer and play with you even with your friends, I am Not a Gamer Bot, Trust Me! :D""", 
         colour=discord.Colour(WHITE)
     )
     emb.set_thumbnail(url=bot_icon)
-    emb.set_footer(text="Version : 1.0.2b; Your Current Prefix : {}".format(this_guild_prefix.fetchone()[0]))
+    pref: str = get_prefix(db, ctx.message.guild)
+    emb.set_footer(text=f"Version : 1.0.2b; Your Current Prefix : {pref}")
     await ctx.send(embed=emb)
     
 @bot.command(aliases=['new'])
@@ -146,16 +159,13 @@ async def prefix(ctx, new_prefix: str):
     try:
         if len(new_prefix.split(' ')) > 1 or len(new_prefix) > 10 or " " in new_prefix:
             raise commands.BadArgument
-        conn.cursor.execute("""UPDATE guilds SET prefix='{}' WHERE id='{}'""".format(new_prefix, str(ctx.message.guild.id)))
-        conn.connect.commit()
+        set_prefix(db, ctx.message.guild, new_prefix)
         emb.add_field(name="🔧 Prefix Changed", value="Server new Prefix **{}**".format(new_prefix))
         await ctx.send(embed=emb)
-    except Exception as exc:
-        if type(exc) == commands.BadArgument:
-            emb.set_footer(text="Example Prefixes : g. | game! | etc.")
-            emb.add_field(name="🔧 Not a Good Prefix", value="Your Prefix might too long or bad format, try simpler!")
-            await ctx.send(embed=emb)
-        print(type(exc), exc)
+    except commands.BadArgument:
+        emb.set_footer(text="Example Prefixes : g. | game! | etc.")
+        emb.add_field(name="🔧 Not a Good Prefix", value="Your Prefix might too long or bad format, try simpler!")
+        await ctx.send(embed=emb)
 
 @bot.command(aliases=['suggest', 'report'])
 async def feedback(ctx, *, args: str):
@@ -195,7 +205,7 @@ if __name__ == "__main__":
     for game in os.listdir("./GamePack"):
         if game.endswith(".py"):
             bot.load_extension("GamePack.{}".format(game[:-3]))
-    
+
     for info in os.listdir("./InformationPack"):
         if info.endswith(".py"):
             bot.load_extension("InformationPack.{}".format(info[:-3]))
@@ -203,7 +213,5 @@ if __name__ == "__main__":
     # Run the Bot
     bot.run(TOKEN)
 
-    # Bot Stopped Working and Save Data
-    conn.connect.commit()
-    conn.cursor.close()
+    # Bot Stopped Working
     print("{:^50}".format("~ Session Ended, OOF! ~"))
