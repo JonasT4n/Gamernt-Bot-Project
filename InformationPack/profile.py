@@ -33,13 +33,14 @@ class Profile(commands.Cog):
         # Make Query
         user: dict
         query: dict = {"member_id": person_id}
-        data_user: list = self.mongodbm.FindObject(query)
-        if len(data_user) < 1:
+        data_user = self.mongodbm.FindObject(query)
+        if data_user is None:
             nd = new_member_data
             nd["member_id"] = person_id
             self.mongodbm.InsertOneObject(nd)
-            data_user = self.mongodbm.FindObject(query)
-        user = data_user[0]
+            user = nd
+        else:
+            user = data_user[0]
         
         # Print Out Profile Information
         emb = discord.Embed(
