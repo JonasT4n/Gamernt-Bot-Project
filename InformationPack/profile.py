@@ -32,11 +32,11 @@ class Profile(commands.Cog):
         
         # Make Query
         user: dict
-        query: dict = {"member_id": person_id}
+        query: dict = {"member_id": str(person_id)}
         data_user = self.mongodbm.FindObject(query)
         if data_user is None:
             nd = new_member_data
-            nd["member_id"] = person_id
+            nd["member_id"] = str(person_id)
             self.mongodbm.InsertOneObject(nd)
             user = nd
         else:

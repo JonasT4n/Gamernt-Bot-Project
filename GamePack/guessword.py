@@ -136,6 +136,7 @@ class GuessWord(commands.Cog):
                 colour=discord.Colour(WHITE)
             )
             user_data: dict = self.checkin_member(answered.id)
+            del user_data["_id"]
             user_data["money"] += 10
             self.mongodbm.UpdateOneObject({"member_id": str(answered.id)}, user_data)
             await channel.send(embed = _emb)
@@ -166,8 +167,9 @@ class GuessWord(commands.Cog):
             nd: dict = new_member_data
             nd["member_id"] = str(person_id)
             self.mongodbm.InsertOneObject(nd)
-            u_data = nd
-        return u_data[0]
+            return nd
+        else:
+            return u_data[0]
 
     @commands.command(aliases=["scr"])
     async def scramble(self, ctx, *, category: str = 'random'):

@@ -38,8 +38,9 @@ class RPS(commands.Cog):
             nd: dict = new_member_data
             nd["member_id"] = str(person_id)
             self.mongodbm.InsertOneObject(nd)
-            u_data = nd
-        return u_data[0]
+            return nd
+        else:
+            return u_data[0]
 
     def check_choosen(self, person):
         def inner_check(message: discord.Message):
@@ -83,6 +84,7 @@ class RPS(commands.Cog):
             elif (replied.content == '1' and bot_choose == '2') or (replied.content == '2' and bot_choose == '3') or (replied.content == '3' and bot_choose == '1'):
                 winner = f"You Win! Earned {earned} 💲"
                 user_data: dict = self.checkin_member(person.id)
+                del user_data["_id"]
                 user_data["money"] += earned
                 self.mongodbm.UpdateOneObject({"member_id": str(person.id)}, user_data)
             else:

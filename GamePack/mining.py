@@ -172,8 +172,9 @@ class Mine(commands.Cog):
             nd: dict = new_member_data
             nd["member_id"] = str(person_id)
             self.mongodbm.InsertOneObject(nd)
-            u_data = nd
-        return u_data[0]
+            return nd
+        else:
+            return u_data[0]
 
     def rarity_randomize(self) -> str:
         """
@@ -242,12 +243,11 @@ class Mine(commands.Cog):
             await queing.edit(embed = emb)
 
             # Save Data
-            user_bag: dict = self.checkin_member(person.id)["ores"]
-            user_bag[ore] += 1
             query: dict = {"member_id":str(person.id)}
-            member_data: dict = self.mongodbm.FindObject(query)[0]
-            member_data["ores"] = user_bag
-            self.mongodbm.UpdateOneObject(query, member_data)  
+            user_bag: dict = self.checkin_member(person.id)
+            user_bag["ores"][ore] += 1
+            del user_bag["_id"]
+            self.mongodbm.UpdateOneObject(query, user_bag)  
 
     @commands.command()
     async def pickaxeup(self, ctx):
