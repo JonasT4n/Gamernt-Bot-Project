@@ -115,18 +115,21 @@ class Duel(commands.Cog):
             nd: dict = new_member_data
             nd["member_id"] = str(person_id)
             self.mongodbm.InsertOneObject(nd)
-            u_data = self.mongodbm.FindObject(query)
-        return u_data[0]
+            return nd
+        else:
+            return u_data[0]
 
     def get_point(self, winner: discord.User, loser: discord.User):
         winner_data: dict
         loser_data: dict
         if winner.bot is False:
             winner_data = self.checkin_member(winner.id)
+            del winner_data["_id"]
             winner_data["trophy"] += self.winner_get
             self.mongodbm.UpdateOneObject({"member_id": str(winner.id)}, winner_data)
         if loser.bot is False:
             loser_data = self.checkin_member(loser.id)
+            del loser_data["_id"]
             loser_data["trophy"] -=  self.loser_lost
             if loser_data["trophy"] < 0:
                 loser_data["trophy"] = 0
