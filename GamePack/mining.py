@@ -162,7 +162,7 @@ class Mine(commands.Cog):
         # Print out Information
         emb = discord.Embed(title=f"💎 {person.display_name}'s Bag", description=description_bag, colour=discord.Colour(WHITE))
         emb.set_thumbnail(url="https://webstockreview.net/images/clipart-diamond-bunch-7.png")
-        emb.set_footer(text=f"Pickaxe Level : {pick_level} {self.pickaxe_identity[pick_level]['name']}")
+        emb.set_footer(text=f"Pickaxe Level : {pick_level} | {self.pickaxe_identity[pick_level]['name']}")
         await ctx.send(embed=emb)
 
     def checkin_member(self, person_id: int) -> dict:

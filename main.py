@@ -138,6 +138,7 @@ async def news(ctx):
     bot_icon = bot.user.avatar_url
     emb = discord.Embed(title="📰 Breaking News!", description=open("./DataPack/Help/news.txt", 'r').read(), colour=discord.Colour(WHITE))
     emb.set_thumbnail(url=bot_icon)
+    emb.set_footer(text="Version 1.0.6a")
     await ctx.send(embed=emb)
 
 @bot.command(aliases=['h'])
@@ -170,11 +171,17 @@ async def prefix(ctx, new_prefix: str):
 
 @bot.command(aliases=['suggest', 'report'])
 async def feedback(ctx, *, args: str):
-    """Feedback Report and Bug Glitch Information direct from User"""
-    n = open("./report.txt", 'a')
-    msg = "\n" + str(datetime.datetime.now()) + f" (By {ctx.message.author.name} : {ctx.message.author.id})" + ": " + args
-    n.write(msg)
-    n.close()
+    """
+    
+    Feedback Report and Bug Glitch Information direct from User.
+    
+    """
+    feedback_string: str = "\n" + str(datetime.datetime.now()) + f" (By {ctx.message.author.name} : {ctx.message.author.id})" + ": " + args
+    mdb = MongoManager(MONGO_ADDRESS, DB_NAME)
+    mdb.ConnectCollection("report")
+    list_report: list = mdb.FindObject({})[0]["report"]
+    list_report.append(feedback_string)
+    mdb.UpdateOneObject({}, {"report": list_report})
     await ctx.send("Your Report has been Sent.")
 
 @bot.command()

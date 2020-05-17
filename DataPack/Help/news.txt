@@ -1,2 +1,2 @@
-- Minor Update UI and Commands
-- Reset Player Data due to Change Data Saver
+- Update Mining Command
+- Added Pickaxeup to Upgrade your Pickaxe

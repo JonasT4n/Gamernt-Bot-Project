@@ -85,6 +85,25 @@ class GuessWord(commands.Cog):
                     splitted_words[i] = splitted_words[i][:index_random] + splitted_words[i][index_random + 1:]
                 new_str_rnd += ' '
         return new_str_rnd
+    
+    def checkin_member(self, person_id: int) -> dict:
+        """
+        
+        Check if Member is in the Database.
+
+            Returns :
+                (dict) => Member Information
+        
+        """
+        query: dict = {"member_id":str(person_id)}
+        u_data = self.mongodbm.FindObject(query)
+        if u_data is None:
+            nd: dict = new_member_data
+            nd["member_id"] = str(person_id)
+            self.mongodbm.InsertOneObject(nd)
+            return nd
+        else:
+            return u_data[0]
 
     def check_answer(self, channel, question, embed : discord.Embed, answer: str):
         # Edit Local Message
@@ -130,16 +149,20 @@ class GuessWord(commands.Cog):
             winner: discord.User = answered.author
 
             # When the Answer is Right
+            earned: int = 10
             _emb = discord.Embed(
                 title="◔‿◔ Correct!", 
-                description=f"Congratulation : **{winner.name}**.\nReward : **10** 💲", 
+                description=f"Congratulation : **{winner.name}**.\nReward : **{earned}** 💲", 
                 colour=discord.Colour(WHITE)
             )
-            user_data: dict = self.checkin_member(answered.id)
-            del user_data["_id"]
-            user_data["money"] += 10
-            self.mongodbm.UpdateOneObject({"member_id": str(answered.id)}, user_data)
             await channel.send(embed = _emb)
+
+            # Save Data
+            user_data: dict = self.checkin_member(answered.id)
+            query: dict = {"member_id": str(answered.id)}
+            del user_data["_id"]
+            user_data["money"] += earned
+            self.mongodbm.UpdateOneObject(query, {"money":user_data["money"]})
             
         except asyncio.TimeoutError:
             # When nobody can answer it
@@ -151,25 +174,6 @@ class GuessWord(commands.Cog):
 
         await handler.delete()
         await channel.send(embed = _emb)
-
-    def checkin_member(self, person_id: int) -> dict:
-        """
-        
-        Check if Member is in the Database.
-
-            Returns :
-                (dict) => Member Information
-        
-        """
-        query: dict = {"member_id":str(person_id)}
-        u_data = self.mongodbm.FindObject(query)
-        if u_data is None:
-            nd: dict = new_member_data
-            nd["member_id"] = str(person_id)
-            self.mongodbm.InsertOneObject(nd)
-            return nd
-        else:
-            return u_data[0]
 
     @commands.command(aliases=["scr"])
     async def scramble(self, ctx, *, category: str = 'random'):
