@@ -8,13 +8,14 @@ from Settings.MongoManager import MongoManager, new_guild_data, new_member_data
 from Settings.setting import TOKEN, MONGO_ADDRESS, DB_NAME
 
 def get_prefix(dbm: MongoManager, guild: discord.Guild) -> str:
-    guild_data = dbm.FindObject({"guild_id":str(guild.id)})[0]
+    guild_data = dbm.FindObject({"guild_id":str(guild.id)})
     if guild_data is None:
         new_gd: dict = new_guild_data
         new_gd["guild_id"] = str(guild.id)
         dbm.InsertOneObject(new_gd)
-        guild_data = new_gd
-    return guild_data["prefix"]
+        return new_gd["prefix"]
+    else:
+        return guild_data[0]["prefix"]
 
 def set_prefix(dbm: MongoManager, guild: discord.Guild, new_prefix: str):
     dbm.UpdateOneObject({"guild_id":str(guild.id)}, {"prefix":new_prefix})
