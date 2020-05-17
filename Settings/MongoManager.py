@@ -44,7 +44,11 @@ class MongoManager:
     def __init__(self, address, dbname):
         """Initialize Connection"""
         try:
-            self.client = pymongo.MongoClient(address)
+            self.client = pymongo.MongoClient(
+                address,
+                connectTimeoutMS = 30000,
+                socketTimeoutMS = None
+            )
             self.db = self.client[dbname]
             self.database_name = dbname
         except Exception as e:
@@ -120,10 +124,10 @@ class MongoManager:
                 (None)
 
         """
-        try:
-            self.connected_collection.insert_one(data)
-        except:
-            print("Error when Inserted, Collection may not defined")
+        # try:
+        self.connected_collection.insert_one(data)
+        # except:
+        #     print("Error when Inserted, Collection may not defined")
 
     def UpdateOneObject(self, query: dict, update: dict):
         """
