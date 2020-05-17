@@ -14,7 +14,7 @@ class Cards(commands.Cog):
         "club":["A♧", "2♧", "3♧", "4♧", "5♧", "6♧", "7♧", "8♧", "9♧", "10♧", "J♧", "Q♧", "K♧"],
         "diamond":["A♢", "2♢", "3♢", "4♢", "5♢", "6♢", "7♢", "8♢", "9♢", "10♢", "J♢", "Q♢", "K♢"]
     }
-    overflow_deck: list or tuple = [
+    overflow_deck: list = [
         "A♤", "2♤", "3♤", "4♤", "5♤", "6♤", "7♤", "8♤", "9♤", "10♤", "J♤", "Q♤", "K♤", 
         "A♡", "2♡", "3♡", "4♡", "5♡", "6♡", "7♡", "8♡", "9♡", "10♡", "J♡", "Q♡", "K♡", 
         "A♧", "2♧", "3♧", "4♧", "5♧", "6♧", "7♧", "8♧", "9♧", "10♧", "J♧", "Q♧", "K♧",
@@ -23,15 +23,12 @@ class Cards(commands.Cog):
 
     def __init__(self, bot:commands.Bot):
         self.bot = bot
+        self.mongodbm = MongoManager(MONGO_ADDRESS, DB_NAME)
+        self.mongodbm.ConnectCollection("members")
 
     @commands.Cog.listener()
     async def on_ready(self):
         print("Card Game Ready!")
-
-    @commands.command()
-    async def drawcard(self, ctx):
-        emb = discord.Embed(title=f"You have Drawn {random.choice(self.overflow_deck)}", colour=discord.Colour(WHITE))
-        await ctx.send(embed=emb)
 
     @commands.command()
     async def blackjack(self, ctx):

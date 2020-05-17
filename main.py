@@ -124,7 +124,7 @@ async def about(ctx):
     bot_icon = bot.user.avatar_url
     emb = discord.Embed(
         title="🎮 Gamern't Bot 🎮", 
-        description=f"""Hi, I'm not Gamer, i have Good Games to offer and play with you even with your friends, I am Not a Gamer Bot, Trust Me! :D""", 
+        description=f"""Hi, I'm not Gamer, i have Good Games to offer and play with you even with your friends, I am Not a Gamer Bot, Trust Me! :D\n\nI have been created for those who has bored after playing game, so go to your discord and play with friends while chatting :3""", 
         colour=discord.Colour(WHITE)
     )
     emb.set_thumbnail(url=bot_icon)

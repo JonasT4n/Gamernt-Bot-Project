@@ -3,6 +3,6 @@
 🎮 FUN & GAMES :
 ```choose, duel, dice, mine/dig, ows, rps, scramble/scr```
 💾 MISC :
-```ores/ore, profile/user```
+```ores/ore, profile/user, pickaxeup```
 ⚙️ UTILITY :
 ```giveaway/gw, poll```

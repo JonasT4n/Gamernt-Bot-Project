@@ -172,7 +172,6 @@ class MongoManager:
         
         """
         list_objects = [i for i in self.connected_collection.find(query)]
-        print(list_objects)
         if len(list_objects) == 0:
             return None
         else:
