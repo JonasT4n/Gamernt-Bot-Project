@@ -80,7 +80,7 @@ class Duel(commands.Cog):
             while len(container_log) > 3:
                 container_log.pop(0)
             # Sending an Information Duel
-            emb = discord.Embed(title="⚔️ Duel ⚔️", description="> **{}'s HP** : {}\n> **{}'s HP** : {}".format(p1name, p1.HP, p2name, p2.HP), colour=discord.Colour(WHITE))
+            emb = discord.Embed(title="⚔️ Fair Duel ⚔️", description="> **{}'s HP** : {}\n> **{}'s HP** : {}".format(p1name, p1.HP, p2name, p2.HP), colour=discord.Colour(WHITE))
             emb.add_field(name="Battle Log :", value="\n".join(container_log), inline=False)
             await handler_msg.edit(embed = emb)
             await asyncio.sleep(1)
@@ -120,16 +120,23 @@ class Duel(commands.Cog):
             return u_data[0]
 
     def get_point(self, winner: discord.User, loser: discord.User):
+        # Init Variables
         winner_data: dict
         loser_data: dict
+
+        # Winner Result
         if winner.bot is False:
             winner_data = self.checkin_member(winner.id)
-            del winner_data["_id"]
+            if "_id" in winner_data:
+                del winner_data["_id"]
             winner_data["trophy"] += self.winner_get
             self.mongodbm.UpdateOneObject({"member_id": str(winner.id)}, winner_data)
+
+        # Loser Result
         if loser.bot is False:
             loser_data = self.checkin_member(loser.id)
-            del loser_data["_id"]
+            if "_id" in loser_data:
+                del loser_data["_id"]
             loser_data["trophy"] -=  self.loser_lost
             if loser_data["trophy"] < 0:
                 loser_data["trophy"] = 0
@@ -146,7 +153,7 @@ class Duel(commands.Cog):
             person2 = random.choice(ctx.message.guild.members)
 
         elif person1.lower() == 'help' or person1.lower() == 'h':
-            emb = discord.Embed(title="⚔️ Duel Fight", description="Punch, Kick, and Kill your friend", colour=discord.Colour(WHITE))
+            emb = discord.Embed(title="⚔️ Fair Duel Fight", description="Punch, Kick, and Kill your friend.", colour=discord.Colour(WHITE))
             emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/588917150891114516/676351507322503168/VSBattle_Logo.png")
             emb.add_field(name="Command (alias):", value=open("./DataPack/Help/duelh.txt", 'r').read(), inline=False)
             emb.add_field(name="Others :", value="> You can Duel your Friend without tagging them. Just Enter their Name.")
@@ -193,6 +200,10 @@ class Duel(commands.Cog):
             this_msg_coroute = await ctx.send(embed=emb)
             await asyncio.sleep(3)
             await this_msg_coroute.delete()
+
+    @commands.command()
+    async def battle(self, ctx, person: discord.User):
+        pass
 
 def setup(bot):
     bot.add_cog(Duel(bot))

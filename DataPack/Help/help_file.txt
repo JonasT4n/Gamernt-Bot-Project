@@ -1,8 +1,6 @@
-💬 GENERAL :
+GENERAL :
 ```ping, about/info, news/new, help/h, prefix/pfix, feedback/suggest/report```
-🎮 FUN & GAMES :
-```choose, duel, dice, mine/dig, ows, rps, scramble/scr```
-💾 MISC :
-```ores/ore, profile/user, pickaxeup```
-⚙️ UTILITY :
-```giveaway/gw, poll```
+FUN & GAMES :
+```chance, choose, duel, dice, mine/dig, ows, poolask/ask, rps, scramble/scr```
+MISC :
+```ores/ore, profile/user, pickaxeup, settitle/st```

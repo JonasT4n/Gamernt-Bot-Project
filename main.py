@@ -7,24 +7,47 @@ from itertools import cycle
 from Settings.MongoManager import MongoManager, new_guild_data, new_member_data
 from Settings.setting import TOKEN, MONGO_ADDRESS, DB_NAME
 
-def get_prefix(dbm: MongoManager, guild: discord.Guild) -> str:
-    guild_data = dbm.FindObject({"guild_id":str(guild.id)})
+def get_prefix(dbm: MongoManager, guild_id: int) -> str:
+    """Get Current Prefix in this Guild."""
+    guild_data = dbm.FindObject({"guild_id":str(guild_id)})
     if guild_data is None:
-        new_gd: dict = new_guild_data
-        new_gd["guild_id"] = str(guild.id)
-        dbm.InsertOneObject(new_gd)
+        new_gd: dict = add_guild(dbm, guild_id)
         return new_gd["prefix"]
     else:
         return guild_data[0]["prefix"]
 
 def set_prefix(dbm: MongoManager, guild: discord.Guild, new_prefix: str):
+    """Set Guild Prefix and Overwrite to Mongo Data."""
     dbm.UpdateOneObject({"guild_id":str(guild.id)}, {"prefix":new_prefix})
 
+def add_guild(dbmongo: MongoManager, guild_id: int) -> dict:
+    """Insert Guild to Mongo Data."""
+    gd: dict = new_guild_data
+    gd["guild_id"] = str(guild_id)
+    dbmongo.InsertOneObject(gd)
+    return gd
+
+def add_member_guild(dbm: MongoManager, guild_id: int, member_id: int) -> None:
+    """Add Member into Member Guild Array."""
+    g_data: dict = get_guild_data(db, guild_id)
+    member_list: list = g_data["members"]
+    member_list.append(str(member_id))
+    dbm.UpdateOneObject({"guild_id": str(guild_id)}, {"members": member_list})
+
+def get_guild_data(dbm: MongoManager, guild_id: int) -> dict:
+    """Getting a Current Guild Data from Mongo."""
+    g_data = dbm.FindObject({"guild_id": str(guild_id)})
+    if g_data is None:
+        g_data = add_guild(dbm, guild_id)
+        return g_data
+    else:
+        return g_data[0]
+
 def check_guild_prefix(dbm: MongoManager):
+    """Check Current Guild Prefix in Command or Message."""
     def inner_check(bot, message: discord.Message):
         if not isinstance(message.channel, discord.DMChannel):
             guild: discord.Guild = message.guild
-
             pref: str = get_prefix(dbm, guild)
             if message.content[0:len(pref)].lower() == pref.lower():
                 return message.content[0:len(pref)]
@@ -34,36 +57,11 @@ def check_guild_prefix(dbm: MongoManager):
             return 'g.'
     return inner_check
 
-def add_guild(guild_id: int, members: list):
-    mdb = MongoManager(MONGO_ADDRESS, DB_NAME)
-    mdb.ConnectCollection("guilds")
-    query: dict = {"guild_id":str(guild_id)}
-    if mdb.FindObject(query) is None:
-        return
-    else:
-        new_gd: dict = new_guild_data
-        new_gd["guild_id"] = str(guild_id)
-        for mbr in members:
-            if not mbr.bot:
-                new_gd["members"].append(str(mbr.id))
-        mdb.InsertOneObject(new_gd)
-
-def add_member(guild: discord.Guild, member_id: int):
-    mdb = MongoManager(MONGO_ADDRESS, DB_NAME)
-    mdb.ConnectCollection("guilds")
-    query: dict = {"guild_id":str(guild.id)}
-    u_data = mdb.FindObject(query)
-    if u_data is None:
-        add_guild(guild.id, guild.members)
-        u_data = mdb.FindObject(query)
-    gd: dict = u_data[0]
-    gd["members"].append(str(member_id))
-    mdb.UpdateOneObject(query, gd)
-
 db = MongoManager(MONGO_ADDRESS, DB_NAME)
 db.ConnectCollection("guilds")
 bot = commands.Bot(command_prefix=check_guild_prefix(db))
 bot.remove_command("help")
+current_version: str = "Version 1.0.7a"
 
 # Attributes
 WHITE = 0xfffffe
@@ -84,29 +82,38 @@ async def on_ready():
     
 @bot.event
 async def on_member_join(member: discord.Member):
-    add_member(member.guild, member.id)
+    add_member_guild(member.guild, member.id)
 
 @bot.event
 async def on_guild_join(guild: discord.Guild):
-    add_guild(guild.id, guild.members)
+    add_guild(guild.id)
 
 @bot.event
 async def on_message(message: discord.Message):
-    """Event Message"""
+    """Built -in Event Message."""
+    # If the Message is not in DM
     if not isinstance(message.channel, discord.DMChannel):
+
+        # Check if Guild not yet in Mongo Data
+        if str(message.author.id) not in get_guild_data(db, message.guild.id)["members"]:
+            add_member_guild(db, message.guild.id, message.author.id)
         
-        if str(bot.user.id) in message.content: # Get Prefix but tagging Bot
+        # Get Prefix by tagging Bot
+        if str(bot.user.id) in message.content: 
             user_said: discord.User = message.author
             in_channel: discord.TextChannel = message.channel
-            pref: str = get_prefix(db, message.guild)
+            pref: str = get_prefix(db, message.guild.id)
             emb = discord.Embed(title=f"Your Server Prefix is {pref}\ntype {pref}help for commands.", color=discord.Color(WHITE))
             await in_channel.send(embed=emb)
-    
+
+    # Execute Command No matter what Message Said
     await bot.process_commands(message)
 
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
+        return
+    if isinstance(error, commands.MissingRequiredArgument):
         return
     raise error
 
@@ -129,7 +136,7 @@ async def about(ctx):
     )
     emb.set_thumbnail(url=bot_icon)
     pref: str = get_prefix(db, ctx.message.guild)
-    emb.set_footer(text=f"Version : 1.0.2b; Your Current Prefix : {pref}")
+    emb.set_footer(text=f"{current_version}\nYour Current Prefix : {pref}")
     await ctx.send(embed=emb)
     
 @bot.command(aliases=['new'])
@@ -138,17 +145,20 @@ async def news(ctx):
     bot_icon = bot.user.avatar_url
     emb = discord.Embed(title="📰 Breaking News!", description=open("./DataPack/Help/news.txt", 'r').read(), colour=discord.Colour(WHITE))
     emb.set_thumbnail(url=bot_icon)
-    emb.set_footer(text="Version 1.0.6a")
+    emb.set_footer(text=f"{current_version}")
     await ctx.send(embed=emb)
 
 @bot.command(aliases=['h'])
 async def help(ctx, page = None):
     """Custom Help Command"""
+    bot_icon_url: str = bot.user.avatar_url
     emb = discord.Embed(
         title="Help Menu",
         description= open("./DataPack/Help/help_file.txt", "r").read(),
         colour=discord.Colour(WHITE)
     )
+    emb.set_thumbnail(url=bot_icon_url)
+    emb.set_footer(text=f"{current_version}")
     await ctx.send(embed = emb)
 
 @bot.command(aliases=['pfix'])
@@ -182,7 +192,7 @@ async def feedback(ctx, *, args: str):
     list_report: list = mdb.FindObject({})[0]["report"]
     list_report.append(feedback_string)
     mdb.UpdateOneObject({}, {"report": list_report})
-    await ctx.send("Your Report has been Sent.")
+    await ctx.send("*Your Feedback, Report or Suggestion has been Sent. Thank You :)*")
 
 @bot.command()
 @commands.is_owner()
@@ -206,6 +216,7 @@ async def global_info(ctx):
     emb = discord.Embed(title="📈 Stats 📈", colour=discord.Colour(WHITE))
     emb.add_field(name="Server Count", value=f"{len(servers)}")
     emb.add_field(name="Member Count", value=f"{members}")
+    emb.add_field(name="Shard Count", value=f"{bot.shard_count}")
     await ctx.send(embed = emb)
 
 if __name__ == "__main__":

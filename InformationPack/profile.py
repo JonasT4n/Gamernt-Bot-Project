@@ -2,6 +2,7 @@ import discord
 import os
 import asyncio
 from discord.ext import commands
+from Settings.MyUtility import checkin_member
 from Settings.MongoManager import MongoManager, new_member_data
 from Settings.setting import MONGO_ADDRESS, DB_NAME
 
@@ -13,6 +14,20 @@ class Profile(commands.Cog):
         self.bot = bot
         self.mongodbm = MongoManager(MONGO_ADDRESS, DB_NAME)
         self.mongodbm.ConnectCollection("members")
+
+    @commands.command(aliases=["lb"])
+    async def leaderboard(self, ctx):
+        pass
+
+    @commands.command(aliases=["st"])
+    async def settitle(self, ctx: commands.Context, *args):
+        person_data: dict = checkin_member(ctx.author.id)
+        title: str = " ".join(args)
+        person_data["title"] = title
+        if "_id" in person_data:
+            del person_data["_id"]
+        self.mongodbm.UpdateOneObject({"member_id": str(ctx.author.id)}, person_data)
+        await ctx.send(f"*Title Set to {title}, Check your Profile.*")
 
     @commands.command(aliases=["prof", "user"])
     async def profile(self, ctx, *args):
@@ -44,8 +59,8 @@ class Profile(commands.Cog):
         
         # Print Out Profile Information
         emb = discord.Embed(
-            title=f"{ctx.message.author.name}'s Profile", 
-            description=f"""```ID : {person_id}\n🏆 : {user["trophy"]}\n👛 : {user["money"]}```""", 
+            title=f"{ctx.message.author.name}", 
+            description=f"""```The '{user["title"]}'\n📜ID : {person_id}\n🏆Trophy : {user["trophy"]}\n👛Money : {user["money"]}```""", 
             colour=discord.Colour(WHITE)
         )
         emb.set_thumbnail(url=person.avatar_url)

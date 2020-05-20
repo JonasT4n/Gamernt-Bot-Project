@@ -20,13 +20,17 @@ class Dice(commands.Cog):
         await ctx.send(embed = emb)
 
     @commands.command()
-    @commands.cooldown(1, 3, commands.BucketType.user)
     async def dice(self, ctx, amount: int = 2, dots: int = 6):
         if amount <= 0 or dots <= 0 or amount > 100 or dots > 100:
             await self.dice_help(ctx)
         else:
-            rolled: int = random.randint(1, amount * dots)
-            emb = discord.Embed(title="🎲 Dice Rolled", description=f"You Got : **{rolled}**", colour=discord.Colour(WHITE))
+            ld: list = [random.randint(1, dots) for i in range(amount)]
+            desc: str = "```"
+            for i in ld:
+                desc += f"{i} "
+            desc += "```"
+            emb = discord.Embed(title="🎲 Dice Rolled", description=f"{desc}\nSum of all Dice : **{sum(ld)}**", colour=discord.Colour(WHITE))
+            emb.set_footer(text=f"{amount} Dices, {dots} Faces")
             await ctx.send(embed = emb)
         
 def setup(bot:commands.Bot):

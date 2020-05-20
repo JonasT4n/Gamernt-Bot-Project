@@ -4,7 +4,6 @@ import asyncio
 import random
 import os
 import threading
-from Settings.DbManager import DbManager as dbm
 
 WHITE = 0xfffffe
 

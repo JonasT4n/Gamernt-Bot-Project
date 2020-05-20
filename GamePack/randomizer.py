@@ -6,7 +6,7 @@ WHITE = 0xfffffe
 
 class Chance(commands.Cog):
 
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.command()
@@ -25,5 +25,5 @@ class Chance(commands.Cog):
         emb = discord.Embed(title=f"🦉 You ask for it.", description=f"{ctx.message.author.name} : {statement}\nMe : **{random.choice(reply)}**", colour=discord.Colour(WHITE))
         await ctx.send(embed = emb)
 
-def setup(bot):
+def setup(bot: commands.Bot):
     bot.add_cog(Chance(bot))

@@ -9,11 +9,13 @@ import pymongo
 new_guild_data = {
     "guild_id": "0",
     "prefix": "g.",
-    "members": []
+    "members": [],
+    "stories": []
 }
 
 new_member_data = {
     "member_id": "0",
+    "title": "No Title",
     "trophy": 0,
     "money": 0,
     "ores": {
@@ -33,7 +35,8 @@ new_member_data = {
         "Titanium": 0,
         "Meteorite": 0
     },
-    "pickaxe-level": 0
+    "pickaxe-level": 0,
+    "pickaxe-name": "Stone Pickaxe"
 }
 
 class MongoManager:

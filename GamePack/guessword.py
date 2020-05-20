@@ -8,61 +8,11 @@ import asyncio
 from discord.ext import commands, tasks
 from Settings.MongoManager import MongoManager, new_member_data
 from Settings.setting import MONGO_ADDRESS, DB_NAME
+from Settings.StaticData import words
 
 WHITE = 0xfffffe
 
 class GuessWord(commands.Cog):
-
-    words: dict = {
-        "country":
-        [
-            'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 
-            'Antigua', 'Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 
-            'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 
-            'Bosnia', 'Herzegovina', 'Botswana', 'Brazil', 'Brunei Darussalam', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 
-            'Cambodia', 'Cameroon', 'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 
-            'Colombia', 'Comoros', 'Congo', 'Cook Islands', 'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czechia', "Cote d'Ivoire",
-            'Congo', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt', 
-            'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 
-            'Eswatini', 'Ethiopia', 'Faroe Islands', 'Fiji', 'Finland', 'France', 'Gabon', 
-            'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 
-            'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 
-            'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Kuwait', 'Kyrgyzstan', 
-            "Laos", 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Lithuania', 'Luxembourg', 
-            'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 
-            'Mauritius', 'Mexico', 'Micronesia', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 
-            'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'Niue', 
-            'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Panama', 'Papua New Guinea', 
-            'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Qatar', 'South Korea', 'North Korea', 'Moldova', 'Romania', 
-            'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Samoa', 'San Marino', 
-            'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 
-            'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 
-            'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria', 'Tajikistan', 'Thailand', 
-            'Timor-Leste', 'Togo', 'Tokelau ', 'Tonga', 'Trinidad', 'Tobago', 'Tunisia', 'Turkey', 
-            'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'Great Britain', 
-            'Tanzania', 'United States America', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Venezuela', 'VietNam', 'Yemen', 'Zambia'
-        ],
-        "fruit":
-        [
-            'Apple', 'Apricots', 'Avocado', 'Banana', 'Blackberries', 'Blackcurrant', 'Blueberries', 
-            'Breadfruit', 'Cantaloupe', 'Carambola', 'Cherimoya', 'Cherries', 'Clementine', 
-            'Coconut', 'Cranberries', 'Custard Apple', 'Date Fruit', 'Dragonfruit', 'Durian', 'Elderberries', 
-            'Feijoa', 'Figs', 'Gooseberries', 'Grapefruit', 'Grapes', 'Guava', 'Honeydew Melon', 'Jackfruit', 'Java Plum', 
-            'Jujube Fruit', 'Kiwifruit', 'Kumquat', 'Lemon', 'Lime', 'Longan', 'Loquat', 'Lychee', 
-            'Mandarin', 'Mango', 'Mangosteen', 'Mulberries', 'Nectarine', 'Olives', 'Orange', 'Papaya', 'Passion Fruit', 
-            'Peaches', 'Pear', 'Pineapple', 'Pitanga', 'Plantain', 'Plums', 'Pomegranate', 'Prickly Pear', 
-            'Prunes', 'Pummelo', 'Quince', 'Raspberries', 'Rhubarb', 'Rose Apple', 'Sapodilla', 'Sapote Mamey', 
-            'Soursop', 'Strawberries', 'Sugar Apple', 'Tamarind', 'Tangerine', 'Watermelon'
-        ],
-        'animal':
-        [
-            'Dog', 'Puppy', 'Turtle', 'Rabbit', 'Parrot', 'Cat', 'Kitten', 'Goldfish', 'Mouse', 
-            'Fish', 'Hamster', 'Cow', 'Rabbit', 'Ducks', 'Shrimp', 'Pig', 'Goat', 'Crab', 'Deer', 'Bee',
-            'Sheep', 'Fish', 'Turkey', 'Dove', 'Chicken', 'Horse', 'Crow', 'Peacock', 'Dove', 'Sparrow', 
-            'Goose', 'Stork', 'Pigeon', 'Turkey', 'Hawk', 'Eagle', 'Raven', 'Parrot', 'Flamingo', 'Seagull', 'Ostrich',
-            'Swallow', 'Penguin', 'Robin', 'Swan', 'Owl', 'Woodpecker', 'Hummingbird', 'Albatross', 'Vulture', 'Swan'
-        ]
-    }
 
     def __init__(self, bot):
         self.bot = bot
@@ -158,9 +108,10 @@ class GuessWord(commands.Cog):
             await channel.send(embed = _emb)
 
             # Save Data
-            user_data: dict = self.checkin_member(answered.id)
-            query: dict = {"member_id": str(answered.id)}
-            del user_data["_id"]
+            user_data: dict = self.checkin_member(answered.author.id)
+            query: dict = {"member_id": str(answered.author.id)}
+            if "_id" in user_data:
+                del user_data["_id"]
             user_data["money"] += earned
             self.mongodbm.UpdateOneObject(query, {"money":user_data["money"]})
             
@@ -171,21 +122,20 @@ class GuessWord(commands.Cog):
                 description=f"The answer is **{secret_word}**.", 
                 colour=discord.Colour(WHITE)
             )
-
-        await handler.delete()
-        await channel.send(embed = _emb)
+            await handler.delete()
+            await channel.send(embed = _emb)
 
     @commands.command(aliases=["scr"])
     async def scramble(self, ctx, *, category: str = 'random'):
         list_of_word : list or tuple
         if category.lower() == 'random':
-            category = random.choice(list(self.words))
-            list_of_word = self.words[category]
+            category = random.choice(list(words))
+            list_of_word = words[category]
             await self.scramble_start(channel = ctx.message.channel, category = category, secret_word = random.choice(list_of_word))
         else:
-            if category not in self.words:
-                category = random.choice(list(self.words))
-            list_of_word = self.words[category]
+            if category not in words:
+                category = random.choice(list(words))
+            list_of_word = words[category]
             await self.scramble_start(channel = ctx.message.channel, category = category, secret_word = random.choice(list_of_word))
 
     @commands.command(aliases=["hang"])

@@ -4,122 +4,11 @@ import random
 from discord.ext import commands
 from Settings.MongoManager import MongoManager, new_member_data
 from Settings.setting import MONGO_ADDRESS, DB_NAME
+from Settings.StaticData import pickaxe_identity
 
 WHITE = 0xfffffe
 
 class Mine(commands.Cog):
-
-    # Pickaxe Identity
-    pickaxe_identity: dict = {
-        0: {
-            "name": "Stone Pickaxe",
-            "requirement": None,
-            "balance": {
-                "Copper": 2500,
-                "Lead": 1200,
-                "Tin": 800,
-                "Coal": 500,
-                "Iron": 300,
-                "Cobalt": 250,
-                "Quartz": 200,
-                "Silver": 120,
-                "Gold": 100,
-                "Sapphire": 85,
-                "Ruby": 75,
-                "Diamond": 30,
-                "Emerald": 20,
-                "Titanium": 10,
-                "Meteorite": 5
-            }
-        },
-
-        1: {
-            "name": "Copper Pickaxe",
-            "requirement": {
-                "Copper": 15,
-                "Lead": 10,
-                "Tin": 8,
-                "Iron": 3,
-                "Cobalt": 2,
-                "Silver": 1
-            },
-            "balance": {
-                "Copper": 3000,
-                "Lead": 1500,
-                "Tin": 1000,
-                "Coal": 650,
-                "Iron": 450,
-                "Cobalt": 350,
-                "Quartz": 250,
-                "Silver": 145,
-                "Gold": 105,
-                "Sapphire": 90,
-                "Ruby": 80,
-                "Diamond": 30,
-                "Emerald": 20,
-                "Titanium": 10,
-                "Meteorite": 6
-            }
-        },
-
-        2: {
-            "name": "Lead Pickaxe",
-            "requirement": {
-                "Copper": 12,
-                "Lead": 30,
-                "Coal": 20,
-                "Iron": 10,
-                "Silver": 3,
-                "Quartz": 5
-            },
-            "balance": {
-                "Copper": 3500,
-                "Lead": 1750,
-                "Tin": 1500,
-                "Coal": 800,
-                "Iron": 500,
-                "Cobalt": 350,
-                "Quartz": 300,
-                "Silver": 175,
-                "Gold": 125,
-                "Sapphire": 100,
-                "Ruby": 90,
-                "Diamond": 35,
-                "Emerald": 30,
-                "Titanium": 18,
-                "Meteorite": 8
-            }
-        },
-
-        3: {
-            "name": "Tin Pickaxe",
-            "requirement": {
-                "Copper" : 29,
-                "Lead": 12,
-                "Tin": 35,
-                "Iron": 15,
-                "Quartz": 10,
-                "Gold": 2
-            },
-            "balance": {
-                "Copper": 3750,
-                "Lead": 2200,
-                "Tin": 1800,
-                "Coal": 1000,
-                "Iron": 800,
-                "Cobalt": 500,
-                "Quartz": 450,
-                "Silver": 305,
-                "Gold": 245,
-                "Sapphire": 120,
-                "Ruby": 120,
-                "Diamond": 50,
-                "Emerald": 35,
-                "Titanium": 25,
-                "Meteorite": 10
-            }
-        }
-    }
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -145,24 +34,24 @@ class Mine(commands.Cog):
         user_data: dict = self.checkin_member(person.id)
         user_sack: dict = user_data["ores"]
         pick_level: int = user_data["pickaxe-level"]
+        pickaxe_name: str = user_data["pickaxe-name"]
 
         # Get Detail Sack of Ores
-        ore_keys: list = list(self.pickaxe_identity[pick_level]["balance"].keys())
+        ore_keys: list = list(pickaxe_identity[pick_level]["balance"].keys())
         description_bag: str = "```"
         for i in range(len(ore_keys)):
             sentence: str
             ore_name: str = ore_keys[i]
             if i == len(ore_keys) - 1:
-                sentence = "{:<12} : {} ({}%)".format(ore_name, user_sack[ore_name], self.pickaxe_identity[pick_level]["balance"][ore_name] / 100)
+                sentence = "{:.<12}{} ({}%)".format(ore_name, user_sack[ore_name], pickaxe_identity[pick_level]["balance"][ore_name] / 100)
             else:
-                sentence = "{:<12} : {} ({}%)\n".format(ore_name, user_sack[ore_name], self.pickaxe_identity[pick_level]["balance"][ore_name] / 100)
+                sentence = "{:.<12}{} ({}%)\n".format(ore_name, user_sack[ore_name], pickaxe_identity[pick_level]["balance"][ore_name] / 100)
             description_bag += sentence
         description_bag += "```"
         
         # Print out Information
-        emb = discord.Embed(title=f"💎 {person.display_name}'s Bag", description=description_bag, colour=discord.Colour(WHITE))
-        emb.set_thumbnail(url="https://webstockreview.net/images/clipart-diamond-bunch-7.png")
-        emb.set_footer(text=f"Pickaxe Level : {pick_level} | {self.pickaxe_identity[pick_level]['name']}")
+        emb = discord.Embed(title=f"💎 {person.display_name}'s' Sack Of Ores", description=f"{pickaxe_name}\nPickaxe Level : {pick_level}\n{description_bag}", colour=discord.Colour(WHITE))
+        emb.set_thumbnail(url="https://webstockreview.net/images/coal-clipart-bag-coal-6.png")
         await ctx.send(embed=emb)
 
     def checkin_member(self, person_id: int) -> dict:
@@ -194,10 +83,10 @@ class Mine(commands.Cog):
         
         """
         _list_of_gotem = []
-        ore_keys: list = list(self.pickaxe_identity[pickaxe_level]["balance"].keys())
+        ore_keys: list = list(pickaxe_identity[pickaxe_level]["balance"].keys())
         for i in range(len(ore_keys)):
             ore_name: str = ore_keys[i]
-            if self.approve(self.pickaxe_identity[pickaxe_level]["balance"][ore_name]) is True:
+            if self.approve(pickaxe_identity[pickaxe_level]["balance"][ore_name]) is True:
                 _list_of_gotem.append(ore_name)
         if len(_list_of_gotem) == 0:
             return None
@@ -266,8 +155,8 @@ class Mine(commands.Cog):
         del user_data["_id"]
         sack_of_ores: dict = user_data["ores"]
         pick_level: int = user_data["pickaxe-level"]
-        next_level_name: str = self.pickaxe_identity[pick_level + 1]["name"]
-        requirement: dict = self.pickaxe_identity[pick_level + 1]["requirement"]
+        pickaxe_name: str = user_data["pickaxe-name"]
+        requirement: dict = pickaxe_identity[pick_level + 1]["requirement"]
         list_required: list = list(requirement.keys())
 
         # Check if it is Able to Upgrade
@@ -276,14 +165,14 @@ class Mine(commands.Cog):
             if sack_of_ores[list_required[i]] < requirement[list_required[i]]:
                 able_upgrade = False
             if i == len(list_required) - 1:
-                req_text += "{:<12} : {}/{}".format(list_required[i], sack_of_ores[list_required[i]], requirement[list_required[i]])
+                req_text += "{:.<12}{}/{}".format(list_required[i], sack_of_ores[list_required[i]], requirement[list_required[i]])
             else:
-                req_text += "{:<12} : {}/{}\n".format(list_required[i], sack_of_ores[list_required[i]], requirement[list_required[i]])
+                req_text += "{:.<12}{}/{}\n".format(list_required[i], sack_of_ores[list_required[i]], requirement[list_required[i]])
         req_text += "```"
 
         # Print Out Requirements and Confirmation
         emb = discord.Embed(
-            title=f"⛏️ Upgrade Pickaxe to {next_level_name}?", 
+            title=f"⛏️ Want to Upgrade your {pickaxe_name}?", 
             description=f"**Requirements** : \n{req_text}",
             colour = discord.Colour(WHITE)
         )
@@ -298,7 +187,7 @@ class Mine(commands.Cog):
                 if replied.content.lower() == "upgrade":
                     await handler_msg.delete()
                     emb = discord.Embed(
-                        title=f"🎉 Pickaxe has been Upgraded to {next_level_name}?", 
+                        title=f"🎉 {pickaxe_name} has been Upgraded", 
                         description=f"⛏️ See the Stat in g.ores",
                         colour = discord.Colour(WHITE)
                     )

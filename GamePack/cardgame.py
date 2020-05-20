@@ -1,10 +1,25 @@
 import discord
 import random
+import asyncio
+import threading
 from discord.ext import commands
 from Settings.MongoManager import MongoManager, new_member_data
 from Settings.setting import MONGO_ADDRESS, DB_NAME
 
 WHITE = 0xfffffe
+
+class Player:
+
+    on_hand: []
+
+    def __init__(self):
+        pass
+
+    def draw_card(self):
+        pass
+
+    def take_card(self):
+        pass
 
 class Cards(commands.Cog):
 

@@ -1,2 +1,4 @@
-- Update Mining Command
-- Added Pickaxeup to Upgrade your Pickaxe
+- Fixed some Bug.
+- Added Inventory Command.
+- Refine some Commands and Events.
+- Added SetTitle Command, For your Profile Decoration.
