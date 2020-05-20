@@ -83,7 +83,7 @@ class Inventory(commands.Cog):
         try:
             answered: discord.Message = await self.bot.wait_for(event="message", check=self.user_check(ctx.author), timeout=30.0)
             if answered.content == "1":
-                await answered
+                await answered.delete()
                 await self.ore_inventory(handler_message, ctx.author)
         except asyncio.TimeoutError:
             pass
