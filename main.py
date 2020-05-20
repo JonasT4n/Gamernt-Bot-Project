@@ -48,7 +48,7 @@ def check_guild_prefix(dbm: MongoManager):
     def inner_check(bot, message: discord.Message):
         if not isinstance(message.channel, discord.DMChannel):
             guild: discord.Guild = message.guild
-            pref: str = get_prefix(dbm, guild)
+            pref: str = get_prefix(dbm, guild.id)
             if message.content[0:len(pref)].lower() == pref.lower():
                 return message.content[0:len(pref)]
             else:
@@ -95,11 +95,12 @@ async def on_message(message: discord.Message):
     if not isinstance(message.channel, discord.DMChannel):
 
         # Check if Guild not yet in Mongo Data
-        if str(message.author.id) not in get_guild_data(db, message.guild.id)["members"]:
+        gd_data: dict = get_guild_data(db, message.guild.id)
+        if str(message.author.id) not in gd_data["members"]:
             add_member_guild(db, message.guild.id, message.author.id)
         
         # Get Prefix by tagging Bot
-        if str(bot.user.id) in message.content: 
+        if str(bot.user.id) in message.content:
             user_said: discord.User = message.author
             in_channel: discord.TextChannel = message.channel
             pref: str = get_prefix(db, message.guild.id)

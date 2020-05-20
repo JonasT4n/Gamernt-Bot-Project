@@ -75,7 +75,7 @@ class Inventory(commands.Cog):
         tud: dict = self.checkin_member(ctx.author.id)
         menu_emb = discord.Embed(
             title=f"{ctx.author.display_name}'s Inventory",
-            description=f"👛 Money : {tud['money']}\n1. Ores",
+            description=f"👛 Money : {tud['money']}\n⛏️ 1. Ores",
             colour=discord.Colour(WHITE)
         )
         menu_emb.set_footer(text="Check Detail by Number")
