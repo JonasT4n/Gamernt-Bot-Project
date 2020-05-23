@@ -3,8 +3,8 @@ import random
 import asyncio
 import threading
 from discord.ext import commands
+from Settings.MyUtility import checkin_member
 from Settings.MongoManager import MongoManager, new_member_data
-from Settings.setting import MONGO_ADDRESS, DB_NAME
 
 WHITE = 0xfffffe
 
@@ -16,31 +16,11 @@ class RPS(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.mongodbm = MongoManager(MONGO_ADDRESS, DB_NAME)
-        self.mongodbm.ConnectCollection("members")
+        self.mongodbm = MongoManager(collection="members")
     
     @commands.Cog.listener()
     async def on_ready(self):
         print("Rock Paper Scissor is Ready!")
-
-    def checkin_member(self, person_id: int) -> dict:
-        """
-        
-        Check if Member is in the Database.
-
-            Returns :
-                (dict) => Member Information
-        
-        """
-        query: dict = {"member_id":str(person_id)}
-        u_data = self.mongodbm.FindObject(query)
-        if u_data is None:
-            nd: dict = new_member_data
-            nd["member_id"] = str(person_id)
-            self.mongodbm.InsertOneObject(nd)
-            return nd
-        else:
-            return u_data[0]
 
     def check_choosen(self, person):
         def inner_check(message: discord.Message):
@@ -83,7 +63,7 @@ class RPS(commands.Cog):
                 winner = "It's a DRAW"
             elif (replied.content == '1' and bot_choose == '2') or (replied.content == '2' and bot_choose == '3') or (replied.content == '3' and bot_choose == '1'):
                 winner = f"You Win! Earned {earned} 💲"
-                user_data: dict = self.checkin_member(person.id)
+                user_data: dict = checkin_member(person.id)
                 del user_data["_id"]
                 user_data["money"] += earned
                 self.mongodbm.UpdateOneObject({"member_id": str(person.id)}, user_data)
@@ -124,12 +104,12 @@ class RPS(commands.Cog):
                 winner = "It's a DRAW"
             elif (reply_p1.content == '1' and reply_p2.content == '2') or (reply_p1.content == '2' and reply_p2.content == '3') or (reply_p1.content == '3' and reply_p2.content == '1'):
                 winner = f"Winner is {p1.name}!"
-                user_data: dict = self.checkin_member(p1.id)
+                user_data: dict = checkin_member(p1.id)
                 user_data["money"] += earned
                 self.mongodbm.UpdateOneObject({"member_id": str(p1.id)}, user_data)
             else:
                 winner = f"Winner is {p2.name}!"
-                user_data: dict = self.checkin_member(p2.id)
+                user_data: dict = checkin_member(p2.id)
                 user_data["money"] += earned
                 self.mongodbm.UpdateOneObject({"member_id": str(p2.id)}, user_data)
             

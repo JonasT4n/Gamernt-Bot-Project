@@ -1,4 +1,3 @@
-- Fixed some Bug.
-- Added Inventory Command.
-- Refine some Commands and Events.
-- Added SetTitle Command, For your Profile Decoration.
+- Removed Pickaxe Name
+- Fixed some Bugs
+- Resetting One Word Story Game

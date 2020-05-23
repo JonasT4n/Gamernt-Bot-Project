@@ -5,6 +5,7 @@ This Script can be Reuseable.
 """
 
 import pymongo
+from Settings.setting import DB_NAME, MONGO_ADDRESS
 
 new_guild_data = {
     "guild_id": "0",
@@ -36,46 +37,62 @@ new_member_data = {
         "Meteorite": 0
     },
     "pickaxe-level": 0,
-    "pickaxe-name": "Stone Pickaxe"
 }
 
 class MongoManager:
 
-    connected_collection = None
-    database_name: str = None
+    """
+    
+    Attributes
+    ----------
+    connect_collection: `MongoClient[DatabaseName][Collection]`
+    
+    name_database: `DatabaseName`
+    
+    """
 
-    def __init__(self, address, dbname):
+    _connected_collection = None
+    _database_name: str = None
+
+    def __init__(self, *, collection: str = None):
         """Initialize Connection"""
         try:
             self.client = pymongo.MongoClient(
-                address,
+                MONGO_ADDRESS,
                 connectTimeoutMS = 30000,
                 socketTimeoutMS = None
             )
-            self.db = self.client[dbname]
-            self.database_name = dbname
+            self.db = self.client[DB_NAME]
+            self._database_name = DB_NAME
+
+            if collection is not None:
+                self._connected_collection = self.db[collection]
+
         except Exception as e:
             print("Connection Failed. Please Try again Later")
             raise e
 
     @property
-    def dbprop(self):
-        """Move to Other Database"""
-        return self.db
+    def name_database(self):
+        return self._database_name
 
-    @dbprop.setter
-    def ChangeDatabase(self, dbname):
+    @name_database.setter
+    def name_database(self, dbname: str):
         self.db = self.client[dbname]
-        self.database_name = dbname
+        self._database_name = dbname
 
-    def ConnectCollection(self, name:str):
-        """Connect to a Specific Collection"""
-        self.connected_collection = self.db[name]
+    @property
+    def connect_collection(self):
+        return self._connected_collection
+
+    @connect_collection.setter
+    def connect_collection(self, collection_name: str):
+        self._connected_collection = self.db[collection_name]
 
     def CreateCollection(self, name: str):
         """Create a New Collection"""
         self.db.create_collection(name)
-        self.connected_collection = self.db[name]
+        self._connected_collection = self.db[name]
 
     def CheckCollection(self, *args) -> list:
         """
@@ -128,11 +145,11 @@ class MongoManager:
 
         """
         # try:
-        self.connected_collection.insert_one(data)
+        self._connected_collection.insert_one(data)
         # except:
         #     print("Error when Inserted, Collection may not defined")
 
-    def UpdateOneObject(self, query: dict, update: dict):
+    def UpdateOneObject(self, query: dict, update: dict, *, usert: bool = False):
         """
         
         Update an Object inside Current Connected Collection.
@@ -144,7 +161,7 @@ class MongoManager:
                 (None)
         
         """
-        self.connected_collection.update_one(query, {"$set": update}, upsert=False)
+        self._connected_collection.update_one(query, {"$set": update}, upsert=usert)
 
     def DeleteOneObject(self, query: dict):
         """
@@ -152,7 +169,7 @@ class MongoManager:
         Delete an Object inside Current Connected Collection.
         
         """
-        self.connected_collection.delete_one(query)
+        self._connected_collection.delete_one(query)
 
     def ClearCollection(self):
         """
@@ -160,7 +177,7 @@ class MongoManager:
         Delete All Object or Empty the Collection.
         
         """
-        self.connected_collection.delete_many({})
+        self._connected_collection.delete_many({})
 
     def FindObject(self, query: dict):
         """
@@ -174,11 +191,28 @@ class MongoManager:
                 (list) => if there is
         
         """
-        list_objects = [i for i in self.connected_collection.find(query)]
+        list_objects = [i for i in self._connected_collection.find(query)]
         if len(list_objects) == 0:
             return None
         else:
             return list_objects
+
+    def UnsetItem(self, query: dict, unset: dict, *, usert: bool = False):
+        """
+        
+        Remove an Item inside the Object.
+
+            Parameters :
+                query (dict) => Which Object.
+                unset (dict) => Item that will be Unset.
+            Returns : 
+                (None)
+
+        """
+        self._connected_collection.update(query, {"$unset": unset}, upsert=usert)
+
+    def IncreaseItem(self, query: dict, key: str, value: int):
+        pass
 
     def CountObject(self) -> int:
         """
@@ -189,16 +223,6 @@ class MongoManager:
                 (int) => Length Of Current2 Collection
 
         """
-        n = len([i for i in self.connected_collection.find({})])
+        list_of_collection: list = [i for i in self._connected_collection.find({})]
+        n: int = len(list_of_collection)
         return n
-
-    def ClearCache(self, collection_name):
-        """
-        
-        Clear Cache in Database to free some Space.
-        
-        """
-        self.db.command({
-            "planCacheClear": f"{collection_name}"
-        })
-        print("Cache Cleared.")

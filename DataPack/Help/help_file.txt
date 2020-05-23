@@ -3,4 +3,4 @@ GENERAL :
 FUN & GAMES :
 ```chance, choose, duel, dice, mine/dig, ows, poolask/ask, rps, scramble/scr```
 MISC :
-```ores/ore, profile/user, pickaxeup, settitle/st```
+```profile/user, pickaxeup, settitle/st```

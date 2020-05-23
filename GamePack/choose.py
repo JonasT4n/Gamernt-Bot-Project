@@ -19,9 +19,10 @@ class Choose(commands.Cog):
             await ctx.send("You must Insert the Items.\nExample : `g.choose Blue Red Green`")
         else:
             choosen: str = random.choice(obj)
-            emb = discord.Embed(title="I Choose",
-            description=f"**{choosen}**",
-            colour=discord.Colour(WHITE))
+            emb = discord.Embed(
+                title=f"I Choose {choosen}!",
+                colour=discord.Colour(WHITE)
+            )
             await ctx.send(embed=emb)
 
 def setup(bot):

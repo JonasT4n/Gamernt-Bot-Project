@@ -8,7 +8,6 @@ import re
 import shutil
 import requests
 from Settings.MongoManager import MongoManager, new_member_data
-from Settings.setting import MONGO_ADDRESS, DB_NAME
 
 WHITE = 0xfffffe
 
@@ -37,8 +36,7 @@ class Duel(commands.Cog):
     
     def __init__(self, bot):
         self.bot = bot
-        self.mongodbm = MongoManager(MONGO_ADDRESS, DB_NAME)
-        self.mongodbm.ConnectCollection("members")
+        self.mongodbm = MongoManager(collection="members")
 
     async def begins(self, chnl, p1: Brawler, p2: Brawler):
         # Funny Description

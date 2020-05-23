@@ -2,10 +2,12 @@ import discord
 import os
 import asyncio
 import datetime
+import shutil
 from discord.ext import commands, tasks
 from itertools import cycle
-from Settings.MongoManager import MongoManager, new_guild_data, new_member_data
-from Settings.setting import TOKEN, MONGO_ADDRESS, DB_NAME
+from Settings.MyUtility import checkin_member
+from Settings.MongoManager import MongoManager, new_guild_data
+from Settings.setting import TOKEN
 
 def get_prefix(dbm: MongoManager, guild_id: int) -> str:
     """Get Current Prefix in this Guild."""
@@ -29,7 +31,7 @@ def add_guild(dbmongo: MongoManager, guild_id: int) -> dict:
 
 def add_member_guild(dbm: MongoManager, guild_id: int, member_id: int) -> None:
     """Add Member into Member Guild Array."""
-    g_data: dict = get_guild_data(db, guild_id)
+    g_data: dict = get_guild_data(dbm, guild_id)
     member_list: list = g_data["members"]
     member_list.append(str(member_id))
     dbm.UpdateOneObject({"guild_id": str(guild_id)}, {"members": member_list})
@@ -42,6 +44,13 @@ def get_guild_data(dbm: MongoManager, guild_id: int) -> dict:
         return g_data
     else:
         return g_data[0]
+
+def clear_cache_in_folder(path: str):
+    for i in os.listdir(path):
+        if i == "__pycache__":
+            shutil.rmtree(f"{path}/__pycache__")
+        if os.path.isdir(f"{path}/{i}"):
+            clear_cache(f"{path}/{i}")
 
 def check_guild_prefix(dbm: MongoManager):
     """Check Current Guild Prefix in Command or Message."""
@@ -57,11 +66,10 @@ def check_guild_prefix(dbm: MongoManager):
             return 'g.'
     return inner_check
 
-db = MongoManager(MONGO_ADDRESS, DB_NAME)
-db.ConnectCollection("guilds")
-bot = commands.Bot(command_prefix=check_guild_prefix(db))
+db_guild = MongoManager(collection="guilds")
+bot = commands.Bot(command_prefix=check_guild_prefix(db_guild))
 bot.remove_command("help")
-current_version: str = "Version 1.0.7a"
+current_version: str = "Version 1.0.8a"
 
 # Attributes
 WHITE = 0xfffffe
@@ -72,6 +80,10 @@ STATUS = cycle(["Tag Me for Prefix", "Not Game"])
 @tasks.loop(seconds=5)
 async def change_status():
     await bot.change_presence(activity=discord.Game(name=next(STATUS)))
+
+@tasks.loop(hours=1)
+async def clear_cache():
+    clear_cache_in_folder(".")
 
 # Events Section
 
@@ -95,15 +107,15 @@ async def on_message(message: discord.Message):
     if not isinstance(message.channel, discord.DMChannel):
 
         # Check if Guild not yet in Mongo Data
-        gd_data: dict = get_guild_data(db, message.guild.id)
+        gd_data: dict = get_guild_data(db_guild, message.guild.id)
         if str(message.author.id) not in gd_data["members"]:
-            add_member_guild(db, message.guild.id, message.author.id)
+            add_member_guild(db_guild, message.guild.id, message.author.id)
         
         # Get Prefix by tagging Bot
         if str(bot.user.id) in message.content:
             user_said: discord.User = message.author
             in_channel: discord.TextChannel = message.channel
-            pref: str = get_prefix(db, message.guild.id)
+            pref: str = get_prefix(db_guild, message.guild.id)
             emb = discord.Embed(title=f"Your Server Prefix is {pref}\ntype {pref}help for commands.", color=discord.Color(WHITE))
             await in_channel.send(embed=emb)
 
@@ -115,6 +127,8 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
         return
     if isinstance(error, commands.MissingRequiredArgument):
+        return
+    if isinstance(error, commands.CommandOnCooldown):
         return
     raise error
 
@@ -129,20 +143,23 @@ async def ping(ctx): # Ping Command, Check Bot Latency
 @bot.command(aliases=['info'])
 async def about(ctx):
     """About this Bot"""
+    # Initiate Attribute
     bot_icon = bot.user.avatar_url
+    pref: str = get_prefix(db_guild, ctx.message.guild)
+
+    # Make Embed and Print Out
     emb = discord.Embed(
         title="🎮 Gamern't Bot 🎮", 
         description=f"""Hi, I'm not Gamer, i have Good Games to offer and play with you even with your friends, I am Not a Gamer Bot, Trust Me! :D\n\nI have been created for those who has bored after playing game, so go to your discord and play with friends while chatting :3""", 
         colour=discord.Colour(WHITE)
     )
     emb.set_thumbnail(url=bot_icon)
-    pref: str = get_prefix(db, ctx.message.guild)
     emb.set_footer(text=f"{current_version}\nYour Current Prefix : {pref}")
     await ctx.send(embed=emb)
     
 @bot.command(aliases=['new'])
 async def news(ctx):
-    """News about Current Bot Progress"""
+    """News about Current Bot Progress."""
     bot_icon = bot.user.avatar_url
     emb = discord.Embed(title="📰 Breaking News!", description=open("./DataPack/Help/news.txt", 'r').read(), colour=discord.Colour(WHITE))
     emb.set_thumbnail(url=bot_icon)
@@ -151,7 +168,7 @@ async def news(ctx):
 
 @bot.command(aliases=['h'])
 async def help(ctx, page = None):
-    """Custom Help Command"""
+    """Custom Help Command."""
     bot_icon_url: str = bot.user.avatar_url
     emb = discord.Embed(
         title="Help Menu",
@@ -172,7 +189,7 @@ async def prefix(ctx, new_prefix: str):
     try:
         if len(new_prefix.split(' ')) > 1 or len(new_prefix) > 10 or " " in new_prefix:
             raise commands.BadArgument
-        set_prefix(db, ctx.message.guild, new_prefix)
+        set_prefix(db_guild, ctx.message.guild, new_prefix)
         emb.add_field(name="🔧 Prefix Changed", value="Server new Prefix **{}**".format(new_prefix))
         await ctx.send(embed=emb)
     except commands.BadArgument:
@@ -188,8 +205,7 @@ async def feedback(ctx, *, args: str):
     
     """
     feedback_string: str = "\n" + str(datetime.datetime.now()) + f" (By {ctx.message.author.name} : {ctx.message.author.id})" + ": " + args
-    mdb = MongoManager(MONGO_ADDRESS, DB_NAME)
-    mdb.ConnectCollection("report")
+    mdb = MongoManager(collection="report")
     list_report: list = mdb.FindObject({})[0]["report"]
     list_report.append(feedback_string)
     mdb.UpdateOneObject({}, {"report": list_report})

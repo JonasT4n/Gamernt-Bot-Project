@@ -4,7 +4,6 @@ import asyncio
 from discord.ext import commands
 from Settings.MyUtility import checkin_member
 from Settings.MongoManager import MongoManager, new_member_data
-from Settings.setting import MONGO_ADDRESS, DB_NAME
 
 WHITE = 0xfffffe
 
@@ -12,8 +11,7 @@ class Profile(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.mongodbm = MongoManager(MONGO_ADDRESS, DB_NAME)
-        self.mongodbm.ConnectCollection("members")
+        self.mongodbm = MongoManager(collection="members")
 
     @commands.command(aliases=["lb"])
     async def leaderboard(self, ctx):
