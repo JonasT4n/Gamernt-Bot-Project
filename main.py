@@ -69,7 +69,7 @@ def check_guild_prefix(dbm: MongoManager):
 db_guild = MongoManager(collection="guilds")
 bot = commands.Bot(command_prefix=check_guild_prefix(db_guild))
 bot.remove_command("help")
-current_version: str = "Version 1.0.9a"
+current_version: str = "Version 1.0.9b"
 
 # Attributes
 WHITE = 0xfffffe

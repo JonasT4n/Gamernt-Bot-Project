@@ -20,16 +20,6 @@ class Mine(commands.Cog):
     async def on_ready(self):
         print("Miner is Ready!")
 
-    # Checker Area
-
-    def check_confirm(self, person: discord.User):
-        def inner_check(message: discord.Message):
-            if message.author == person:
-                return True
-            else:
-                return False
-        return inner_check
-
     # Command Area
         
     @commands.command(aliases=['mine'])
@@ -71,7 +61,11 @@ class Mine(commands.Cog):
             self.mongodbm.IncreaseItem({"member_id":str(person.id)}, {f"ores.{ore}":1}) # Save Data
 
     @commands.command()
-    async def pickaxeup(self, ctx):
+    async def pickaxeup(self, ctx: commands.Context):
+        # Inner Function
+        def check_reply(message: discord.Message):
+            return ctx.author == message.author and ctx.channel == message.channel
+
         # Initialize Things
         able_upgrade: bool = True
         person: discord.User = ctx.message.author
@@ -79,7 +73,6 @@ class Mine(commands.Cog):
         del user_data["_id"]
         sack_of_ores: dict = user_data["ores"]
         pick_level: int = user_data["pickaxe-level"]
-        pickaxe_name: str = user_data["pickaxe-name"]
         requirement: dict = pickaxe_identity[pick_level + 1]["requirement"]
         list_required: list = list(requirement.keys())
 
@@ -96,7 +89,7 @@ class Mine(commands.Cog):
 
         # Print Out Requirements and Confirmation
         emb = discord.Embed(
-            title=f"⛏️ Want to Upgrade your {pickaxe_name}?", 
+            title=f"Upgrade to Level {pick_level + 1} ⛏️?", 
             description=f"**Requirements** : \n{req_text}",
             colour = discord.Colour(WHITE)
         )
@@ -108,15 +101,20 @@ class Mine(commands.Cog):
             emb.set_footer(text = "Will you Upgrade it? type 'Upgrade' to Upgrade.")
             handler_msg: discord.Message = await ctx.send(embed = emb)
             try:
-                replied: discord.Message = await self.bot.wait_for(event="message", check=self.check_confirm(ctx.message.author), timeout=30.0)
+                replied: discord.Message = await self.bot.wait_for(
+                    event = "message", 
+                    check = check_reply, 
+                    timeout = 30.0
+                )
                 if replied.content.lower() == "upgrade":
                     await handler_msg.delete()
                     emb = discord.Embed(
-                        title=f"🎉 {pickaxe_name} has been Upgraded", 
-                        description=f"⛏️ See the Stat in g.ores",
+                        title=f"Your ⛏️ has been Upgraded to level {pick_level + 1}", 
+                        description=f"See the Stat in g.inv",
                         colour = discord.Colour(WHITE)
                     )
                     await ctx.send(embed = emb)
+                    self.mongodbm.IncreaseItem({"member_id": str(ctx.author.id)}, {"pickaxe-level": 1})
                 else:
                     emb.set_footer(text="Ok, Next Time!")
                     await handler_msg.edit(embed = emb)

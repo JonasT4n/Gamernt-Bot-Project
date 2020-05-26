@@ -1,7 +1,7 @@
 import discord
 import asyncio
 from discord.ext import commands
-from Settings.MongoManager import MongoManager, new_member_data
+from Settings.MongoManager import MongoManager
 from Settings.StaticData import pickaxe_identity
 from Settings.MyUtility import checkin_member
 
@@ -13,6 +13,8 @@ class Inventory(commands.Cog):
         self.bot = bot
         self.mongodbm = MongoManager(collection="members")
 
+    # Checker Area
+
     def user_check(self, person: discord.User):
         def inner_check(message: discord.Message):
             if person == message.author:
@@ -20,6 +22,8 @@ class Inventory(commands.Cog):
             else:
                 return False
         return inner_check
+
+    # Inventories
 
     async def ore_inventory(self, message: discord.Message, person: discord.User) -> bool:
         """Only for Inventory."""
@@ -59,6 +63,8 @@ class Inventory(commands.Cog):
         await message.edit(embed = menu_embed)
         return True
 
+    # Commands Area
+
     @commands.command(aliases=["inv"])
     async def inventory(self, ctx: commands.Context):
         on_main_menu: bool = True
@@ -83,6 +89,8 @@ class Inventory(commands.Cog):
                     continue
         except asyncio.TimeoutError:
             pass
+
+    # Others
 
 def setup(bot: commands.Bot):
     bot.add_cog(Inventory(bot))
