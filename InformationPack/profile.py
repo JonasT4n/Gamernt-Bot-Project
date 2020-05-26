@@ -24,7 +24,7 @@ class Profile(commands.Cog):
         person_data["title"] = title
         if "_id" in person_data:
             del person_data["_id"]
-        self.mongodbm.UpdateOneObject({"member_id": str(ctx.author.id)}, person_data)
+        self.mongodbm.SetObject({"member_id": str(ctx.author.id)}, person_data)
         await ctx.send(f"*Title Set to {title}, Check your Profile.*")
 
     @commands.command(aliases=["prof", "user"])

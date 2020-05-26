@@ -1,4 +1,0 @@
-```[Tag Someone] -> Duel With Someone you tagged.
-[Tag] [Tag]   -> Duel between 2 Tags.
-Help (h)      -> If you Need any Help about Duel.
-Random (rdm)  -> Random Pick 2 Player to Duel.```

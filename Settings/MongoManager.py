@@ -149,7 +149,7 @@ class MongoManager:
         # except:
         #     print("Error when Inserted, Collection may not defined")
 
-    def UpdateOneObject(self, query: dict, update: dict, *, usert: bool = False):
+    def SetObject(self, query: dict, update: dict, *, usert: bool = False):
         """
         
         Update an Object inside Current Connected Collection.
@@ -167,9 +167,30 @@ class MongoManager:
         """
         
         Delete an Object inside Current Connected Collection.
+
+            Parameters :
+                query (dict) => Object Selection.
+            Returns :
+                (None)
         
         """
         self._connected_collection.delete_one(query)
+
+    def UpdateObject(self, query: dict, update: dict, *, usert: bool = False):
+        """
+        
+        Update the Object by Query
+
+            Parameters :
+                query (dict) => Object Selection.
+                update (dict) => Update the Item or Object.
+            Returns :
+                (None)
+
+        Reference : https://docs.mongodb.com/manual/reference/operator/
+        
+        """
+        self._connected_collection.update(query, update, upsert=usert)
 
     def ClearCollection(self):
         """
@@ -211,8 +232,19 @@ class MongoManager:
         """
         self._connected_collection.update(query, {"$unset": unset}, upsert=usert)
 
-    def IncreaseItem(self, query: dict, key: str, value: int):
-        pass
+    def IncreaseItem(self, query: dict, inc: dict, *, usert: bool = False):
+        """
+        
+        Remove an Item inside the Object.
+
+            Parameters :
+                query (dict) => Which Object.
+                inc (dict) => Item that will be Unset.
+            Returns : 
+                (None)
+
+        """
+        self._connected_collection.update(query, {"$inc": inc}, upsert=usert)
 
     def CountObject(self) -> int:
         """

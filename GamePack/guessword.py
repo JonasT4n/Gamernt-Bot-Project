@@ -98,11 +98,7 @@ class GuessWord(commands.Cog):
                 colour=discord.Colour(WHITE)
             )
             await channel.send(embed = _emb)
-
-            # Save Data
-            query: dict = {"member_id": str(answered.author.id)}
-            user_data: dict = checkin_member(answered.author.id)
-            self.mongodbm.UpdateOneObject(query, {"money": user_data["money"] + earned})
+            self.mongodbm.IncreaseItem({"member_id": str(answered.author.id)}, {"money": earned}) # Save Data
             
         except asyncio.TimeoutError:
             # When nobody can answer it

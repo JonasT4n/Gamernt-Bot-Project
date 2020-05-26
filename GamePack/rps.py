@@ -11,16 +11,29 @@ WHITE = 0xfffffe
 # Paper Rock Scissor
 class RPS(commands.Cog):
 
-    rps_element = {1:"Paper ✋", 2:"Rock ✊", 3:"Scissor ✌"}
-    block_option_embed = discord.Embed(title="Choose Wisely ✊✋✌", description="```1. Paper ✋\n2. Rock ✊\n3. Scissor ✌\n\nSend your Option Here (1-3).\nExample : 1```", colour=discord.Colour(WHITE))
+    rps_element = {
+        1:"Paper ✋", 
+        2:"Rock ✊", 
+        3:"Scissor ✌"
+    }
+
+    block_option_embed = discord.Embed(
+        title="Choose Wisely ✊✋✌", 
+        description="```1. Paper ✋\n2. Rock ✊\n3. Scissor ✌\n\nSend your Option Here (1-3).\nExample : 1```", 
+        colour=discord.Colour(WHITE)
+    )
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.mongodbm = MongoManager(collection="members")
+
+    # Listener Area
     
     @commands.Cog.listener()
     async def on_ready(self):
         print("Rock Paper Scissor is Ready!")
+
+    # Checker Area
 
     def check_choosen(self, person):
         def inner_check(message: discord.Message):
@@ -46,6 +59,34 @@ class RPS(commands.Cog):
                 return False
         return inner_check
 
+    # Commands Area
+
+    @commands.command(aliases=['Rps', 'rPs', 'rpS', 'RPs', 'RpS', 'rPS', 'RPS'])
+    async def rps(self, ctx: commands.Context, *, against: discord.Member = None):
+        if against is None:
+            await self.against_bot(ctx.author, ctx.channel)
+        else:
+            emb = discord.Embed(title="✊✋✌ Rock Paper Scissor", description=f"**{ctx.message.author.name}** wants to challange you, will you Accept?", colour=discord.Colour(WHITE))
+            emb.set_footer(text="Type 'Y' to accept or 'N' to abort.")
+            handler = await ctx.send(embed=emb)
+            if not against.bot:
+                try:
+                    reply = await self.bot.wait_for(event='message', check=self.check_challanger_reply(against, ctx.message.channel), timeout=30)
+                    await handler.delete()
+                    if reply.content.lower() == 'n':
+                        await reply.delete()
+                        await ctx.send("*Challenge Not Accepted :v*")
+                    else:
+                        await reply.delete()
+                        threading.Thread(target = await self.begin(ctx.message.author, against, ctx.message.channel)).start()
+                except asyncio.TimeoutError:
+                    await handler.delete()
+                    await ctx.send("*Request Timeout.*")
+            else:
+                await ctx.send("You can't Challange Bot :v")
+
+    # Others
+
     async def against_bot(self, person: discord.User, channel: discord.TextChannel):
         msg: discord.Message = await channel.send(embed = self.block_option_embed)
         try:
@@ -63,10 +104,7 @@ class RPS(commands.Cog):
                 winner = "It's a DRAW"
             elif (replied.content == '1' and bot_choose == '2') or (replied.content == '2' and bot_choose == '3') or (replied.content == '3' and bot_choose == '1'):
                 winner = f"You Win! Earned {earned} 💲"
-                user_data: dict = checkin_member(person.id)
-                del user_data["_id"]
-                user_data["money"] += earned
-                self.mongodbm.UpdateOneObject({"member_id": str(person.id)}, user_data)
+                self.mongodbm.IncreaseItem({"member_id": str(person.id)}, {"money": earned})
             else:
                 winner = f"Better Luck Next Time."
 
@@ -99,20 +137,16 @@ class RPS(commands.Cog):
 
             # Check either Player 1 or Player 2 Win
             winner: str = ""
-            earned: int = random.randint(1, 2)
+            earned: int = 10
             if reply_p1.content == reply_p2.content:
                 winner = "It's a DRAW"
             elif (reply_p1.content == '1' and reply_p2.content == '2') or (reply_p1.content == '2' and reply_p2.content == '3') or (reply_p1.content == '3' and reply_p2.content == '1'):
-                winner = f"Winner is {p1.name}!"
-                user_data: dict = checkin_member(p1.id)
-                user_data["money"] += earned
-                self.mongodbm.UpdateOneObject({"member_id": str(p1.id)}, user_data)
+                winner = f"Winner is {p1.name}! You have Earned {earned} 💲"
+                self.mongodbm.IncreaseItem({"member_id": str(p1.id)}, {"money": earned})
             else:
-                winner = f"Winner is {p2.name}!"
-                user_data: dict = checkin_member(p2.id)
-                user_data["money"] += earned
-                self.mongodbm.UpdateOneObject({"member_id": str(p2.id)}, user_data)
-            
+                winner = f"Winner is {p2.name}! You have Earned {earned} 💲"
+                self.mongodbm.IncreaseItem({"member_id": str(p2.id)}, {"money": earned})
+
             # Announce the Winner
             descript = f"```{p1.name} : {self.rps_element[int(reply_p1.content)]}\n{p2.name} : {self.rps_element[int(reply_p2.content)]}\n{winner}!```"
             emb = discord.Embed(title="✊✋✌ Rock Paper Scissor", description=descript, colour=discord.Colour(WHITE))
@@ -120,32 +154,7 @@ class RPS(commands.Cog):
             await channel.send(embed = emb)
 
         except asyncio.TimeoutError:
-            await channel.send(f"*Timeout, The Game has stopped. :v*")
-
-    @commands.command(aliases=['Rps', 'rPs', 'rpS', 'RPs', 'RpS', 'rPS', 'RPS'])
-    async def rps(self, ctx, *, against: discord.Member = None):
-        if against is None:
-            threading.Thread(target= await self.against_bot(ctx.message.author, ctx.message.channel))
-        else:
-            emb = discord.Embed(title="✊✋✌ Rock Paper Scissor", description=f"**{ctx.message.author.name}** wants to challange you, will you Accept?", colour=discord.Colour(WHITE))
-            emb.set_footer(text="Type 'Y' to accept or 'N' to abort.")
-            handler = await ctx.send(embed=emb)
-            if not against.bot:
-                try:
-                    reply = await self.bot.wait_for(event='message', check=self.check_challanger_reply(against, ctx.message.channel), timeout=30)
-                    await handler.delete()
-                    if reply.content.lower() == 'n':
-                        await reply.delete()
-                        await ctx.send("*Challenge Not Accepted :v*")
-                    else:
-                        await reply.delete()
-                        threading.Thread(target = await self.begin(ctx.message.author, against, ctx.message.channel)).start()
-                except asyncio.TimeoutError:
-                    await handler.delete()
-                    await ctx.send("*Request Timeout.*")
-            else:
-                await ctx.send("You can't Challange Bot :v")
-            
+            await channel.send(f"*Timeout, The Game has stopped. :v*")       
 
 def setup(bot: commands.Bot):
     bot.add_cog(RPS(bot))

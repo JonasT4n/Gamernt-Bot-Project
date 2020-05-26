@@ -1,0 +1,5 @@
+```[name]  -> Your Opponent Name, without a Tag.
+[@]     -> Duel With Someone you tagged.
+[@] [@] -> Duel between 2 Player.
+-h      -> Help about Duel.
+-random -> Random Pick 2 Player.```

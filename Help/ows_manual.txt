@@ -3,11 +3,12 @@ __**Goal**__
 __**Rules**__
 ```1. Anyone can send a message but only 1 Word.
 2. If you send a message more than 1 word will be ignored.
-3. You can send as must message as you wanted to make story.
+3. If 8 hours have passed since last word sent, Game will be forfeited.
+4. You can send as much message as you wanted to make story.
 ```
 __**Utility**__
 ```Send this message to edit the current on going story.
 UNDO    => Undo last written word if you had any mistake.
-THE END => Finish the story game. anyone who send this must set a title.
+THEEND => Finish the story game. anyone who send this must set a title.
 CANCEL  => Cancel the game. Warning, current on going story will be lost.
 ```

@@ -1,0 +1,2 @@
+```-p [bet] => Play with Bot.
+-h       => This Help.```

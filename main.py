@@ -69,7 +69,7 @@ def check_guild_prefix(dbm: MongoManager):
 db_guild = MongoManager(collection="guilds")
 bot = commands.Bot(command_prefix=check_guild_prefix(db_guild))
 bot.remove_command("help")
-current_version: str = "Version 1.0.8a"
+current_version: str = "Version 1.0.9a"
 
 # Attributes
 WHITE = 0xfffffe
@@ -116,7 +116,10 @@ async def on_message(message: discord.Message):
             user_said: discord.User = message.author
             in_channel: discord.TextChannel = message.channel
             pref: str = get_prefix(db_guild, message.guild.id)
-            emb = discord.Embed(title=f"Your Server Prefix is {pref}\ntype {pref}help for commands.", color=discord.Color(WHITE))
+            emb = discord.Embed(
+                title=f"Your Server Prefix is {pref}\ntype {pref}help for commands.", 
+                color=discord.Color(WHITE)
+            )
             await in_channel.send(embed=emb)
 
     # Execute Command No matter what Message Said
@@ -161,7 +164,7 @@ async def about(ctx):
 async def news(ctx):
     """News about Current Bot Progress."""
     bot_icon = bot.user.avatar_url
-    emb = discord.Embed(title="📰 Breaking News!", description=open("./DataPack/Help/news.txt", 'r').read(), colour=discord.Colour(WHITE))
+    emb = discord.Embed(title="📰 Breaking News!", description=open("./Help/news.txt", 'r').read(), colour=discord.Colour(WHITE))
     emb.set_thumbnail(url=bot_icon)
     emb.set_footer(text=f"{current_version}")
     await ctx.send(embed=emb)
@@ -172,7 +175,7 @@ async def help(ctx, page = None):
     bot_icon_url: str = bot.user.avatar_url
     emb = discord.Embed(
         title="Help Menu",
-        description= open("./DataPack/Help/help_file.txt", "r").read(),
+        description= open("./Help/help_file.txt", "r").read(),
         colour=discord.Colour(WHITE)
     )
     emb.set_thumbnail(url=bot_icon_url)
@@ -220,7 +223,6 @@ async def purge(ctx, limit: int):
 @commands.is_owner()
 async def shutdown(ctx):
     # Shutdown the Bot Application
-    await ctx.send("**OOF**")
     await ctx.bot.logout()
 
 @bot.command()

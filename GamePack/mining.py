@@ -68,12 +68,7 @@ class Mine(commands.Cog):
                 colour=discord.Colour(WHITE)
             )
             await queing.edit(embed = emb)
-
-            # Save Data
-            query: dict = {"member_id":str(person.id)}
-            user_bag["ores"][ore] += 1
-            del user_bag["_id"]
-            self.mongodbm.UpdateOneObject(query, user_bag)  
+            self.mongodbm.IncreaseItem({"member_id":str(person.id)}, {f"ores.{ore}":1}) # Save Data
 
     @commands.command()
     async def pickaxeup(self, ctx):
