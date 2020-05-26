@@ -32,9 +32,7 @@ class Cards(commands.Cog):
                 if "A" in card:
                     holder.append(11)
                     A_count += 1
-                elif "10" in card:
-                    holder.append(10)
-                elif ord(card[0]) >= 48 and ord(card[0]) < 58:
+                elif ord(card[0]) >= 48 and ord(card[0]) < 58 and len(card) == 2:
                     holder.append(ord(card[0]) - 48)
                 else:
                     holder.append(10)
