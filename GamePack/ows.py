@@ -119,7 +119,7 @@ class OWS(commands.Cog):
                     await hm.delete()
                     last_msg: discord.Message = await channel.send(
                         content=f"{get_msg.author.mention}, Please Give the Best Title!", 
-                        embed=emb
+                        embed = emb
                     )
                     story_title = await self.bot.wait_for(
                         event = "message",
@@ -137,7 +137,7 @@ class OWS(commands.Cog):
                     )
                     await last_msg.delete()
                     emb.set_footer(text = f"Made on : {book['date-made']}")
-                    await hm.edit(embed = emb)
+                    await channel.send(embed = emb)
                     self.mongodbm.UpdateObject({"guild_id": str(channel.guild.id)}, {"$push": {"stories": book}})
                     break
                 

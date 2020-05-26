@@ -201,17 +201,21 @@ async def prefix(ctx, new_prefix: str):
         await ctx.send(embed=emb)
 
 @bot.command(aliases=['suggest', 'report'])
-async def feedback(ctx, *, args: str):
+async def feedback(ctx: commands.Context, *, args: str):
     """
     
     Feedback Report and Bug Glitch Information direct from User.
     
     """
-    feedback_string: str = "\n" + str(datetime.datetime.now()) + f" (By {ctx.message.author.name} : {ctx.message.author.id})" + ": " + args
     mdb = MongoManager(collection="report")
-    list_report: list = mdb.FindObject({})[0]["report"]
-    list_report.append(feedback_string)
-    mdb.UpdateOneObject({}, {"report": list_report})
+    mdb.UpdateObject({"guild_id": ctx.guild.id}, {"$push": {
+        "report": {
+            "user": ctx.author.name,
+            "id": str(ctx.author.id),
+            "said": args,
+            "at": str(datetime.datetime.now())
+        }
+    }})
     await ctx.send("*Your Feedback, Report or Suggestion has been Sent. Thank You :)*")
 
 @bot.command()
