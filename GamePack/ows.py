@@ -102,7 +102,7 @@ class OWS(commands.Cog):
                 get_msg: discord.Message = await self.bot.wait_for(
                     event = "message",
                     check = self.check_on_play(channel),
-                    timeout = 28800.0
+                    timeout = 86400.0
                 )
                 if get_msg.content == "UNDO":
                     list_words: list = story.split(" ")

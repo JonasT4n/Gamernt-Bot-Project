@@ -19,7 +19,7 @@ class Brawler:
     MINDMG: int = 25 # Player Minimal Damage is 25
     ARMOR: int = 23 # Player Defense Armor is 25, cutting the damage point
 
-    def __init__(self, ppl):
+    def __init__(self, ppl: discord.User):
         self.p = ppl
 
     def attack(self):
@@ -81,11 +81,17 @@ class Duel(commands.Cog):
                 p1.HP -= damage
                 if p1.HP < 0:
                     p1.HP = 0
+
             # Deleting Logs
             while len(container_log) > 3:
                 container_log.pop(0)
+
             # Sending an Information Duel
-            emb = discord.Embed(title="⚔️ Fair Duel ⚔️", description="> **{}'s HP** : {}\n> **{}'s HP** : {}".format(p1name, p1.HP, p2name, p2.HP), colour=discord.Colour(WHITE))
+            emb = discord.Embed(
+                title="⚔️ Fair Duel ⚔️", 
+                description="> **{}'s HP** : {}\n> **{}'s HP** : {}".format(p1name, p1.HP, p2name, p2.HP), 
+                colour=discord.Colour(WHITE)
+            )
             emb.add_field(name="Battle Log :", value="\n".join(container_log), inline=False)
             await handler_msg.edit(embed = emb)
             await asyncio.sleep(1)
@@ -121,52 +127,46 @@ class Duel(commands.Cog):
         person2: discord.User
 
         if len(args) == 0:
-            person1 = ctx.message.author
-            person2 = random.choice(ctx.message.guild.members)
+            person1 = ctx.author
+            person2 = random.choice(ctx.guild.members)
         else:
             if args[0] == "-random":
-                person1 = random.choice(ctx.message.guild.members)
-                person2 = random.choice(ctx.message.guild.members)
+                person1 = random.choice(ctx.guild.members)
+                person2 = random.choice(ctx.guild.members)
 
             elif args[0] == '-h':
                 await self.print_help(ctx.channel)
                 return
 
-            elif person1 is not None and person2 is None:
+            elif len(args) == 1:
+                person1 = ctx.author
                 if re.search("^<@\S*>$", person1):
-                    person2 = person1
-                    person1 = ctx.message.author
                     person2 = self.bot.get_user(int(person2.split('!')[1].split('>')[0]))
                 else:
-                    for mbr in ctx.message.guild.members:
+                    for mbr in ctx.guild.members:
                         if person1.lower() in mbr.name.lower():
                             person2 = mbr
                             break
                     else:
-                        person2 = random.choice(ctx.message.guild.members)
-                    person1 = ctx.message.author
+                        person2 = random.choice(ctx.guild.members)
 
-            elif person1 is not None and person2 is not None:
+            elif len(args) == 2:
                 if re.search("^<@\S*>$", person1) and re.search("^<@\S*>$", person2):
                     person1 = self.bot.get_user(int(person1.split('!')[1].split('>')[0]))
                     person2 = self.bot.get_user(int(person2.split('!')[1].split('>')[0]))
                 elif re.search("^<@\S*>$", person1) and not re.search("^<@\S*>$", person2):
                     person1 = self.bot.get_user(int(person1.split('!')[1].split('>')[0]))
-                    person2 = random.choice(ctx.message.guild.members)
+                    person2 = random.choice(ctx.guild.members)
                 elif not re.search("^<@\S*>$", person1) and re.search("^<@\S*>$", person2):
-                    person1 = random.choice(ctx.message.guild.members)
+                    person1 = random.choice(ctx.guild.members)
                     person2 = self.bot.get_user(int(person2.split('!')[1].split('>')[0]))
                 else:
-                    person1 = random.choice(ctx.message.guild.members)
-                    person2 = random.choice(ctx.message.guild.members)
+                    person1 = random.choice(ctx.guild.members)
+                    person2 = random.choice(ctx.guild.members)
 
         while person1 == person2:
-            person2 = random.choice(ctx.message.guild.members)
-        await self.begins(ctx.message.channel, Brawler(person1), Brawler(person2))
-
-    @commands.command()
-    async def battle(self, ctx, person: discord.User):
-        pass
+            person2 = random.choice(ctx.guild.members)
+        await self.begins(ctx.channel, Brawler(person1), Brawler(person2))
 
     # Commands Error Handler
 
@@ -189,21 +189,15 @@ class Duel(commands.Cog):
 
         # Winner Result
         if winner.bot is False:
-            winner_data = checkin_member(winner.id)
-            if "_id" in winner_data:
-                del winner_data["_id"]
-            winner_data["trophy"] += self.winner_get
-            self.mongodbm.SetObject({"member_id": str(winner.id)}, winner_data)
+            self.mongodbm.IncreaseItem({"member_id": str(winner.id)}, {"trophy": self.winner_get})
 
         # Loser Result
         if loser.bot is False:
-            loser_data = checkin_member(loser.id)
-            if "_id" in loser_data:
-                del loser_data["_id"]
+            loser_data: dict = checkin_member(loser.id)
             loser_data["trophy"] -=  self.loser_lost
             if loser_data["trophy"] < 0:
                 loser_data["trophy"] = 0
-            self.mongodbm.SetObject({"member_id": str(loser.id)}, loser_data)
+            self.mongodbm.SetObject({"member_id": str(loser.id)}, {"trophy": loser_data["trophy"]})
 
     @staticmethod
     async def print_help(channel: discord.TextChannel):

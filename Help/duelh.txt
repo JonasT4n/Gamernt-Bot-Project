@@ -1,5 +1,7 @@
-```[name]  -> Your Opponent Name, without a Tag.
-[@]     -> Duel With Someone you tagged.
-[@] [@] -> Duel between 2 Player.
--h      -> Help about Duel.
--random -> Random Pick 2 Player.```
+*[prefix]duel <option>*
+```Options :
+[name].... Challange this Person
+[@]....... Duel Tagged Person
+[@] [@]... Duel between 2 Tags
+-h........ Duel Help
+-random... Random Pick 2 Person```

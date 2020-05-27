@@ -69,7 +69,7 @@ def check_guild_prefix(dbm: MongoManager):
 db_guild = MongoManager(collection="guilds")
 bot = commands.Bot(command_prefix=check_guild_prefix(db_guild))
 bot.remove_command("help")
-current_version: str = "Version 1.0.9b"
+current_version: str = "Version 1.0.10a"
 
 # Attributes
 WHITE = 0xfffffe
@@ -143,8 +143,8 @@ async def ping(ctx): # Ping Command, Check Bot Latency
     also_this_message = ctx.message
     await also_this_message.delete()
 
-@bot.command(aliases=['info'])
-async def about(ctx):
+@bot.command(aliases=['a'])
+async def info(ctx):
     """About this Bot"""
     # Initiate Attribute
     bot_icon = bot.user.avatar_url
@@ -200,7 +200,7 @@ async def prefix(ctx, new_prefix: str):
         emb.add_field(name="🔧 Not a Good Prefix", value="Your Prefix might too long or bad format, try simpler!")
         await ctx.send(embed=emb)
 
-@bot.command(aliases=['suggest', 'report'])
+@bot.command(aliases=['fb', 'report'])
 async def feedback(ctx: commands.Context, *, args: str):
     """
     

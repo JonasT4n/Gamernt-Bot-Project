@@ -13,6 +13,12 @@ class Inventory(commands.Cog):
         self.bot = bot
         self.mongodbm = MongoManager(collection="members")
 
+    # Listener Area
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print("Inventory is Ready!")
+
     # Checker Area
 
     def user_check(self, person: discord.User):

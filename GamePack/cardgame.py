@@ -58,10 +58,15 @@ class Cards(commands.Cog):
                 return False
         return inner_check
 
+    @staticmethod
+    def check_user_money(person_id: int) -> int:
+        pass
+
     # Command Area
 
     @commands.command()
     async def blackjack(self, ctx: commands.Context, *args):
+        player_bet: int
         if len(args) == 0:
             await self.blackjack_help(ctx.channel)
         else:
@@ -74,6 +79,7 @@ class Cards(commands.Cog):
                 player_money: int = checkin_member(ctx.author.id)["money"]
                 if player_money <= 0:
                     try:
+                        player_bet = 0
                         h_m: discord.Message = await ctx.send("*Sorry, you don't have Money to play this Game.*\n*Want to Practice?* (Y/N)")
                         answered: discord.Message = await self.bot.wait_for(
                             event="message",
@@ -88,13 +94,16 @@ class Cards(commands.Cog):
                     except asyncio.TimeoutError:
                         await h_m.edit(content = "*Request Timeout, Until Next Time!*")
                 else:
-                    player_bet: int = 10
+                    player_bet = 10
                     if player_money < player_bet:
                         player_bet = player_money
                         self.mongodbm.SetObject({"member_id": str(ctx.author.id)}, {"money": 0})
                     else:
                         self.mongodbm.SetObject({"member_id": str(ctx.author.id)}, {"money": player_money - player_bet})
                     await self.challange_bot(ctx.channel, ctx.author, player_bet)
+
+            elif len(args) == 1:
+                pass
             
     # Others
 
@@ -221,6 +230,10 @@ class Cards(commands.Cog):
             )
             await handler_msg.edit(embed = board_embed)
             self.mongodbm.IncreaseItem({"member_id": str(player.id)}, {"money": bet})
+
+    @staticmethod
+    async def blackjack_manual(channel: discord.TextChannel):
+        pass
 
     @staticmethod
     async def blackjack_help(channel: discord.TextChannel):

@@ -26,7 +26,7 @@ class GuessWord(commands.Cog):
 
     # Checker Area
 
-    def check_answer(self, channel, question, embed : discord.Embed, answer: str):
+    def check_answer(self, channel: discord.TextChannel, question, embed : discord.Embed, answer: str):
         # Edit Local Message
         async def edit_local_message():
             wrong = [

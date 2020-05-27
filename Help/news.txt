@@ -1,3 +1,4 @@
-- Added Single Player Blackjack Game
-- One Word Story Version 2
-- Fixed Upgrade Pickaxe
+- Simple UI Fixed
+- Added Slot Machine
+- Fixed Bug
+- Update Profile Look
