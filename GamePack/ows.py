@@ -1,12 +1,10 @@
 import discord
 import random
-import threading
 import asyncio
 import datetime
 from discord.ext import commands
-from Settings.MyUtility import checkin_guild
+from Settings.MyUtility import checkin_guild, get_prefix
 from Settings.MongoManager import MongoManager
-from main import get_prefix
 
 WHITE = 0xfffffe
 

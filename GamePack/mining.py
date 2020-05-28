@@ -23,7 +23,7 @@ class Mine(commands.Cog):
     # Command Area
         
     @commands.command(aliases=['mine'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def dig(self, ctx):
         # Digging Animation
         dig = "Dig... "
@@ -125,9 +125,12 @@ class Mine(commands.Cog):
 
     @dig.error
     async def mine_error(self, ctx, error):
-        emb = discord.Embed(colour=discord.Colour(WHITE))
         if isinstance(error, commands.CommandOnCooldown):
-            emb.add_field(name="💤 Zzzz... 💤", value="You have a fatigue, take a rest for **{0:.2f}** s.".format(error.retry_after))
+            emb = discord.Embed(
+                title = "💤 Zzzz... 💤",
+                description = "Calm Down, take a rest for **{0:.2f}** s.".format(error.retry_after),
+                colour = discord.Colour(WHITE)
+            )
             this_msg_coroute = await ctx.send(embed=emb)
             await asyncio.sleep(3)
             await this_msg_coroute.delete()

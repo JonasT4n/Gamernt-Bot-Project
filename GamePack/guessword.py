@@ -91,14 +91,13 @@ class GuessWord(commands.Cog):
             winner: discord.User = answered.author
 
             # When the Answer is Right
-            earned: int = 10
             _emb = discord.Embed(
                 title="◔‿◔ Correct!", 
-                description=f"Congratulation : **{winner.name}**.\nReward : **{earned}** 💲", 
+                description=f"🏆 Congratulation : **{winner.name}**\nAnswer is **{secret_word}**", 
                 colour=discord.Colour(WHITE)
             )
             await channel.send(embed = _emb)
-            self.mongodbm.IncreaseItem({"member_id": str(answered.author.id)}, {"money": earned}) # Save Data
+            self.mongodbm.IncreaseItem({"member_id": str(answered.author.id)}, {"trophy": 1}) # Save Data
             
         except asyncio.TimeoutError:
             # When nobody can answer it

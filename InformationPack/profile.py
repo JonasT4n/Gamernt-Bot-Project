@@ -13,7 +13,7 @@ class Profile(commands.Cog):
         self.bot = bot
         self.mongodbm = MongoManager(collection="members")
 
-    # Listener Area
+    # Event Listener Area
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -35,7 +35,7 @@ class Profile(commands.Cog):
         self.mongodbm.SetObject({"member_id": str(ctx.author.id)}, person_data)
         await ctx.send(f"*Title Set to {title}, Check your Profile.*")
 
-    @commands.command(aliases=["prof", "user"])
+    @commands.command(aliases=["prof", "user"], pass_context = True)
     async def profile(self, ctx: commands.Context, *args):
         # Get Player ID
         person: discord.User
@@ -55,8 +55,14 @@ class Profile(commands.Cog):
         user: dict = checkin_member(person.id)
         emb = discord.Embed(
             title=f"{ctx.message.author.name}", 
-            description=f"""The **{user["title"]}**\n📜 ID : `{person_id}`\n🏆 Trophy : `{user["trophy"]}`\n👛 Money : `{user["money"]}`\nCreated At : `{person.created_at.strftime("%B %d %Y")}`""", 
+            description=f"""The **{user["title"]}**\n📜 ID : `{person_id}`\n🏆 Trophy : `{user["trophy"]}`\n👛 Money : `{user["money"]}`\n\nCreated At : `{person.created_at.strftime("%B %d %Y")}`\n Joined `{ctx.guild.name}` at : `{person.joined_at.strftime("%B %d %Y")}`""", 
             colour=discord.Colour(WHITE)
+        )
+        roles: list = [role for role in ctx.guild.roles if role in ctx.author.roles]
+        emb.add_field(
+            name = "Roles",
+            value = " ".join([f"`{rm.name}`" for rm in roles]),
+            inline = False
         )
         emb.set_thumbnail(url=person.avatar_url)
         emb.set_footer(text="This is your Current Profile in this Application")

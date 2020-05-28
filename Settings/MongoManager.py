@@ -5,7 +5,7 @@ This Script can be Reuseable.
 """
 
 import pymongo
-from Settings.setting import DB_NAME, MONGO_ADDRESS
+from Settings.StaticData import DB_NAME, MONGO_ADDRESS
 
 new_guild_data = {
     "guild_id": "0",

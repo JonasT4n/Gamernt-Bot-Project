@@ -1,7 +1,7 @@
 from Settings.MongoManager import MongoManager, new_member_data, new_guild_data
 
-db_for_mbr = MongoManager(collection="members")
-db_for_gld = MongoManager(collection="guilds")
+db_for_mbr = MongoManager(collection = "members")
+db_for_gld = MongoManager(collection = "guilds")
 
 def checkin_member(member_id: int) -> dict:
     """
@@ -40,6 +40,23 @@ def checkin_guild(guild_id: int) -> dict:
         return gd
     else:
         return u_data[0]
+
+def get_prefix(guild_id: int) -> str:
+    """
+    
+    Get Current Prefix in this Guild.
+    
+    """
+    guild_data: dict = checkin_guild(guild_id)
+    return guild_data["prefix"]
+
+def set_prefix(guild_id: int, new_prefix: str):
+    """
+    
+    Set Guild Prefix and Overwrite to Mongo Data.
+    
+    """
+    db_for_gld.SetObject({"guild_id":str(guild_id)}, {"prefix": new_prefix})
 
 def convert_to_binary_type(filename):
     f = open(filename, 'rb')

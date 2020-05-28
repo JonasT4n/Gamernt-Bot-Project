@@ -13,7 +13,7 @@ duel............ Duel Simulation
 dice............ Roll the Dice
 dig (mine)...... Mining is Fun
 ows............. One Word Story Game
-ask............. Ask Me!
+pool............ 8Pool, Ask Me!
 rps............. Rock Paper Scissor
 scramble (scr).. Guess Scramble Word
 slot............ Slot Machine```

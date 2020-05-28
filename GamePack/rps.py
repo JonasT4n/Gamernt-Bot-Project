@@ -4,7 +4,7 @@ import asyncio
 import threading
 from discord.ext import commands
 from Settings.MyUtility import checkin_member
-from Settings.MongoManager import MongoManager, new_member_data
+from Settings.MongoManager import MongoManager
 
 WHITE = 0xfffffe
 
@@ -27,7 +27,7 @@ class RPS(commands.Cog):
         self.bot = bot
         self.mongodbm = MongoManager(collection="members")
 
-    # Listener Area
+    # Event Listener Area
     
     @commands.Cog.listener()
     async def on_ready(self):
@@ -35,7 +35,8 @@ class RPS(commands.Cog):
 
     # Checker Area
 
-    def check_choosen(self, person):
+    @staticmethod
+    def check_choosen(person: discord.User):
         def inner_check(message: discord.Message):
             if (int(message.content) > 0 or int(message.content) < 4) and person == message.author and isinstance(message.channel, discord.DMChannel):
                 return True
@@ -43,7 +44,8 @@ class RPS(commands.Cog):
                 return False
         return inner_check
 
-    def check_choosen_against_bot(self, person, channel):
+    @staticmethod
+    def check_choosen_against_bot(person: discord.User, channel: discord.TextChannel):
         def inner_check(message: discord.Message):
             if (int(message.content) > 0 or int(message.content) < 4) and person == message.author and message.channel == channel:
                 return True

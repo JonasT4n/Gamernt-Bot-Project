@@ -1,4 +1,3 @@
-- Simple UI Fixed
-- Added Slot Machine
-- Fixed Bug
-- Update Profile Look
+- Added Chat Money
+- Some Games only Rewarded Trophies
+- Fixed some Bugs

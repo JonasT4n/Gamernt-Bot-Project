@@ -39,7 +39,11 @@ class Duel(commands.Cog):
         self.bot = bot
         self.mongodbm = MongoManager(collection="members")
 
-    # Listener Area
+    # Event Listener Area
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print("Fair Duel is Ready!")
 
     # Checker Area
 
@@ -97,7 +101,7 @@ class Duel(commands.Cog):
             await asyncio.sleep(1)
         
         # Duel final Result
-        await asyncio.sleep(3)
+        await asyncio.sleep(2)
         if p1.HP == 0:
             emb = discord.Embed(
                 title="⚔️ Duel Ended ⚔️", 
@@ -107,7 +111,7 @@ class Duel(commands.Cog):
             emb.add_field(name="Battle Log :", value="\n".join(container_log), inline=False)
             emb.set_thumbnail(url=p2.p.avatar_url)
             await handler_msg.edit(embed = emb)
-            self.get_point(p2.p, p1.p)
+            self.mongodbm.IncreaseItem({"member_id": str(p2.p.id)}, {"trophy": 1})
         else:
             emb = discord.Embed(
                 title="⚔️ Duel Ended ⚔️", 
@@ -117,7 +121,7 @@ class Duel(commands.Cog):
             emb.add_field(name="Battle Log :", value="\n".join(container_log), inline=False)
             emb.set_thumbnail(url=p1.p.avatar_url)
             await handler_msg.edit(embed = emb)
-            self.get_point(p1.p, p2.p)
+            self.mongodbm.IncreaseItem({"member_id": str(p1.p.id)}, {"trophy": 1})
 
     # Commands Area
         
@@ -181,23 +185,6 @@ class Duel(commands.Cog):
             await ctx.send(embed=emb)
 
     # Others
-
-    def get_point(self, winner: discord.User, loser: discord.User):
-        # Init Variables
-        winner_data: dict
-        loser_data: dict
-
-        # Winner Result
-        if winner.bot is False:
-            self.mongodbm.IncreaseItem({"member_id": str(winner.id)}, {"trophy": self.winner_get})
-
-        # Loser Result
-        if loser.bot is False:
-            loser_data: dict = checkin_member(loser.id)
-            loser_data["trophy"] -=  self.loser_lost
-            if loser_data["trophy"] < 0:
-                loser_data["trophy"] = 0
-            self.mongodbm.SetObject({"member_id": str(loser.id)}, {"trophy": loser_data["trophy"]})
 
     @staticmethod
     async def print_help(channel: discord.TextChannel):
