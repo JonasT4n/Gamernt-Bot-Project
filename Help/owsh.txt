@@ -1,8 +1,0 @@
-*[prefix]ows <option>*
-```Options :
--p..... Start The Game in the Channel
--h..... Help about One Word Story
--r..... Read your Story
--os.... Books Writen by Server
--del... Delete Server Story
--how... How to Play```

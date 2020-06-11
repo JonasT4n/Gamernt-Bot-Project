@@ -4,11 +4,87 @@ try:
     TOKEN = os.environ['STOKEN']
     MONGO_ADDRESS = os.environ.get("MONGO_ADDRESS")
     DB_NAME = os.environ.get("DB_NAME")
+    GOOGLE_API = os.environ.get("GOOGLE_API")
+    CSE_ID = os.environ.get("CSE_ID")
 except KeyError:
-    from bin_folder.secret import a, b, c
+    from bin_folder.secret import a, b, c, d, e
     TOKEN = a
     MONGO_ADDRESS = b
     DB_NAME = c
+    GOOGLE_API = d
+    CSE_ID = e
+
+# Database Attribute
+new_guild_data: dict = {
+    "guild_id": "0",
+    "prefix": "g.",
+    "stories": [],
+    "member": {},
+    "currency": {
+        "chat-min": 5,
+        "chat-max": 10,
+        "type": "💸",
+        "last-modified": None,
+        "modif-by": None 
+    },
+    "max-misc": {
+        "max-items": 20,
+        "max-equip": 20,
+        "max-move": 20
+    },
+    "shop": {
+        "items": {},
+        "equipments": {},
+        "movement": {}
+    }
+}
+new_member_data: dict = {
+    "member_id": None,
+    "title": "The Man",
+    "backpack": {
+        "pickaxe-level": 0,
+        "ores": {
+            "Copper": 0,
+            "Lead": 0,
+            "Tin": 0,
+            "Coal": 0,
+            "Cobalt": 0,
+            "Iron": 0,
+            "Quartz": 0,
+            "Silver": 0,
+            "Ruby": 0,
+            "Sapphire": 0,
+            "Gold": 0,
+            "Diamond": 0,
+            "Emerald": 0,
+            "Titanium": 0,
+            "Meteorite": 0
+        }
+    }
+}
+start_rpg: dict = {
+    "CHAR": "Neutral Warrior",
+    "TRP": 0,
+    "LVL": 0,
+    "EXP": 0,
+    "skill-point": 0,
+    "equip": {},
+    "MAX-ITEM-HOLD": 10,
+    "backpack.item": {},
+    "PRIM-STAT": {
+        "STR": 0,
+        "END": 0,
+        "AGI": 0,
+        "FOC": 0
+    },
+    "MAX-STAT": {
+        "HP": 10000,
+        "DEF": 10000,
+        "SPD": 10000,
+        "ATT": 10000,
+        "CRIT": 10000
+    }
+}
 
 # Pickaxe Identity
 pickaxe_identity: dict = {

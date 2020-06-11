@@ -1,10 +1,7 @@
 import discord
 import random
 import asyncio
-import threading
 from discord.ext import commands
-from Settings.MyUtility import checkin_member
-from Settings.MongoManager import MongoManager
 
 WHITE = 0xfffffe
 
@@ -25,7 +22,6 @@ class RPS(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.mongodbm = MongoManager(collection="members")
 
     # Event Listener Area
     
@@ -53,14 +49,6 @@ class RPS(commands.Cog):
                 return False
         return inner_check
 
-    def check_challanger_reply(self, person, channel):
-        def inner_check(message):
-            if message.channel == channel and message.author.id == person.id and (message.content.lower() == 'y' or message.content.lower() == 'n'):
-                return True
-            else:
-                return False
-        return inner_check
-
     # Commands Area
 
     @commands.command(aliases=['Rps', 'rPs', 'rpS', 'RPs', 'RpS', 'rPS', 'RPS'])
@@ -73,14 +61,18 @@ class RPS(commands.Cog):
             handler = await ctx.send(embed=emb)
             if not against.bot:
                 try:
-                    reply = await self.bot.wait_for(event='message', check=self.check_challanger_reply(against, ctx.message.channel), timeout=30)
+                    reply = await self.bot.wait_for(
+                        event = 'message', 
+                        check = lambda message : True if message.channel == ctx.channel and message.author == against and (message.content.lower() == 'y' or message.content.lower() == 'n') else False, 
+                        timeout = 30
+                    )
                     await handler.delete()
                     if reply.content.lower() == 'n':
                         await reply.delete()
                         await ctx.send("*Challenge Not Accepted :v*")
                     else:
                         await reply.delete()
-                        threading.Thread(target = await self.begin(ctx.message.author, against, ctx.message.channel)).start()
+                        await self.begin(ctx.message.author, against, ctx.message.channel)
                 except asyncio.TimeoutError:
                     await handler.delete()
                     await ctx.send("*Request Timeout.*")
@@ -93,22 +85,24 @@ class RPS(commands.Cog):
         msg: discord.Message = await channel.send(embed = self.block_option_embed)
         try:
             # Waiting for User Answer
-            replied = await self.bot.wait_for(event='message', check=self.check_choosen_against_bot(person, channel), timeout=30)
+            replied = await self.bot.wait_for(
+                event='message', 
+                check=self.check_choosen_against_bot(person, channel), 
+                timeout=30
+            )
             await msg.delete()
             await replied.delete()
 
             # Checking if User Win or Bot Win
             winner: str = ""
-            earned: int = 5
             bot_choose: str = str(random.choice(list(self.rps_element)))
 
             if replied.content == bot_choose:
                 winner = "It's a DRAW"
             elif (replied.content == '1' and bot_choose == '2') or (replied.content == '2' and bot_choose == '3') or (replied.content == '3' and bot_choose == '1'):
-                winner = f"You Win! Earned {earned} 💲"
-                self.mongodbm.IncreaseItem({"member_id": str(person.id)}, {"money": earned})
+                winner = "You Win!"
             else:
-                winner = f"Better Luck Next Time."
+                winner = "Better Luck Next Time."
 
             # Announce the Winner
             descript = f"```{person.name} : {self.rps_element[int(replied.content)]}\nMe : {self.rps_element[int(bot_choose)]}\n{winner}!```"
@@ -117,7 +111,7 @@ class RPS(commands.Cog):
 
         except asyncio.TimeoutError:
             await msg.delete()
-            await channel.send(content="*Game Timeout :v*")
+            await channel.send(content="*RPS Game Timeout :v*")
 
     async def begin(self, p1 : discord.User, p2 : discord.User, channel : discord.TextChannel):
         try:
@@ -126,7 +120,11 @@ class RPS(commands.Cog):
 
             # Player 1 Answer
             fpmsg: discord.Message = await p1.send(embed = self.block_option_embed)
-            reply_p1 = await self.bot.wait_for(event='message', check=self.check_choosen(p1), timeout=30)
+            reply_p1 = await self.bot.wait_for(
+                event='message', 
+                check=self.check_choosen(p1), 
+                timeout=30
+            )
             await fpmsg.delete()
 
             # Edit handler on Channel
@@ -134,24 +132,29 @@ class RPS(commands.Cog):
 
             # Player 2 Answer
             spmsg: discord.Message = await p2.send(embed = self.block_option_embed)
-            reply_p2 = await self.bot.wait_for(event='message', check=self.check_choosen(p2), timeout=30)
+            reply_p2 = await self.bot.wait_for(
+                event='message', 
+                check=self.check_choosen(p2), 
+                timeout=30
+            )
             await spmsg.delete()
 
             # Check either Player 1 or Player 2 Win
             winner: str = ""
-            earned: int = 10
             if reply_p1.content == reply_p2.content:
                 winner = "It's a DRAW"
             elif (reply_p1.content == '1' and reply_p2.content == '2') or (reply_p1.content == '2' and reply_p2.content == '3') or (reply_p1.content == '3' and reply_p2.content == '1'):
-                winner = f"Winner is {p1.name}! You have Earned {earned} 💲"
-                self.mongodbm.IncreaseItem({"member_id": str(p1.id)}, {"money": earned})
+                winner = f"{p1.name}, You Win!"
             else:
-                winner = f"Winner is {p2.name}! You have Earned {earned} 💲"
-                self.mongodbm.IncreaseItem({"member_id": str(p2.id)}, {"money": earned})
+                winner = f"{p2.name}, You WIn!"
 
             # Announce the Winner
             descript = f"```{p1.name} : {self.rps_element[int(reply_p1.content)]}\n{p2.name} : {self.rps_element[int(reply_p2.content)]}\n{winner}!```"
-            emb = discord.Embed(title="✊✋✌ Rock Paper Scissor", description=descript, colour=discord.Colour(WHITE))
+            emb = discord.Embed(
+                title="✊✋✌ Rock Paper Scissor", 
+                description=descript, 
+                colour=discord.Colour(WHITE)
+            )
             await handle_msg.delete()
             await channel.send(embed = emb)
 

@@ -6,12 +6,16 @@ WHITE = 0xfffffe
 
 class Choose(commands.Cog):
 
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
+
+    # Event Listener Area
 
     @commands.Cog.listener()
     async def on_ready(self):
         print("Choosing System is Ready!")
+
+    # Command Area
 
     @commands.command()
     async def choose(self, ctx, *obj):
@@ -25,5 +29,5 @@ class Choose(commands.Cog):
             )
             await ctx.send(embed=emb)
 
-def setup(bot):
+def setup(bot: commands.Bot):
     bot.add_cog(Choose(bot))

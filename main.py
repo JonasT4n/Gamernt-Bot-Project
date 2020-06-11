@@ -18,8 +18,6 @@ def check_guild_prefix(bot: commands.Bot, message: discord.Message):
             return message.content[0:len(pref)]
         else:
             return "This is Not a Prefix for this Server, Try Again later!..."
-    else:
-        return 'g.'
 
 bot = commands.Bot(command_prefix = check_guild_prefix)
 bot.remove_command("help")
@@ -33,6 +31,10 @@ if __name__ == "__main__":
     for info in os.listdir("./InformationPack"):
         if info.endswith(".py"):
             bot.load_extension("InformationPack.{}".format(info[:-3]))
+
+    for info in os.listdir("./RPG"):
+        if info.endswith(".py"):
+            bot.load_extension("RPG.{}".format(info[:-3]))
 
     # Run the Bot
     bot.run(TOKEN)

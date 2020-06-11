@@ -66,7 +66,6 @@ class Cards(commands.Cog):
 
     @commands.command()
     async def blackjack(self, ctx: commands.Context, *args):
-        player_bet: int
         if len(args) == 0:
             await self.blackjack_help(ctx.channel)
         else:
@@ -75,39 +74,15 @@ class Cards(commands.Cog):
                 await self.blackjack_help(ctx.channel)
 
             # Single Player
-            if args[0].lower() == "-p":
-                player_money: int = checkin_member(ctx.author.id)["money"]
-                if player_money <= 0:
-                    try:
-                        player_bet = 0
-                        h_m: discord.Message = await ctx.send("*Sorry, you don't have Money to play this Game.*\n*Want to Practice?* (Y/N)")
-                        answered: discord.Message = await self.bot.wait_for(
-                            event="message",
-                            check=self.check_user_reply(ctx.channel, ctx.author, true_list=["Y", "y", "N", "n"]),
-                            timeout=30.0
-                        )
-                        if answered.content.lower() == "y":
-                            await self.challange_bot(ctx.channel, ctx.author, 0)
-                        else:
-                            await answered.delete()
-                            await h_m.edit(content = "Okay, Next Time!")
-                    except asyncio.TimeoutError:
-                        await h_m.edit(content = "*Request Timeout, Until Next Time!*")
-                else:
-                    player_bet = 10
-                    if player_money < player_bet:
-                        player_bet = player_money
-                        self.mongodbm.SetObject({"member_id": str(ctx.author.id)}, {"money": 0})
-                    else:
-                        self.mongodbm.SetObject({"member_id": str(ctx.author.id)}, {"money": player_money - player_bet})
-                    await self.challange_bot(ctx.channel, ctx.author, player_bet)
+            elif args[0].lower() == "-p":
+                await self.challange_bot(ctx.channel, ctx.author)
 
             elif len(args) == 1:
                 pass
             
     # Others
 
-    async def challange_bot(self, channel: discord.TextChannel, player: discord.User, bet: int):
+    async def challange_bot(self, channel: discord.TextChannel, player: discord.User, *, bet: int = 10):
         # Inner Function
         def description_maker(dh: list) -> str:
             desc_holder: str = "```"
@@ -218,7 +193,7 @@ class Cards(commands.Cog):
                 earned: int = bet * 2
                 board_embed.set_footer(text=f"You Win! You have earned {earned} 💲")
                 await handler_msg.edit(embed = board_embed)
-                self.mongodbm.IncreaseItem({"member_id": str(player.id)}, {"money": earned})
+                # self.mongodbm.IncreaseItem({"member_id": str(player.id)}, {"money": earned})
             else:
                 board_embed.set_footer(text=f"You Lose {bet} 💲! Better Luck Next Time.")
                 await handler_msg.edit(embed = board_embed)

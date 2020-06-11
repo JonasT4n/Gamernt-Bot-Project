@@ -21,5 +21,15 @@ class Battle(commands.Cog):
     async def battle(self, ctx: commands.Context, *args):
         pass
 
+    # Others
+
+    @staticmethod
+    async def print_help(channel: discord.TextChannel):
+        pass
+
+    @staticmethod
+    async def manual(channel: discord.TextChannel):
+        pass
+
 def setup(bot: commands.Bot):
     bot.add_cog(Battle(bot))

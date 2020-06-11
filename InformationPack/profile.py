@@ -11,7 +11,7 @@ class Profile(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.mongodbm = MongoManager(collection="members")
+        self.mongodbm = MongoManager(collection = "members")
 
     # Event Listener Area
 
@@ -21,28 +21,24 @@ class Profile(commands.Cog):
 
     # Commands Area
 
-    @commands.command(aliases=["lb"])
-    async def leaderboard(self, ctx):
+    @commands.command(name= "leaderboard", aliases= ["lb"], pass_context = True)
+    async def _lb(self, ctx):
         pass
 
-    @commands.command(aliases=["st"])
-    async def settitle(self, ctx: commands.Context, *args):
-        person_data: dict = checkin_member(ctx.author.id)
-        title: str = " ".join(args)
-        person_data["title"] = title
-        if "_id" in person_data:
-            del person_data["_id"]
-        self.mongodbm.SetObject({"member_id": str(ctx.author.id)}, person_data)
-        await ctx.send(f"*Title Set to {title}, Check your Profile.*")
+    @commands.command(name= "settitle", aliases= ["st"])
+    async def _settitle(self, ctx: commands.Context, *, ttl: str = None):
+        if ttl is None:
+            await ctx.send("Insert your profile title after the command")
+        else:
+            self.mongodbm.SetObject({"member_id": str(ctx.author.id)}, {"title": ttl})
+            await ctx.send(f"*Title Set to {ttl}, Check your Profile.*")
 
-    @commands.command(aliases=["prof", "user"], pass_context = True)
-    async def profile(self, ctx: commands.Context, *args):
+    @commands.command(name= "profile", aliases= ["prof", "user"], pass_context = True)
+    async def _profile(self, ctx: commands.Context, *args):
         # Get Player ID
         person: discord.User
-        person_id: int
         if len(args) == 0:
             person = ctx.message.author
-            person_id = person.id
         elif "@!" in args[0]:
             person_id = int(args[0].split('!')[1].split('>')[0])
             person = await self.bot.fetch_user(person_id)
@@ -52,20 +48,22 @@ class Profile(commands.Cog):
             return
 
         # Print Out Profile Information
-        user: dict = checkin_member(person.id)
-        emb = discord.Embed(
-            title=f"{ctx.message.author.name}", 
-            description=f"""The **{user["title"]}**\n📜 ID : `{person_id}`\n🏆 Trophy : `{user["trophy"]}`\n👛 Money : `{user["money"]}`\n\nCreated At : `{person.created_at.strftime("%B %d %Y")}`\n Joined `{ctx.guild.name}` at : `{person.joined_at.strftime("%B %d %Y")}`""", 
-            colour=discord.Colour(WHITE)
-        )
+        user_title: str = checkin_member(person.id)["title"]
         roles: list = [role for role in ctx.guild.roles if role in ctx.author.roles]
-        emb.add_field(
-            name = "Roles",
-            value = " ".join([f"`{rm.name}`" for rm in roles]),
-            inline = False
+        role_desc: str = " ".join([f"`{rm.name}`" for rm in roles])
+        emb = discord.Embed(
+            title = f"📜 Profile | {ctx.author.nick if ctx.author.nick is not None else person.name}", 
+            description = f"""> Title: __**{user_title}**__
+                        > Name: **{person.display_name}**
+                        > ID: `{person.id}`
+                        > Current Activity: `{ctx.author.activity}`\n
+                        > Created At: `{person.created_at.strftime("%B %d %Y")}`
+                        > Joined Server: `{person.joined_at.strftime("%B %d %Y")}`
+                        > Highest Role: `{person.top_role}`\n
+                        > Roles: \n{role_desc}""",
+            colour = discord.Colour(WHITE)
         )
         emb.set_thumbnail(url=person.avatar_url)
-        emb.set_footer(text="This is your Current Profile in this Application")
         await ctx.send(embed = emb)
 
     # Others

@@ -39,7 +39,7 @@ class Mine(commands.Cog):
         # Getting an Ore
         person: discord.User = ctx.message.author
         user_bag: dict = checkin_member(person.id)
-        ore: str = self.rarity_randomize(user_bag["pickaxe-level"])
+        ore: str = self.rarity_randomize(user_bag["backpack"]["pickaxe-level"])
         failed = [
             "It's just a Rock... Throw it away!", 
             "Punching rock is hard, did you realize you forgot your pickaxe?", 
@@ -54,11 +54,11 @@ class Mine(commands.Cog):
         else:
             emb = discord.Embed(
                 title="💎 Bling!", 
-                description=f"Yay {person.name}, You have got **{ore}**!", 
+                description=f"Yay {person.name}, You have got __**{ore}**__!", 
                 colour=discord.Colour(WHITE)
             )
             await queing.edit(embed = emb)
-            self.mongodbm.IncreaseItem({"member_id":str(person.id)}, {f"ores.{ore}":1}) # Save Data
+            self.mongodbm.IncreaseItem({"member_id":str(person.id)}, {f"backpack.ores.{ore}":1}) # Save Data
 
     @commands.command()
     async def pickaxeup(self, ctx: commands.Context):
@@ -68,11 +68,9 @@ class Mine(commands.Cog):
 
         # Initialize Things
         able_upgrade: bool = True
-        person: discord.User = ctx.message.author
-        user_data: dict = checkin_member(person.id)
-        del user_data["_id"]
-        sack_of_ores: dict = user_data["ores"]
-        pick_level: int = user_data["pickaxe-level"]
+        user_data: dict = checkin_member(ctx.author.id)
+        sack_of_ores: dict = user_data["backpack"]["ores"]
+        pick_level: int = user_data["backpack"]["pickaxe-level"]
         requirement: dict = pickaxe_identity[pick_level + 1]["requirement"]
         list_required: list = list(requirement.keys())
 
@@ -114,7 +112,7 @@ class Mine(commands.Cog):
                         colour = discord.Colour(WHITE)
                     )
                     await ctx.send(embed = emb)
-                    self.mongodbm.IncreaseItem({"member_id": str(ctx.author.id)}, {"pickaxe-level": 1})
+                    self.mongodbm.IncreaseItem({"member_id": str(ctx.author.id)}, {"backpack.pickaxe-level": 1})
                 else:
                     emb.set_footer(text="Ok, Next Time!")
                     await handler_msg.edit(embed = emb)
@@ -167,5 +165,5 @@ class Mine(commands.Cog):
         else:
             return False
 
-def setup(bot):
+def setup(bot: commands.Bot):
     bot.add_cog(Mine(bot))

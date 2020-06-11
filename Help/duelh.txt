@@ -1,7 +1,0 @@
-*[prefix]duel <option>*
-```Options :
-[name].... Challange this Person
-[@]....... Duel Tagged Person
-[@] [@]... Duel between 2 Tags
--h........ Duel Help
--random... Random Pick 2 Person```

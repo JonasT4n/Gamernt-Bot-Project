@@ -1,3 +1,6 @@
-- Added Chat Money
-- Some Games only Rewarded Trophies
-- Fixed some Bugs
+- Gamern't Bot is now Gamern't RPG with lots of new commands for RPG Game
+- Added image search engine
+- Added hangman game
+- Added currency manager
+- No more reward like money or trophy if play any fun and game commands
+- Added experience and level for each user
