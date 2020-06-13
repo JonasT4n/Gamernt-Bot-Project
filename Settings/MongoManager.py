@@ -5,6 +5,7 @@ This Script can be Reuseable.
 """
 
 import pymongo
+from pymongo.errors import *
 from Settings.StaticData import DB_NAME, MONGO_ADDRESS
 
 class MongoManager:
@@ -112,6 +113,8 @@ class MongoManager:
                 (None)
 
         """
+        if "_id" in data:
+            del data["_id"]
         self._connected_collection.insert_one(data)
 
     def SetObject(self, query: dict, update: dict, *, usert: bool = False):
