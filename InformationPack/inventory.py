@@ -30,14 +30,17 @@ class Inventory(commands.Cog):
     # Inventories
 
     async def main_menu(self, message: discord.Message, person: discord.User) -> bool:
-        user_data: dict = checkin_member(person.id)
-        menu_embed = discord.Embed(
-            title=f"{person.display_name}'s Inventory",
-            description=f"👛 Money : {user_data['money']}💲\n1. Ores ⛏️",
-            colour=discord.Colour(WHITE)
-        )
-        menu_embed.set_footer(text="Select by Number to see detail.")
-        await message.edit(embed = menu_embed)
+        tud: dict = checkin_guild(message.guild.id)
+        menu_emb = discord.Embed(
+            title= f"{message.author.display_name}'s Inventory",
+            description= f"> 👛 Money : {tud['member'][str(message.author.id)]['money']} {tud['currency']['type']}\n"
+                        "> ⛏️ 1. Ores \n"
+                        "> 🛡️ 2. Equipment\n"
+                        "> 🧳 3. Backpack",
+            colour= discord.Colour(WHITE)
+            )
+        menu_emb.set_footer(text= "Select by Number to see detail.")
+        await message.edit(embed= menu_emb)
         return True
 
     async def ore_inventory(self, message: discord.Message, person: discord.User) -> bool:
