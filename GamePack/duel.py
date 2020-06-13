@@ -170,14 +170,15 @@ class Duel(commands.Cog):
                 description= f"> **{p1.name}** : Died\n> **{p2.name}** : {c2.HP} HP left\n`🏆 Congratulation {p2.name}!`",
                 colour= discord.Colour(WHITE)
                 )
+            emb.set_thumbnail(url= p2.avatar_url)
         else:
             emb = discord.Embed(
                 title= "⚔️ Duel | Battle End", 
                 description= f"> **{p1.name}** : {c1.HP} HP left\n> **{p2.name}** : Died\n`🏆 Congratulations {p1.name}!`", 
                 colour= discord.Colour(WHITE)
                 )
+            emb.set_thumbnail(url= p1.avatar_url)
         emb.add_field(name= "Battle Log :", value="\n".join(container_log), inline = False)
-        emb.set_thumbnail(url= p1.avatar_url)
         await hm.edit(embed = emb)
 
     # Commands Area

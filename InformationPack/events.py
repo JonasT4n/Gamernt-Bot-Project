@@ -55,7 +55,6 @@ class Events(commands.Cog):
                 self.guild_col.SetObject({"guild_id": str(message.guild.id)}, {
                     f"member.{str(message.author.id)}.money": 0
                     })
-            
             # Get Prefix by tagging Bot
             pref: str = get_prefix(message.guild.id)
             if str(self.bot.user.id) in message.content:
@@ -65,7 +64,6 @@ class Events(commands.Cog):
                     color= discord.Color(WHITE)
                     )
                 await message.channel.send(embed = emb)
-
             # Chat Money
             if not message.content.startswith(pref) and not message.author.bot:
                 get_money: int = random.randint(guild_data["currency"]["chat-min"], guild_data["currency"]["chat-max"])
