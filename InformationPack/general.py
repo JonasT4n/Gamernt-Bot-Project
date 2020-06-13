@@ -5,7 +5,7 @@ from Settings.MyUtility import checkin_guild, checkin_member, get_prefix, set_pr
 from Settings.MongoManager import MongoManager
 
 WHITE = 0xfffffe
-current_version: str = "Version 2.0.2a"
+current_version: str = "Version 2.0.2b"
 
 class General(commands.Cog):
 

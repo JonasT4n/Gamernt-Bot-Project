@@ -40,7 +40,7 @@ class Picture(commands.Cog):
                 q= search_term,
                 cx= CSE_ID,
                 searchType= "image",
-                num= 35,
+                num= 10,
                 fileType= 'jpg,jpeg,png',
                 safe= 'active'
                 ).execute()

@@ -112,7 +112,7 @@ class MongoManager:
                 (None)
 
         """
-        self._connected_collection.insert_one(data, upsert= False)
+        self._connected_collection.insert_one(data)
 
     def SetObject(self, query: dict, update: dict, *, usert: bool = False):
         """
@@ -126,7 +126,7 @@ class MongoManager:
                 (None)
         
         """
-        self._connected_collection.update_one(query, {"$set": update}, upsert=usert)
+        self._connected_collection.update_one(query, {"$set": update}, upsert= usert)
 
     def DeleteOneObject(self, query: dict):
         """

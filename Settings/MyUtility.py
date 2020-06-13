@@ -23,6 +23,7 @@ def checkin_member(member_id: int) -> dict:
         db_for_mbr.InsertOneObject(nd)
         return nd
     else:
+        del u_data[0]['_id']
         return u_data[0]
 
 def checkin_guild(guild_id: int) -> dict:
@@ -43,6 +44,7 @@ def checkin_guild(guild_id: int) -> dict:
         db_for_gld.InsertOneObject(gd)
         return gd
     else:
+        del u_data[0]['_id']
         return u_data[0]
 
 def get_prefix(guild_id: int) -> str:
