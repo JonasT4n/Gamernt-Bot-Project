@@ -59,9 +59,6 @@ class Duelist:
 
 class Duel(commands.Cog):
 
-    winner_get: int = 3
-    loser_lost: int = 2
-    
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -86,7 +83,10 @@ class Duel(commands.Cog):
         ]
 
         # System Attribute
-        emb = discord.Embed(colour= discord.Colour(WHITE))
+        emb = discord.Embed(
+            title= "⚔️", 
+            colour= discord.Colour(WHITE)
+            )
         hm: discord.Message = await channel.send(embed = emb)
         container_log: list = []
         c1: Duelist = Duelist(p1.id)
@@ -153,12 +153,12 @@ class Duel(commands.Cog):
                 description = f"> **{p1.name} HP** : {c1.HP} / {max_hp_p1}\n"
                     f"> **{p2.name} HP** : {c2.HP} / {max_hp_p2}", 
                 colour = discord.Colour(WHITE)
-            )
+                )
             emb.add_field(
                 name = "Battle Log :", 
                 value = "\n".join(container_log), 
                 inline = False
-            )
+                )
             await hm.edit(embed = emb)
             await asyncio.sleep(1)
         
@@ -169,19 +169,16 @@ class Duel(commands.Cog):
                 title= "⚔️ Duel | Battle End", 
                 description= f"> **{p1.name}** : Died\n> **{p2.name}** : {c2.HP} HP left\n`🏆 Congratulation {p2.name}!`",
                 colour= discord.Colour(WHITE)
-            )
-            emb.add_field(name="Battle Log :", value="\n".join(container_log), inline = False)
-            emb.set_thumbnail(url=p2.avatar_url)
-            await hm.edit(embed = emb)
+                )
         else:
             emb = discord.Embed(
                 title= "⚔️ Duel | Battle End", 
                 description= f"> **{p1.name}** : {c1.HP} HP left\n> **{p2.name}** : Died\n`🏆 Congratulations {p1.name}!`", 
                 colour= discord.Colour(WHITE)
-            )
-            emb.add_field(name= "Battle Log :", value="\n".join(container_log), inline = False)
-            emb.set_thumbnail(url= p1.avatar_url)
-            await hm.edit(embed = emb)
+                )
+        emb.add_field(name= "Battle Log :", value="\n".join(container_log), inline = False)
+        emb.set_thumbnail(url= p1.avatar_url)
+        await hm.edit(embed = emb)
 
     # Commands Area
         
@@ -237,7 +234,7 @@ class Duel(commands.Cog):
         else:
             i: discord.Member
             for i in list_of_user:
-                if name in i.nick:
+                if name in i.nick or name in i.display_name:
                     return i
             else:
                 return random.choice(list_of_user)
@@ -256,12 +253,12 @@ class Duel(commands.Cog):
         )
         emb.add_field(
             name= "Options :",
-            value= "> [name]....... Challange this person\n"
-                "> [@].......... Duel tagged person\n"
-                "> [@] [@]...... Duel between 2 tags\n"
-                "> -s (start)... Start fight random\n"
-                "> -h (help).... Help duel command\n"
-                "> -r (random).. Random 2 person",
+            value= "> `[name]` - Challange this person\n"
+                "> `[@]` - Duel tagged person\n"
+                "> `[@] [@]` - Duel between 2 tags\n"
+                "> -s (start) - Start fight you vs random person\n"
+                "> -h (help) - Help duel command\n"
+                "> -r (random) - Random 2 person",
             inline= False
         )
         emb.set_thumbnail(url= "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Crossed_swords.svg/512px-Crossed_swords.svg.png")

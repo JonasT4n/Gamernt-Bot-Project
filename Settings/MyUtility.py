@@ -15,7 +15,7 @@ def checkin_member(member_id: int) -> dict:
     (dict) => Member Information
     
     """
-    query: dict = {"member_id":str(member_id)}
+    query: dict = {"member_id": str(member_id)}
     u_data = db_for_mbr.FindObject(query)
     if u_data is None:
         nd: dict = new_member_data

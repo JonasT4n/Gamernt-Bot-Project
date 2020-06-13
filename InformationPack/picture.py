@@ -27,7 +27,7 @@ class Picture(commands.Cog):
     async def _pict(self, ctx: commands.Context, *args):
         # Inner Function
         def check_reaction(reaction: discord.Reaction, user: discord.User):
-            if (str(reaction.emoji) == "⬅️" or str(reaction.emoji) == "➡️") and user == ctx.author:
+            if (str(reaction.emoji) == "⬅️" or "➡️" or "⏮️") and user == ctx.author:
                 return True
             else:
                 return False
@@ -40,7 +40,7 @@ class Picture(commands.Cog):
                 q= search_term,
                 cx= CSE_ID,
                 searchType= "image",
-                num= 10,
+                num= 35,
                 fileType= 'jpg,jpeg,png',
                 safe= 'active'
                 ).execute()
@@ -57,6 +57,7 @@ class Picture(commands.Cog):
             emb.set_image(url= link_url[index])
             emb.set_footer(text= f"Image : {index + 1}/{max_index} | Searched by {ctx.author.nick if ctx.author.nick is not None else ctx.author.name}")
             hm: discord.Message = await ctx.send(embed= emb)
+            await hm.add_reaction("⏮️")
             await hm.add_reaction("⬅️")
             await hm.add_reaction("➡️")
             try:
@@ -68,7 +69,12 @@ class Picture(commands.Cog):
                         check= check_reaction,
                         timeout= 30.0
                         )
-                    if str(r.emoji) == "⬅️":
+                    if str(r.emoji) == "⏮️":
+                        if index == 0:
+                            continue
+                        else:
+                            index = 0
+                    elif str(r.emoji) == "⬅️":
                         if index > 0:
                             index -= 1
                         else:

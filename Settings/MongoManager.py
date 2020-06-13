@@ -112,10 +112,7 @@ class MongoManager:
                 (None)
 
         """
-        # try:
-        self._connected_collection.insert_one(data)
-        # except:
-        #     print("Error when Inserted, Collection may not defined")
+        self._connected_collection.insert_one(data, upsert= False)
 
     def SetObject(self, query: dict, update: dict, *, usert: bool = False):
         """

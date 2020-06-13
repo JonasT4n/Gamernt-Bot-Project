@@ -95,7 +95,6 @@ class GuessWord(commands.Cog):
                     check= lambda message: True if message.channel == channel and message.author == person and len(message.content.split(' ')[0]) == 1 else False,
                     timeout= 30.0
                     )
-
                 # Check Reply
                 penalty = True
                 char_rep: str = reply.content.upper()
@@ -130,6 +129,10 @@ class GuessWord(commands.Cog):
                     break
                 else:
                     if penalty is True:
+                        if index == len(hang_thumbnail) - 1:
+                            emb.set_footer(text= "You Lose! 👎")
+                            await hm.edit(embed = emb)
+                            break
                         emb.set_footer(text= "Word not in the Secret Word")
                     else:
                         emb.set_footer(text= "Found one! Send more word")

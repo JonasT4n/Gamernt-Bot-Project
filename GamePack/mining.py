@@ -27,13 +27,21 @@ class Mine(commands.Cog):
     async def dig(self, ctx):
         # Digging Animation
         dig = "Dig... "
-        emb = discord.Embed(title="⛏️ Mining...", description=dig, colour=discord.Colour(WHITE))
-        queing: discord.Message = await ctx.send(embed=emb)
+        emb = discord.Embed(
+            title= "⛏️ Mining...", 
+            description= dig, 
+            colour= discord.Colour(WHITE)
+            )
+        queing: discord.Message = await ctx.send(embed= emb)
         await asyncio.sleep(0.5)
         for i in range(2):
             dig += "Dig... "
-            emb = discord.Embed(title="⛏️ Mining...", description=dig, colour=discord.Colour(WHITE))
-            await queing.edit(embed=emb)
+            emb = discord.Embed(
+                title= "⛏️ Mining...", 
+                description= dig, 
+                colour= discord.Colour(WHITE)
+                )
+            await queing.edit(embed= emb)
             await asyncio.sleep(0.5)
 
         # Getting an Ore
@@ -49,15 +57,19 @@ class Mine(commands.Cog):
 
         # Print Out Result
         if ore is None:
-            emb = discord.Embed(title="💨 Better Luck Next Time...", description=f"{random.choice(failed)}", colour=discord.Colour(WHITE))
+            emb = discord.Embed(
+                title="💨 Better Luck Next Time...", 
+                description=f"{random.choice(failed)}", 
+                colour=discord.Colour(WHITE)
+                )
             await queing.edit(embed=emb)
         else:
             emb = discord.Embed(
-                title="💎 Bling!", 
-                description=f"Yay {person.name}, You have got __**{ore}**__!", 
-                colour=discord.Colour(WHITE)
+                title= "💎 Bling!", 
+                description= f"Yay {person.name}, You have got __**{ore}**__!", 
+                colour= discord.Colour(WHITE)
             )
-            await queing.edit(embed = emb)
+            await queing.edit(embed= emb)
             self.mongodbm.IncreaseItem({"member_id":str(person.id)}, {f"backpack.ores.{ore}":1}) # Save Data
 
     @commands.command()
@@ -90,7 +102,7 @@ class Mine(commands.Cog):
             title=f"Upgrade to Level {pick_level + 1} ⛏️?", 
             description=f"**Requirements** : \n{req_text}",
             colour = discord.Colour(WHITE)
-        )
+            )
         
         if not able_upgrade:
             emb.set_footer(text="Sorry, Not Enough Materials.")
@@ -103,14 +115,14 @@ class Mine(commands.Cog):
                     event = "message", 
                     check = check_reply, 
                     timeout = 30.0
-                )
+                    )
                 if replied.content.lower() == "upgrade":
                     await handler_msg.delete()
                     emb = discord.Embed(
                         title=f"Your ⛏️ has been Upgraded to level {pick_level + 1}", 
                         description=f"See the Stat in g.inv",
                         colour = discord.Colour(WHITE)
-                    )
+                        )
                     await ctx.send(embed = emb)
                     self.mongodbm.IncreaseItem({"member_id": str(ctx.author.id)}, {"backpack.pickaxe-level": 1})
                 else:
@@ -128,7 +140,7 @@ class Mine(commands.Cog):
                 title = "💤 Zzzz... 💤",
                 description = "Calm Down, take a rest for **{0:.2f}** s.".format(error.retry_after),
                 colour = discord.Colour(WHITE)
-            )
+                )
             this_msg_coroute = await ctx.send(embed=emb)
             await asyncio.sleep(3)
             await this_msg_coroute.delete()
