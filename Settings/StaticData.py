@@ -86,6 +86,29 @@ start_rpg: dict = {
     }
 }
 
+rpg_lvl_data: dict = {
+    "STR": {
+        "lvl1": 280,
+        "dec": 5,
+        "eff": "ATT"
+    },
+    "END": {
+        "lvl1": 350,
+        "dec": 8,
+        "eff": "HP"
+    },
+    "AGI": {
+        "lvl1": 800,
+        "dec": 12,
+        "eff": "SPD"
+    },
+    "FOC": {
+        "lvl1": 1000,
+        "dec": 25,
+        "eff": "CRIT"
+    }
+}
+
 # Pickaxe Identity
 pickaxe_identity: dict = {
     0: {

@@ -59,13 +59,12 @@ class Adventure(commands.Cog):
                     check= lambda reaction, user: True if (str(reaction.emoji) == "❌" or str(reaction.emoji) == "✅") and user == ctx.author else False,
                     timeout= 30.0
                     )
+                await hm.delete()
                 if str(r.emoji) == "✅":
-                    await hm.delete()
                     hm = await ctx.send("*Deleting your progress, Wait for a moment.*")
                     rpg_close(ctx.author.id)
                     await ctx.send(embed= discord.Embed(title= f"⚰️ RIP | {ctx.author.name}", colour= discord.Colour(WHITE)))
                 else:
-                    await hm.delete()
                     await ctx.send("*Aborted*")
             except asyncio.TimeoutError:
                 await hm.delete()

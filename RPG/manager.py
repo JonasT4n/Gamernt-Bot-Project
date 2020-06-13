@@ -16,7 +16,7 @@ class RPGManager(commands.Cog):
 
     # Commands Area
 
-    @commands.command(name= "item", pass_context= True)
+    @commands.command(name= "item", aliases= ['items'], pass_context= True)
     async def _item(self, ctx: commands.Context):
         pass
 
@@ -26,10 +26,6 @@ class RPGManager(commands.Cog):
 
     @commands.command(name= "moves", aliases= ["learned"], pass_context= True)
     async def _learned_moves(self, ctx: commands.Context):
-        pass
-
-    @commands.command(name= "skillreset", aliases= ["skillres"], pass_context= True)
-    async def _reset_skill(self, ctx: commands.Context):
         pass
 
     @commands.command(name= "learn", pass_context= True)
