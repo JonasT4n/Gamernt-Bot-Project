@@ -113,9 +113,30 @@ class Experience(commands.Cog):
                 await self.print_skill_add_help(ctx.channel)
             else:
                 amount: int = 1
+                get_skill: str = ""
+                which: str = ""
+
+                if args[0].lower() == "str" or args[0].lower() == "strength":
+                    which = "Strength"
+                    get_skill = "STR"
+                elif args[0].lower() == "end" or args[0].lower() == "endurance":
+                    which = "Endurance"
+                    get_skill = "END"
+                elif args[0].lower() == "agi" or args[0].lower() == "agility":
+                    which = "Agility"
+                    get_skill = "AGI"
+                elif args[0].lower() == "foc" or args[0].lower() == "focus":
+                    which = "Focus"
+                    get_skill = "FOC"
+                else:
+                    return
+
+                skill_lvl: int = mbr_data["PRIM-STAT"][get_skill]
+                eff_skill: str = self.DATA_LVL[get_skill]["EFF"]
                 if len(args) >= 2:
                     if self.is_number(args[1]) is True:
                         amount = int(args[1])
+
                 if mbr_data["skill-point"] < amount:
                     emb = discord.Embed(
                         title= "Not Enough Skillpoint",
@@ -123,41 +144,24 @@ class Experience(commands.Cog):
                         colour= discord.Colour(WHITE)
                         )
                     await ctx.send(embed= emb)
-                    return
-                get_skill: str
-                which: str
-                if args[0].lower() == "str" or "strength":
-                    which = "Strength"
-                    get_skill = "STR"
-                elif args[0].lower() == "end" or "endurance":
-                    which = "Endurance"
-                    get_skill = "END"
-                elif args[0].lower() == "agi" or "agility":
-                    which = "Agility"
-                    get_skill = "AGI"
-                elif args[0].lower() == "foc" or "focus":
-                    which = "Focus"
-                    get_skill = "FOC"
-                else:
-                    return
-                skill_lvl: int = mbr_data["PRIM-STAT"][get_skill]
-                if skill_lvl + amount > 25:
+                elif skill_lvl + amount > 25:
                     emb = discord.Embed(
                         title= "Skill Max Exceeded",
                         description= f"You can't upgrade your {which} to {skill_lvl} / 25",
                         colour= discord.Colour(WHITE)
                         )
-                eff_skill: str = self.DATA_LVL[get_skill]["EFF"]
-                self.mdb.IncreaseItem({"member_id": mbr_data["member_id"]}, {
-                    "skill-point": -amount,
-                    f"PRIM-STAT.{get_skill}": amount,
-                    f"MAX-STAT.{eff_skill}": self.DATA_LVL[get_skill]['SUM'][skill_lvl + amount] - self.DATA_LVL[get_skill]['SUM'][skill_lvl]
-                    })
-                emb = discord.Embed(
-                    title= f"You have upgraded your {which} to {skill_lvl + amount} / 25",
-                    colour= discord.Colour(WHITE)
-                    )
-                await ctx.send(embed= emb)
+                    await ctx.send(embed= emb)
+                else:
+                    self.mdb.IncreaseItem({"member_id": mbr_data["member_id"]}, {
+                        "skill-point": -amount,
+                        f"PRIM-STAT.{get_skill}": amount,
+                        f"MAX-STAT.{eff_skill}": self.DATA_LVL[get_skill]['SUM'][skill_lvl + amount] - self.DATA_LVL[get_skill]['SUM'][skill_lvl]
+                        })
+                    emb = discord.Embed(
+                        title= f"You have upgraded your {which} to {skill_lvl + amount} / 25",
+                        colour= discord.Colour(WHITE)
+                        )
+                    await ctx.send(embed= emb)
         else:
             await ctx.send(f"__**You haven't start your character, type {get_prefix(ctx.guild.id)}start to begin.**__")
 
@@ -193,6 +197,7 @@ class Experience(commands.Cog):
                         self.mdb.IncreaseItem({"member_id": mbr_data['member_id']}, {f'MAX-STAT.{self.DATA_LVL[skill]["EFF"]}': -self.DATA_LVL[skill]["SUM"][temp_amo]})
                         self.mdb.SetObject({"member_id": mbr_data['member_id']}, {f'PRIM-STAT.{skill}': 0})
                     self.mdb.IncreaseItem({"member_id": mbr_data['member_id']}, {"skill-point": skill_set})
+                    await hm.delete()
                     await ctx.send(embed= discord.Embed(title= f"{ctx.author.name} has reset his/her Skills. Refunded {skill_set} Skillpoint(s)", colour= discord.Colour(WHITE)))
                 else:
                     await ctx.send("*Aborted*")

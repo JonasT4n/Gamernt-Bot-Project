@@ -53,19 +53,20 @@ class Currency(commands.Cog):
                 if emoji:
                     emb: discord.Embed
                     if "\\U" in emoji:
+                        partial_emoji = emoji.encode("ASCII").decode("unicode-escape")
                         self.gdb.SetObject({"guild_id": str(ctx.guild.id)}, {
-                            "currency.type": emoji.decode("unicode-escape")
+                            "currency.type": partial_emoji
                             })
-                        emb = discord.Embed(
+                        emb = discord.Embed (
                             title= "Server New Currency!",
-                            description= f"> Server {ctx.guild.name} Currency is now " + emoji.decode("unicode-escape"),
+                            description= f"> Server {ctx.guild.name} Currency is now {partial_emoji}",
                             colour= discord.Colour(WHITE)
                             )
                     else:
                         self.gdb.SetObject({"guild_id": str(ctx.guild.id)}, {
                             "currency.type": emoji
                             })
-                        emb = discord.Embed(
+                        emb = discord.Embed (
                             title= "Server New Currency!",
                             description= f"> Server {ctx.guild.name} Currency is now " + emoji,
                             colour= discord.Colour(WHITE)
