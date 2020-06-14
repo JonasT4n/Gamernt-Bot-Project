@@ -101,7 +101,7 @@ class Duel(commands.Cog):
             if whos_first == 0:
                 if a == role_first - 1:
                     emb = discord.Embed(
-                        title= f"⚔️ {p1.name} got the first mov", 
+                        title= f"⚔️ {p1.name} got the first move", 
                         colour= discord.Colour(WHITE)
                         )
                     await hm.edit(embed = emb)
@@ -205,20 +205,20 @@ class Duel(commands.Cog):
                 person2 = self.search_user(ctx.guild)
 
             else:
-                if len(args) >= 1 and "@!" in args[0]:
+                if len(args) == 1 and "@!" in args[0]:
                     person1 = ctx.author
                     user_id: int = int(args[0].split('!')[1].split('>')[0])
-                    person2 = await self.bot.get_user(user_id)
+                    person2 = self.bot.get_user(user_id)
 
-                elif len(args) >= 1:
+                elif len(args) == 1:
                     person1 = ctx.author
-                    person2 = self.search_user(ctx.guild, name = args[0])
+                    person2 = self.search_user(ctx.guild, name= args[0])
 
-                elif len(args) >= 2 and "@!" in args[0] and "@!" in args[1]:
+                elif len(args) == 2 and "@!" in args[0] and "@!" in args[1]:
                     user_id: int = int(args[0].split('!')[1].split('>')[0])
-                    person1 = await self.bot.get_user(user_id)
+                    person1 = self.bot.get_user(user_id)
                     user_id: int = int(args[0].split('!')[1].split('>')[0])
-                    person2 = await self.bot.get_user(user_id)
+                    person2 = self.bot.get_user(user_id)
 
             while person1 == person2:
                 person2 = self.search_user(ctx.guild)
@@ -235,7 +235,8 @@ class Duel(commands.Cog):
         else:
             i: discord.Member
             for i in list_of_user:
-                if name in i.nick or name in i.display_name:
+                username = i.nick if i.nick is not None else i.name
+                if name in username or name in i.display_name:
                     return i
             else:
                 return random.choice(list_of_user)
