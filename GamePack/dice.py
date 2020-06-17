@@ -43,13 +43,13 @@ class Dice(commands.Cog):
     async def dice_help(channel: discord.TextChannel):
         emb = discord.Embed(
             title= "🎲 Invalid Input", 
-            description= f"```{get_prefix(str(channel.guild.id))}dice <amount> <dots>\n"
-                "Amount of Dice : 1 - 100\n"
-                "Dots on Dice : 1 - 100```", 
+            description= f"> {get_prefix(str(channel.guild.id))}dice <amount> <dots>\n"
+                "> Amount of Dice : 1 - 100\n"
+                "> Dots on Dice : 1 - 100", 
             colour= discord.Colour(WHITE)
             )
-        emb.set_footer(text="Ex : g.dice 10 10")
-        await channel.send(embed = emb)
+        emb.set_footer(text= "Ex : g.dice 10 10")
+        await channel.send(embed= emb)
         
 def setup(bot:commands.Bot):
     bot.add_cog(Dice(bot))

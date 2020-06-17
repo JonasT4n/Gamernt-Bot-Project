@@ -27,7 +27,7 @@ class Picture(commands.Cog):
     async def _pict(self, ctx: commands.Context, *args):
         # Inner Function
         def check_reaction(reaction: discord.Reaction, user: discord.User):
-            if (str(reaction.emoji) == "⬅️" or "➡️" or "⏮️") and user == ctx.author:
+            if (str(reaction.emoji) == "⬅️" or str(reaction.emoji) == "➡️" or str(reaction.emoji) == "⏮️" or str(reaction.emoji) == '⏹') and user == ctx.author:
                 return True
             else:
                 return False
@@ -51,7 +51,7 @@ class Picture(commands.Cog):
             # Initiate Embed
             emb = discord.Embed(
                 title= f"Search Picture | Image : {index + 1}/{max_index}",
-                description= f"Search Result ({max_index} Entries) : ",
+                description= f"Searching for {search_term}, Result ({max_index} Entries) : ",
                 colour= discord.Colour(WHITE)
                 )
             emb.set_image(url= link_url[index])
@@ -59,6 +59,7 @@ class Picture(commands.Cog):
             hm: discord.Message = await ctx.send(embed= emb)
             await hm.add_reaction("⏮️")
             await hm.add_reaction("⬅️")
+            await hm.add_reaction("⏹")
             await hm.add_reaction("➡️")
             try:
                 r: discord.Reaction
@@ -79,6 +80,24 @@ class Picture(commands.Cog):
                             index -= 1
                         else:
                             continue
+                    elif str(r.emoji) == "⏹":
+                        emb = discord.Embed(
+                            title= f"Search Picture | Image : {index + 1}/{max_index}",
+                            description= f"Searching for {search_term}, Result ({max_index} Entries) : ",
+                            colour= discord.Colour(WHITE)
+                            )
+                        emb.set_image(url= link_url[index])
+                        emb.set_author(
+                            name= ctx.author.name,
+                            icon_url= ctx.author.avatar_url
+                            )
+                        await r.remove(u)
+                        await hm.edit(embed= emb)
+                        await hm.remove_reaction('⏮️', ctx.me)
+                        await hm.remove_reaction('⬅️', ctx.me)
+                        await hm.remove_reaction('⏹', ctx.me)
+                        await hm.remove_reaction('➡️', ctx.me)
+                        return
                     else:
                         if index < max_index - 1:
                             index += 1
@@ -86,7 +105,7 @@ class Picture(commands.Cog):
                             continue
                     emb = discord.Embed(
                         title= f"Search Picture | Image : {index + 1}/{max_index}",
-                        description= f"Search Result ({max_index} Entries) : ",
+                        description= f"Searching for {search_term}, Result ({max_index} Entries) : ",
                         colour= discord.Colour(WHITE)
                         )
                     emb.set_image(url= link_url[index])
@@ -96,6 +115,10 @@ class Picture(commands.Cog):
             except asyncio.TimeoutError:
                 emb.set_footer(text= f"Searched by {ctx.author.nick if ctx.author.nick is not None else ctx.author.name} | Request Timeout")
                 await hm.edit(embed= emb)
+                await hm.remove_reaction('⏮️', ctx.me)
+                await hm.remove_reaction('⬅️', ctx.me)
+                await hm.remove_reaction('⏹', ctx.me)
+                await hm.remove_reaction('➡️', ctx.me)
 
 def setup(bot : commands.Bot):
     bot.add_cog(Picture(bot))

@@ -33,10 +33,10 @@ class Inventory(commands.Cog):
         tud: dict = checkin_guild(message.guild.id)
         menu_emb = discord.Embed(
             title= f"{message.author.display_name}'s Inventory",
-            description= f"> 👛 Money : {tud['member'][str(message.author.id)]['money']} {tud['currency']['type']}\n"
-                        "> ⛏️ 1. Ores \n"
-                        "> 🛡️ 2. Equipment\n"
-                        "> 🧳 3. Backpack",
+            description= f"> 👛1. Money : {tud['member'][str(message.author.id)]['money']} {tud['currency']['type']}\n"
+                        "> ⛏️ 2. Ores \n"
+                        "> 🛡️ 3. Equipment\n"
+                        "> 🧳 4. Backpack Items",
             colour= discord.Colour(WHITE)
             )
         menu_emb.set_footer(text= "Select by Number to see detail.")
@@ -87,10 +87,10 @@ class Inventory(commands.Cog):
         tud: dict = checkin_guild(ctx.guild.id)
         menu_emb = discord.Embed(
             title= f"{ctx.author.display_name}'s Inventory",
-            description= f"> 👛 Money : {tud['member'][str(ctx.author.id)]['money']} {tud['currency']['type']}\n"
-                        "> ⛏️ 1. Ores \n"
-                        "> 🛡️ 2. Equipment\n"
-                        "> 🧳 3. Backpack",
+            description= f"> 👛 1. Money : {tud['member'][str(ctx.author.id)]['money']} {tud['currency']['type']}\n"
+                        "> ⛏️ 2. Ores\n"
+                        "> 🛡️ 3. Equipment\n"
+                        "> 🧳 4. Backpack Items",
             colour= discord.Colour(WHITE)
             )
         menu_emb.set_footer(text= "Select by Number to see detail.")
@@ -98,16 +98,16 @@ class Inventory(commands.Cog):
         try:
             while True:
                 answered: discord.Message = await self.bot.wait_for(event="message", check=self.user_check(ctx.author), timeout=30.0)
-                if answered.content == "1" and on_main_menu:
+                if answered.content == "2" and on_main_menu:
                     await answered.delete()
                     on_main_menu = await self.ore_inventory(handler_message, ctx.author)
                 elif answered.content == "0" and not on_main_menu:
                     await answered.delete()
                     on_main_menu = await self.main_menu(handler_message, ctx.author)
-                elif answered.content == "2" and on_main_menu:
+                elif answered.content == "3" and on_main_menu:
                     await answered.delete()
                     on_main_menu = await self.equipment(handler_message, ctx.author)
-                elif answered.content == "3" and on_main_menu:
+                elif answered.content == "4" and on_main_menu:
                     await answered.delete()
                     on_main_menu = await self.items(handler_message, ctx.author)
                 else:

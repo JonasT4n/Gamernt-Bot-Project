@@ -1,6 +1,8 @@
 """
 
-This Script can be Reuseable.
+@Copyright Joenastan ProD 2020
+------------------------------
+An API that helps develop app and implement MongoDB in it. This Script can be reuseable.
 
 """
 
@@ -144,6 +146,9 @@ class MongoManager:
         """
         self._connected_collection.delete_one(query)
 
+    def SortDocument(self, query: dict, *, ascending: bool = True):
+        pass
+
     def UpdateObject(self, query: dict, update: dict, *, usert: bool = False):
         """
         
@@ -168,19 +173,22 @@ class MongoManager:
         """
         self._connected_collection.delete_many({})
 
-    def FindObject(self, query: dict):
+    def FindObject(self, query: dict, *, sortby: str = "_id", limit: int = 0):
         """
         
         Find All Objects by Query.
 
             Parameters : 
-                query (dict) => Find Object Where
+                query (dict) => Find object according to query
+                sortby (str) => Sort the data, default is by id
+                limit (int) => Take how many datas, default is 0 which is unlimited
+
             Returns :
                 (None) => if no Data
                 (list) => if there is
         
         """
-        list_objects = [i for i in self._connected_collection.find(query)]
+        list_objects = [i for i in self._connected_collection.find(query).sort(sortby, pymongo.DESCENDING).limit(limit)]
         if len(list_objects) == 0:
             return None
         else:

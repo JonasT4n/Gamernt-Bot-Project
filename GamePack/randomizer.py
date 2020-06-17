@@ -10,11 +10,15 @@ class Chance(commands.Cog):
     pool_reply: list = [
         "Yes!",
         "No!",
-        "Perhaps.",
-        "Definitely.",
-        "Of Course.",
-        "Might.",
-        "Maybe."
+        "Perhaps...",
+        "Definitely!",
+        "Of Course",
+        "Might",
+        "Maybe...",
+        "I Guarantee!",
+        "Impossible!",
+        "Eventually",
+        "Probably"
         ]
 
     ask_reply: list = [
@@ -24,7 +28,8 @@ class Chance(commands.Cog):
         "Shut Up! I'm busy",
         "Your Welcome mate :)",
         "Good times",
-        "Nice PFP you have"
+        "Nice PFP you have",
+        "Whatever you say"
         ]
 
     def __init__(self, bot: commands.Bot):

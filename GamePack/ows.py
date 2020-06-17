@@ -220,9 +220,9 @@ class OWS(commands.Cog):
 
         except asyncio.TimeoutError:
             emb = discord.Embed(
-                title = "8 hours have passed since last Sent Message.\nGame forfeited and story has been deleted :(",
+                title = "24 hours have passed since last Sent Message.\nGame forfeited and story has been deleted :(",
                 colour = discord.Colour(WHITE)
-            )
+                )
             await hm.edit(embed = emb)
         
     # Others

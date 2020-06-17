@@ -64,8 +64,8 @@ class Cards(commands.Cog):
 
     # Command Area
 
-    @commands.command()
-    async def blackjack(self, ctx: commands.Context, *args):
+    @commands.command(name= "blackjack", pass_context= True)
+    async def _blackjack(self, ctx: commands.Context, *args):
         if len(args) == 0:
             await self.blackjack_help(ctx.channel)
         else:
@@ -73,10 +73,11 @@ class Cards(commands.Cog):
             if args[0].lower() == "-h":
                 await self.blackjack_help(ctx.channel)
 
-            # Single Player
+            # Single player
             elif args[0].lower() == "-p":
                 await self.challange_bot(ctx.channel, ctx.author)
 
+            # Challenge player
             elif len(args) == 1:
                 pass
             
@@ -142,12 +143,12 @@ class Cards(commands.Cog):
 
         desc: str = f"{self.bot.user.name} | __*Sum : Unk*__\n```{bot_hand[0]} XX```\n{player.name} | __*Sum : {str(sum(player_current))}*__\n{description_maker(player_hand)}"
         board_embed: discord.Embed = discord.Embed(
-            title = "🂡 Blackjack",
-            description = desc,
-            colour = discord.Colour(WHITE)
-        )
-        board_embed.set_footer(text = "Send 'DRAW' or 'SET'")
-        handler_msg: discord.Message = await channel.send(embed=board_embed)
+            title= "🂡 Blackjack",
+            description= desc,
+            colour= discord.Colour(WHITE)
+            )
+        board_embed.set_footer(text= "Send 'DRAW' or 'SET'")
+        handler_msg: discord.Message = await channel.send(embed= board_embed)
 
         # On Play
         try:
@@ -156,7 +157,7 @@ class Cards(commands.Cog):
                     event="message",
                     check=self.check_user_reply(channel, player, true_list=["DRAW", "draw", "SET", "set"]),
                     timeout=30.0
-                )
+                    )
                 if replied.content.lower() == "draw":
                     get_card: str = random.choice(current_deck)
                     current_deck.remove(get_card)
@@ -166,10 +167,10 @@ class Cards(commands.Cog):
                     player_current = self.card_to_int("blackjack", player_hand)
                     desc: str = f"{self.bot.user.name} | __*Sum : Unk*__\n```{bot_hand[0]} XX```\n{player.name} | __*Sum : {str(sum(player_current))}*__\n{description_maker(player_hand)}"
                     board_embed: discord.Embed = discord.Embed(
-                        title = "🂡 Blackjack",
-                        description = desc,
-                        colour = discord.Colour(WHITE)
-                    )
+                        title= "🂡 Blackjack",
+                        description= desc,
+                        colour= discord.Colour(WHITE)
+                        )
                     board_embed.set_footer(text = "Send 'DRAW' or 'SET'")
                     await replied.delete()
                     await handler_msg.edit(embed = board_embed)

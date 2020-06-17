@@ -1,9 +1,22 @@
+"""
+
+@Copyright Gamern't RPG 2020
+----------------------------
+This Script only use for this bot and cannot reuse it.
+
+"""
+
 import math
+import random
 from Settings.MongoManager import MongoManager
 from Settings.StaticData import new_guild_data, new_member_data, start_rpg
 
+# Attributes
+
 db_for_mbr = MongoManager(collection= "members")
 db_for_gld = MongoManager(collection= "guilds")
+
+# Functions
 
 def checkin_member(member_id: int) -> dict:
     """
@@ -115,8 +128,49 @@ def convert_rpg_substat(stat: dict, *, return_value= False):
     if return_value is True:
         return stat
 
-def convert_to_binary_type(filename):
-    f = open(filename, 'rb')
-    blobData = f.read()
-    f.close()
-    return blobData
+# Classes
+
+class Duelist:
+
+    HP: int = 800
+    DEF: int = 100
+    SPD: int = 10
+    MIN_ATT: int = 120
+    MAX_ATT: int = 150
+    CRIT_CHANCE: int = 5
+
+    def __init__(self, uid: int):
+        mbr_data: dict = checkin_member(uid)
+        if "MAX-STAT" in mbr_data:
+            stat: dict = convert_rpg_substat(mbr_data["MAX-STAT"], return_value= True)
+            self.HP = stat["HP"]
+            self.DEF = stat["DEF"]
+            self.SPD = stat["SPD"]
+            self.MIN_ATT = stat["MIN-ATT"]
+            self.MAX_ATT = stat["MAX-ATT"]
+            self.CRIT_CHANCE = stat["CRIT"]
+
+    def attack(self, target):
+        """
+        
+        Parameters
+        ---------
+        target (Duelist) : Target Attack
+
+        Returns
+        -------
+        (int) : Damage Dealt Information
+        
+        """
+        att_multi = 1.2
+        def_multi = 1
+        spd_luck = random.randint(1, 100)
+        if random.randint(1, 100) <= self.CRIT_CHANCE:
+            att_multi += 0.8
+        if spd_luck <= target.SPD:
+            att_multi -= 1
+        if spd_luck <= target.SPD // 3:
+            att_multi = 0
+        damage = math.ceil(random.randint(self.MIN_ATT, self.MAX_ATT) * att_multi * 100 / (100 + (target.DEF * def_multi)))
+        target.HP -= damage
+        return damage

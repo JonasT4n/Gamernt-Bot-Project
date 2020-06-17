@@ -30,7 +30,7 @@ class SlotMachine(commands.Cog):
         # Initialize Slot Machine
         screen_emb: discord.Embed = discord.Embed(
             title = "🎰 Slot Machine",
-            description = "`X` `X` `X`",
+            description = "> `X` `X` `X`",
             colour = discord.Colour(WHITE)
             )
         hm: discord.Message = await channel.send(embed = screen_emb)
@@ -51,6 +51,8 @@ class SlotMachine(commands.Cog):
                     name= f"{person.name}",
                     icon_url= person.avatar_url
                     )
+                if result[0] == result[1] == result[2]:
+                    screen_emb.set_footer(text= "JACKPOT!!!")
                 await hm.edit(embed= screen_emb)
             else:
                 screen_emb: discord.Embed = discord.Embed(

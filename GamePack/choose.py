@@ -24,10 +24,10 @@ class Choose(commands.Cog):
         else:
             choosen: str = random.choice(obj)
             emb = discord.Embed(
-                title=f"I Choose {choosen}!",
-                colour=discord.Colour(WHITE)
-            )
-            await ctx.send(embed=emb)
+                title= f"I Choose {choosen}!",
+                colour= discord.Colour(WHITE)
+                )
+            await ctx.send(embed= emb)
 
 def setup(bot: commands.Bot):
     bot.add_cog(Choose(bot))

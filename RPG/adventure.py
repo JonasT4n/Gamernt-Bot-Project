@@ -72,9 +72,13 @@ class Adventure(commands.Cog):
         else:
             await ctx.send(f"__**You haven't start your character, type {get_prefix(ctx.guild.id)}start to begin.**__")
 
-    @commands.command(name= "adventure", aliases=["adv"], pass_context= True)
+    @commands.command(name= "adventure", aliases= ["adv"], pass_context= True)
     async def _adv(self, ctx: commands.Context):
         pass
+
+    # Others
+
+    
 
 def setup(bot: commands.Bot):
     bot.add_cog(Adventure(bot))

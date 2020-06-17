@@ -10,6 +10,8 @@ WHITE = 0xfffffe
 class Experience(commands.Cog):
 
     PERLEVEL: int = 50
+    MAXLEVEL: int = 50
+    MAXSKILL: int = 25
     DATA_LVL: dict = {}
 
     def __init__(self, bot: commands.Bot, lvl_init: dict):
@@ -41,6 +43,11 @@ class Experience(commands.Cog):
         if message.content.startswith(get_prefix(message.guild.id)):
             return
         if "EXP" in mbr_data:
+            # If user already at Max Level
+            if self.MAXLEVEL == mbr_data["LVL"]:
+                return
+
+            # If User going to Level Up
             if self.PERLEVEL * (mbr_data["LVL"] + 1) <= mbr_data["EXP"] + 1:
                 self.mdb.SetObject({"member_id": str(message.author.id)}, {"EXP": 0})
                 self.mdb.IncreaseItem({"member_id": str(message.author.id)}, {"LVL": 1, "skill-point": 1})
@@ -67,8 +74,7 @@ class Experience(commands.Cog):
 
     @commands.command(name= "stat", pass_context= True)
     async def _stat(self, ctx: commands.Context, *, person: discord.Member = None):
-        if person is None:
-            person = ctx.author
+        person = ctx.author if person is None else person
         if person.bot is True:
             return
         mbr_data: dict = checkin_member(person.id)
@@ -78,16 +84,16 @@ class Experience(commands.Cog):
             emb = discord.Embed(
                 title= mbr_data['title'],
                 description= f"`CLASS` : {mbr_data['CHAR']}\n"
-                    f"`Level` : {lvl} | EXP : {mbr_data['EXP']}/{(lvl + 1) * self.PERLEVEL}\n"
+                    f"`Level` : {lvl} / {self.MAXLEVEL} | EXP : {mbr_data['EXP']}/{((lvl + 1) * self.PERLEVEL) if self.MAXLEVEL != lvl else 0}\n"
                     f"`Skill Point` : {mbr_data['skill-point']}",
                 colour= discord.Colour(WHITE)
                 )
             emb.add_field(
                 name= "Skill Stat",
-                value= f"> `Strength` : {mbr_data['PRIM-STAT']['STR']} / 25\n"
-                    f"> `Endurance` : {mbr_data['PRIM-STAT']['END']} / 25\n"
-                    f"> `Agility` : {mbr_data['PRIM-STAT']['AGI']} / 25\n"
-                    f"> `Focus` : {mbr_data['PRIM-STAT']['FOC']} / 25",
+                value= f"> `Strength` : {mbr_data['PRIM-STAT']['STR']} / {self.MAXSKILL}\n"
+                    f"> `Endurance` : {mbr_data['PRIM-STAT']['END']} / {self.MAXSKILL}\n"
+                    f"> `Agility` : {mbr_data['PRIM-STAT']['AGI']} / {self.MAXSKILL}\n"
+                    f"> `Focus` : {mbr_data['PRIM-STAT']['FOC']} / {self.MAXSKILL}",
                 inline= True
                 )
             emb.add_field(
@@ -105,7 +111,7 @@ class Experience(commands.Cog):
         else:
             await ctx.send(f"__**You haven't start your character, type {get_prefix(ctx.guild.id)}start to begin.**__")
 
-    @commands.command(name= "skilladd", pass_context= True)
+    @commands.command(name= "skilladd", aliases= ["addskill"], pass_context= True)
     async def _skill_add(self, ctx: commands.Context, *args):
         mbr_data: dict = checkin_member(ctx.author.id)
         if "PRIM-STAT" in mbr_data:
@@ -147,7 +153,7 @@ class Experience(commands.Cog):
                 elif skill_lvl + amount > 25:
                     emb = discord.Embed(
                         title= "Skill Max Exceeded",
-                        description= f"You can't upgrade your {which} to {skill_lvl} / 25",
+                        description= f"You can't upgrade your {which} to {skill_lvl} / {self.MAXSKILL}",
                         colour= discord.Colour(WHITE)
                         )
                     await ctx.send(embed= emb)
@@ -158,14 +164,14 @@ class Experience(commands.Cog):
                         f"MAX-STAT.{eff_skill}": self.DATA_LVL[get_skill]['SUM'][skill_lvl + amount] - self.DATA_LVL[get_skill]['SUM'][skill_lvl]
                         })
                     emb = discord.Embed(
-                        title= f"You have upgraded your {which} to {skill_lvl + amount} / 25",
+                        title= f"You have upgraded your {which} to {skill_lvl + amount} / {self.MAXSKILL}",
                         colour= discord.Colour(WHITE)
                         )
                     await ctx.send(embed= emb)
         else:
             await ctx.send(f"__**You haven't start your character, type {get_prefix(ctx.guild.id)}start to begin.**__")
 
-    @commands.command(name= "skillreset", aliases= ["skillres"], pass_context= True)
+    @commands.command(name= "skillreset", aliases= ["skillres", "resetskill"], pass_context= True)
     async def _reset_skill(self, ctx: commands.Context):
         mbr_data: dict = checkin_member(ctx.author.id)
         if "PRIM-STAT" in mbr_data:

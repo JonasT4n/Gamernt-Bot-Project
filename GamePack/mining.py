@@ -12,7 +12,7 @@ class Mine(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.mongodbm = MongoManager(collection="members")
+        self.mongodbm = MongoManager(collection= "members")
 
     # Listener Area
 
@@ -58,9 +58,9 @@ class Mine(commands.Cog):
         # Print Out Result
         if ore is None:
             emb = discord.Embed(
-                title="💨 Better Luck Next Time...", 
-                description=f"{random.choice(failed)}", 
-                colour=discord.Colour(WHITE)
+                title= "💨 Better Luck Next Time...", 
+                description= f"{random.choice(failed)}", 
+                colour= discord.Colour(WHITE)
                 )
             await queing.edit(embed=emb)
         else:
@@ -68,16 +68,12 @@ class Mine(commands.Cog):
                 title= "💎 Bling!", 
                 description= f"Yay {person.name}, You have got __**{ore}**__!", 
                 colour= discord.Colour(WHITE)
-            )
+                )
             await queing.edit(embed= emb)
             self.mongodbm.IncreaseItem({"member_id":str(person.id)}, {f"backpack.ores.{ore}":1}) # Save Data
 
     @commands.command()
     async def pickaxeup(self, ctx: commands.Context):
-        # Inner Function
-        def check_reply(message: discord.Message):
-            return ctx.author == message.author and ctx.channel == message.channel
-
         # Initialize Things
         able_upgrade: bool = True
         user_data: dict = checkin_member(ctx.author.id)
@@ -105,19 +101,23 @@ class Mine(commands.Cog):
             )
         
         if not able_upgrade:
-            emb.set_footer(text="Sorry, Not Enough Materials.")
-            await ctx.send(embed = emb)
+            emb.set_footer(text= "Sorry, Not Enough Materials.")
+            await ctx.send(embed= emb)
         else:
-            emb.set_footer(text = "Will you Upgrade it? type 'Upgrade' to Upgrade.")
-            handler_msg: discord.Message = await ctx.send(embed = emb)
+            emb.set_footer(text= "Will you Upgrade it? add ✅ to proceed or ❌ to abort")
+            hm: discord.Message = await ctx.send(embed= emb)
+            await hm.add_reaction("✅")
+            await hm.add_reaction("❌")
             try:
-                replied: discord.Message = await self.bot.wait_for(
-                    event = "message", 
-                    check = check_reply, 
+                r: discord.Reaction
+                u: discord.User
+                r, u = await self.bot.wait_for(
+                    event = "reaction_add", 
+                    check = lambda reaction, user: True if (str(reaction.emoji) == "✅" or str(reaction.emoji) == "❌") and user == ctx.author else False, 
                     timeout = 30.0
                     )
-                if replied.content.lower() == "upgrade":
-                    await handler_msg.delete()
+                if str(r.emoji) == "✅":
+                    await hm.delete()
                     emb = discord.Embed(
                         title=f"Your ⛏️ has been Upgraded to level {pick_level + 1}", 
                         description=f"See the Stat in g.inv",
@@ -127,21 +127,21 @@ class Mine(commands.Cog):
                     self.mongodbm.IncreaseItem({"member_id": str(ctx.author.id)}, {"backpack.pickaxe-level": 1})
                 else:
                     emb.set_footer(text="Ok, Next Time!")
-                    await handler_msg.edit(embed = emb)
+                    await hm.edit(embed = emb)
             except asyncio.TimeoutError:
                 pass
 
     # Error Command Handler
 
     @dig.error
-    async def mine_error(self, ctx, error):
+    async def mine_error(self, ctx: commands.Context, error: Exception):
         if isinstance(error, commands.CommandOnCooldown):
             emb = discord.Embed(
-                title = "💤 Zzzz... 💤",
-                description = "Calm Down, take a rest for **{0:.2f}** s.".format(error.retry_after),
-                colour = discord.Colour(WHITE)
+                title= "💤 Zzzz... 💤",
+                description= "Calm Down, i need to take a rest for **{0:.2f}** second(s)".format(error.retry_after),
+                colour= discord.Colour(WHITE)
                 )
-            this_msg_coroute = await ctx.send(embed=emb)
+            this_msg_coroute: discord.Message = await ctx.send(embed= emb)
             await asyncio.sleep(3)
             await this_msg_coroute.delete()
 

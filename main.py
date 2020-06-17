@@ -1,3 +1,5 @@
+"""@Copyright Gamen't RPG 2020"""
+
 import discord
 import os
 from discord.ext import commands

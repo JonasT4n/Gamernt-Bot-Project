@@ -21,12 +21,12 @@ class Events(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.guild_col = MongoManager(collection = "guilds")
-        self.member_col = MongoManager(collection = "members")
+        self.guild_col = MongoManager(collection= "guilds")
+        self.member_col = MongoManager(collection= "members")
 
     # Task Section
 
-    @tasks.loop(seconds = 5)
+    @tasks.loop(seconds= 3)
     async def change_status(self):
         await self.bot.change_presence(activity= discord.Game(name= next(STATUS)))
 
@@ -46,7 +46,7 @@ class Events(commands.Cog):
     async def on_message(self, message: discord.Message):
         """
         
-        Builtin Event Message.
+        Built-in Event Message.
         
         """
         if not isinstance(message.channel, discord.DMChannel):

@@ -234,7 +234,7 @@ words: dict = {
         'Congo', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt', 
         'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 
         'Eswatini', 'Ethiopia', 'Faroe Islands', 'Fiji', 'Finland', 'France', 'Gabon', 
-        'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 
+        'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea Bissau', 'Guyana', 'Haiti', 
         'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 
         'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Kuwait', 'Kyrgyzstan', 
         "Laos", 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Lithuania', 'Luxembourg', 
@@ -265,11 +265,25 @@ words: dict = {
     ],
     'animal':
     [
-        'Dog', 'Puppy', 'Turtle', 'Rabbit', 'Parrot', 'Cat', 'Kitten', 'Goldfish', 'Mouse', 
-        'Fish', 'Hamster', 'Cow', 'Rabbit', 'Ducks', 'Shrimp', 'Pig', 'Goat', 'Crab', 'Deer', 'Bee',
-        'Sheep', 'Fish', 'Turkey', 'Dove', 'Chicken', 'Horse', 'Crow', 'Peacock', 'Dove', 'Sparrow', 
-        'Goose', 'Stork', 'Pigeon', 'Turkey', 'Hawk', 'Eagle', 'Raven', 'Parrot', 'Flamingo', 'Seagull', 'Ostrich',
-        'Swallow', 'Penguin', 'Robin', 'Swan', 'Owl', 'Woodpecker', 'Hummingbird', 'Albatross', 'Vulture', 'Swan'
+        'Albatross', 'Alligator', 'Arctic-Wolf', 'Badger', 'Bat', 'Bear', 'Bee', 'Blue-whale', 'Camel', 'Cat', 'Chicken', 'Chimpanzee', 'Cow', 
+        'Coyote', 'Crab', 'Crocodile', 'Crow', 'Deer', 'Dog', 'Dolphin', 'Dove', 'Ducks', 'Eagle', 'Elephant', 'Elk', 'Fish', 'Flamingo', 'Fox', 
+        'Frog', 'Giraffe', 'Goat', 'Goldfish', 'Goose', 'Gorilla', 'Hamster', 'Hare', 'Hawk', 'Hedgehog', 'Hedgehong', 'Hippopotamus', 'Horse', 
+        'Hummingbird', 'Kangaroo', 'Kitten', 'Koala', 'Leopard', 'Lion', 'Lizard', 'Mole', 'Monkey', 'Mouse', 'Ostrich', 'Otter', 'Owl', 'Ox', 
+        'Panda', 'Parrot', 'Peacock', 'Penguin', 'Pig', 'Pigeon', 'Puppy', 'Rabbit', 'Raccoon', 'Rat', 'Raven', 'Reindeer', 'Robin', 'Seagull', 
+        'Sheep', 'Shrimp', 'Snake', 'Sparrow', 'Squirrel', 'Starfish', 'Stork', 'Swallow', 'Swan', 'Tiger', 'Toad', 'Turkey', 'Turtle', 'Vulture', 
+        'Walrus', 'Woodpecker'
+    ],
+    'videogame':
+    [
+        'Assassins Creed', 'Asteroids', 'BioShock', 'Bloodborne', 'Brawl Stars', 'Brawlhalla', 'Call of Duty', 'Castlevania', 'Chrono Trigger', 'Civilization', 
+        'Clash Royale', 'Clash of Clan', 'Cuphead', 'Dark Souls', 'Dead Space', 'Diablo', 'Donkey Kong', 'Doom', 'Dota', 'Double Dragon', 'Dungeon Master', 
+        'Fallout', 'Final Fantasy', 'Fire Emblem', 'Fortnite', 'Forza Horizon', 'Gears of War', 'God of War', 'Gone Home', 'Grand Theft Auto', 'Grim Fandango', 
+        'Guitar Hero', 'Half Life', 'Halo Combat Evolved', 'Hay Day', 'Journey', 'Kingdom Hearts', 'Last Day on Earth', 'League of Legends', 'Left Four Dead', 
+        'Legend of Zelda', 'Limbo', 'Mario Kart', 'Mass Effect', 'Mega Man', 'Metal Gear Solid', 'Minecraft', 'Monopoly', 'Mortal Combat', 'Myst', 'Oregon Trail', 
+        'Overwatch', 'Pac Man', 'Paladin', 'Pokemon', 'Portal', 'Resident Evil', 'Rocket League', 'Secret of Mana', 'Shadow of the Colossus', 'Silent Hill', 'SimCity', 
+        'Skyrim', 'Sonic the Hedgehog', 'Soulcalibur', 'Spelunky', 'StarCraft', 'Stardew Valley', 'Street Fighter', 'Super Mario Bros', 'Super Mario Odyssey', 
+        'Super Metroid', 'Super Smash Bros', 'Tecmo Super Bowl', 'Tekken', 'Tetris', 'The Last of Us', 'The Sims', 'The Witcher', 'Timesplitters', 'Tomb Raider', 
+        'Twisted Metal', 'Uncharted', 'Undertale', 'Wii Sports', 'World of Warcraft'
     ]
 }
 

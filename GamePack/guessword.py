@@ -77,9 +77,13 @@ class GuessWord(commands.Cog):
         emb = discord.Embed(
             title= "웃 Hangman",
             description= f"Category : **{category}**\n"
-                f"`{''.join(hidden_answer)}`\n\n"
-                f"List of unused word : ```{'|'.join(alphabet)}```",
+                f"`{''.join(hidden_answer)}`",
             colour= discord.Colour(WHITE)
+            )
+        emb.add_field(
+            name= "List of unused word :",
+            value= f"```{'|'.join(alphabet)}```",
+            inline= False
             )
         emb.set_thumbnail(url= hang_thumbnail[index])
         emb.set_footer(text= "Send a single word until it revealed the answer")
@@ -114,9 +118,13 @@ class GuessWord(commands.Cog):
                 emb = discord.Embed(
                     title= "웃 Hangman",
                     description= f"Category : **{category}**\n"
-                        f"`{''.join(hidden_answer)}`\n\n"
-                        f"List of unused word : ```{'|'.join(alphabet)}```",
+                        f"`{''.join(hidden_answer)}`",
                     colour= discord.Colour(WHITE)
+                    )
+                emb.add_field(
+                    name= "List of unused word :",
+                    value= f"```{'|'.join(alphabet)}```",
+                    inline= False
                     )
                 emb.set_thumbnail(url= hang_thumbnail[index])
                 emb.set_author(
@@ -152,7 +160,8 @@ class GuessWord(commands.Cog):
                     "Not the Answer.",
                     "Anyone Else?",
                     "Guess again.",
-                    "Unfortunate."
+                    "Unfortunate.",
+                    "Come On, Men!"
                     ]
                 embed.set_footer(text= f"{random.choice(wrong)} | Last reply : {person_name}")
                 await question.edit(embed= embed)

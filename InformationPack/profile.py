@@ -21,11 +21,7 @@ class Profile(commands.Cog):
 
     # Commands Area
 
-    @commands.command(name= "leaderboard", aliases= ["lb"], pass_context = True)
-    async def _lb(self, ctx):
-        pass
-
-    @commands.command(name= "settitle", aliases= ["st"])
+    @commands.command(name= "settitle", aliases= ["st"], pass_context = True)
     async def _settitle(self, ctx: commands.Context, *, ttl: str = None):
         if ttl is None:
             await ctx.send("Insert your profile title after the command")
@@ -33,7 +29,7 @@ class Profile(commands.Cog):
             self.mongodbm.SetObject({"member_id": str(ctx.author.id)}, {"title": ttl})
             await ctx.send(f"*Title Set to {ttl}, Check your Profile.*")
 
-    @commands.command(name= "profile", aliases= ["prof", "user"], pass_context = True)
+    @commands.command(name= "profile", aliases= ["prof", "user"], pass_context= True)
     async def _profile(self, ctx: commands.Context, *args):
         # Get Player ID
         person: discord.User
@@ -59,10 +55,14 @@ class Profile(commands.Cog):
                         > Current Activity: `{ctx.author.activity}`\n
                         > Created At: `{person.created_at.strftime("%B %d %Y")}`
                         > Joined Server: `{person.joined_at.strftime("%B %d %Y")}`
-                        > Highest Role: `{person.top_role}`\n
-                        > Roles: \n{role_desc}""",
+                        > Highest Role: `{person.top_role}`""",
             colour = discord.Colour(WHITE)
-        )
+            )
+        emb.add_field(
+            name= "Roles :",
+            value= role_desc,
+            inline= False
+            )
         emb.set_thumbnail(url=person.avatar_url)
         await ctx.send(embed = emb)
 

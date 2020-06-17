@@ -41,6 +41,36 @@ class Currency(commands.Cog):
 
     # Commands Area
 
+    @commands.command(name= "leaderboard", aliases= ["lb"], pass_context = True)
+    async def _lb(self, ctx: commands.Context):
+        mbrs_in_guild: dict = checkin_guild(ctx.guild.id)['member']
+        lis: list = sorted(mbrs_in_guild.items(), key= lambda i: i[1]["money"], reverse= True)[0:5]
+        pop_indexes: list = []
+        mu: list = []
+        # Check if there is a User
+        for i in range(len(lis)):
+            user = self.bot.get_user(int(lis[i][0]))
+            if user is None:
+                self.gdb.UnsetItem({"guild_id": str(ctx.guild.id)}, {f"member.{i}": lis[i][1]})
+                pop_indexes.append(i)
+            else:
+                mu.append(user)
+        pop_indexes.reverse()
+        for j in pop_indexes:
+            lis.pop(j)
+        desc: list = [f"{k + 1}. `{mu[k].name}` | {lis[k][1]['money']}" for k in range(len(lis))]
+        emb = discord.Embed(
+            title= "📈 Leaderboard",
+            colour= discord.Colour(WHITE)
+            )
+        emb.add_field(
+            name= "🏦 Top 5 Richest in Server",
+            value= "\n".join(desc),
+            inline= False
+            )
+        emb.set_thumbnail(url= "https://i.dlpng.com/static/png/5698135-trophy-clipart-png-transparent-background-image-free-png-templates-trophy-clipart-png-2000_2000_preview.png")
+        await ctx.send(embed= emb)
+
     @commands.command(name= "currency", aliases= ["cur"], pass_context= True)
     async def _currency(self, ctx: commands.Context, *args):
         if len(args) == 0:
@@ -139,10 +169,10 @@ class Currency(commands.Cog):
             )
         emb.add_field(
             name= "Options :",
-            value= "> `-t <symbol>` - Set currency type in your server\n"
-                "> `-get` Get info about server currency\n"
-                "> `-min <amount>` - Set minimal getting money by chat\n"
-                "> `-max <amount>` - Set maximal getting money by chat",
+            value= "`-t <symbol>` - Set currency type in your server\n"
+                "`-get` Get info about server currency\n"
+                "`-min <amount>` - Set minimal getting money by chat\n"
+                "`-max <amount>` - Set maximal getting money by chat",
             inline= False
             )
         emb.set_footer(text= f"Example Command : {pref}cur -get")

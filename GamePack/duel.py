@@ -8,54 +8,9 @@ import requests
 import math
 import discord
 from discord.ext import commands, tasks
-from Settings.MyUtility import get_prefix, checkin_member, convert_rpg_substat
+from Settings.MyUtility import get_prefix, checkin_member, convert_rpg_substat, Duelist
 
 WHITE = 0xfffffe
-
-class Duelist:
-
-    HP: int = 800
-    DEF: int = 100
-    SPD: int = 10
-    MIN_ATT: int = 120
-    MAX_ATT: int = 150
-    CRIT_CHANCE: int = 5
-
-    def __init__(self, uid: int):
-        mbr_data: dict = checkin_member(uid)
-        if "MAX-STAT" in mbr_data:
-            stat: dict = convert_rpg_substat(mbr_data["MAX-STAT"], return_value= True)
-            self.HP = stat["HP"]
-            self.DEF = stat["DEF"]
-            self.SPD = stat["SPD"]
-            self.MIN_ATT = stat["MIN-ATT"]
-            self.MAX_ATT = stat["MAX-ATT"]
-            self.CRIT_CHANCE = stat["CRIT"]
-
-    def attack(self, target):
-        """
-        
-        Parameters
-        ---------
-        target (Duelist) : Target Attack
-
-        Returns
-        -------
-        (int) : Damage Dealt Information
-        
-        """
-        att_multi = 1.2
-        def_multi = 1
-        spd_luck = random.randint(1, 100)
-        if random.randint(1, 100) <= self.CRIT_CHANCE:
-            att_multi += 0.8
-        if spd_luck <= target.SPD:
-            att_multi -= 1
-        if spd_luck <= target.SPD // 3:
-            att_multi = 0
-        damage = math.ceil(random.randint(self.MIN_ATT, self.MAX_ATT) * att_multi * 100 / (100 + (target.DEF * def_multi)))
-        target.HP -= damage
-        return damage
 
 class Duel(commands.Cog):
 
@@ -89,15 +44,14 @@ class Duel(commands.Cog):
             )
         hm: discord.Message = await channel.send(embed = emb)
         container_log: list = []
-        c1: Duelist = Duelist(p1.id)
-        c2: Duelist = Duelist(p2.id)
-        max_hp_p1: int = c1.HP
-        max_hp_p2: int = c2.HP
+        c1, c2 = Duelist(p1.id), Duelist(p2.id)
+        max_hp_p1, max_hp_p2 = c1.HP, c2.HP
 
         # Animation for first move pick
         whos_first: int = random.randint(0, 1)
         role_first: int = random.randint(4, 6)
         for a in range(role_first):
+            # Player One
             if whos_first == 0:
                 if a == role_first - 1:
                     emb = discord.Embed(
@@ -112,6 +66,7 @@ class Duel(commands.Cog):
                         )
                     await hm.edit(embed = emb)
                     whos_first = 1
+            # Player Two
             else:
                 if a == role_first - 1:
                     emb = discord.Embed(
@@ -183,8 +138,9 @@ class Duel(commands.Cog):
 
     # Commands Area
         
-    @commands.command()
-    async def duel(self, ctx: commands.Context, *args):
+    @commands.command(name= "duel", pass_context= True)
+    @commands.cooldown(2, 60, type= commands.BucketType.channel)
+    async def _duel(self, ctx: commands.Context, *args):
         person1: discord.User
         person2: discord.User
         if len(args) == 0:
@@ -225,6 +181,20 @@ class Duel(commands.Cog):
 
             await self.fair_gameplay(ctx.channel, person1, person2)
 
+    # Command Error Handler
+
+    @_duel.error
+    async def _duel_error(self, ctx: commands.Context, error: Exception):
+        if isinstance(error, commands.CommandOnCooldown):
+            emb = discord.Embed(
+                title= "💤 Zzzz... 💤",
+                description= "Calm Down, i need to take a rest for **{0:.2f}** second(s)".format(error.retry_after),
+                colour= discord.Colour(WHITE)
+                )
+            this_msg_coroute: discord.Message = await ctx.send(embed= emb)
+            await asyncio.sleep(3)
+            await this_msg_coroute.delete()
+
     # Others
 
     @staticmethod
@@ -236,7 +206,7 @@ class Duel(commands.Cog):
             i: discord.Member
             for i in list_of_user:
                 username = i.nick if i.nick is not None else i.name
-                if name in username or name in i.display_name:
+                if name in username or name in i.name:
                     return i
             else:
                 return random.choice(list_of_user)
@@ -247,25 +217,25 @@ class Duel(commands.Cog):
         emb = discord.Embed(
             title= "⚔️ Fair Duel Fight", 
             colour= discord.Colour(WHITE)
-        )
+            )
         emb.add_field(
             name= "Command :",
             value= f"`{pref}duel <option>`",
             inline= False
-        )
+            )
         emb.add_field(
             name= "Options :",
-            value= "> `[name]` - Challange this person\n"
-                "> `[@]` - Duel tagged person\n"
-                "> `[@] [@]` - Duel between 2 tags\n"
-                "> -s (start) - Start fight you vs random person\n"
-                "> -h (help) - Help duel command\n"
-                "> -r (random) - Random 2 person",
+            value= "`[name]` - Challange this person\n"
+                "`[@]` - Duel tagged person\n"
+                "`[@] [@]` - Duel between 2 tags\n"
+                "`-s`|`start` - Start fight you vs random person\n"
+                "`-h`|`help` - Help duel command\n"
+                "`-r`|`random` - Random 2 person",
             inline= False
-        )
+            )
         emb.set_thumbnail(url= "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Crossed_swords.svg/512px-Crossed_swords.svg.png")
         emb.set_footer(text= f"Example Command : {pref}duel @Gamern't Bot")
-        await channel.send(embed = emb)
+        await channel.send(embed= emb)
 
 def setup(bot: commands.Bot):
     bot.add_cog(Duel(bot))
