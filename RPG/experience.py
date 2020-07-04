@@ -1,54 +1,43 @@
 import discord
 import asyncio
+import requests
+import PIL
+import os
+import random
+from PIL import Image, ImageDraw, ImageOps, ImageFont
 from discord.ext import commands
-from Settings.MyUtility import checkin_member, get_prefix, convert_rpg_substat
-from Settings.StaticData import rpg_lvl_data
+from Settings.MyUtility import checkin_member, get_prefix, is_number
 from Settings.MongoManager import MongoManager
+from RPGPackage.RPGCharacter import *
 
 WHITE = 0xfffffe
 
 class Experience(commands.Cog):
 
-    PERLEVEL: int = 50
-    MAXLEVEL: int = 50
-    MAXSKILL: int = 25
-    DATA_LVL: dict = {}
-
-    def __init__(self, bot: commands.Bot, lvl_init: dict):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.mdb = MongoManager(collection= "members")
-        for i in lvl_init:
-            self.DATA_LVL[i] = {"LVL": {}, "SUM": {}}
-            self.DATA_LVL[i]["EFF"] = lvl_init[i]["eff"]
-            for j in range(0, 25 + 1):
-                if j == 0:
-                    self.DATA_LVL[i]["LVL"][j] = 0
-                    self.DATA_LVL[i]["SUM"][j] = 0
-                elif j == 1:
-                    self.DATA_LVL[i]["LVL"][j] = lvl_init[i]["lvl1"]
-                    self.DATA_LVL[i]["SUM"][j] = lvl_init[i]["lvl1"]
-                else:
-                    self.DATA_LVL[i]["LVL"][j] = self.DATA_LVL[i]["LVL"][j - 1] - lvl_init[i]["dec"]
-                    self.DATA_LVL[i]["SUM"][j] = self.DATA_LVL[i]["SUM"][j - 1] + self.DATA_LVL[i]["LVL"][j]
+        self.mdb = MongoManager(collection="members")
 
     # Event Listener Area
 
     @commands.Cog.listener()
-    async def on_ready(self):
-        print("Currency Manager is Ready!")
-
-    @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        mbr_data: dict = checkin_member(message.author.id)
+        mbr_data: dict = None
+        # Check User Valid
+        if not message.author.bot:
+            mbr_data = checkin_member(message.author.id)
+        if message is None or mbr_data is None:
+            return
         if message.content.startswith(get_prefix(message.guild.id)):
             return
+            
         if "EXP" in mbr_data:
             # If user already at Max Level
-            if self.MAXLEVEL == mbr_data["LVL"]:
+            if MAXLEVEL == mbr_data["LVL"]:
                 return
 
             # If User going to Level Up
-            if self.PERLEVEL * (mbr_data["LVL"] + 1) <= mbr_data["EXP"] + 1:
+            if PERLEVEL * (mbr_data["LVL"] + 1) <= mbr_data["EXP"] + 1:
                 self.mdb.SetObject({"member_id": str(message.author.id)}, {"EXP": 0})
                 self.mdb.IncreaseItem({"member_id": str(message.author.id)}, {"LVL": 1, "skill-point": 1})
                 emb = discord.Embed(
@@ -61,15 +50,6 @@ class Experience(commands.Cog):
             else:
                 self.mdb.IncreaseItem({"member_id": str(message.author.id)}, {"EXP": 1})
 
-    # Checker Area
-
-    @staticmethod
-    def is_number(string: str):
-        for word in string:
-            if not (48 <= ord(word) < 58):
-                return False
-        return True
-
     # Commands Area
 
     @commands.command(name= "stat", pass_context= True)
@@ -78,38 +58,45 @@ class Experience(commands.Cog):
         if person.bot is True:
             return
         mbr_data: dict = checkin_member(person.id)
-        if "MAX-STAT" in mbr_data:
-            lvl: int = mbr_data['LVL']
-            stat: dict = convert_rpg_substat(mbr_data["MAX-STAT"], return_value= True)
-            emb = discord.Embed(
-                title= mbr_data['title'],
-                description= f"`CLASS` : {mbr_data['CHAR']}\n"
-                    f"`Level` : {lvl} / {self.MAXLEVEL} | EXP : {mbr_data['EXP']}/{((lvl + 1) * self.PERLEVEL) if self.MAXLEVEL != lvl else 0}\n"
-                    f"`Skill Point` : {mbr_data['skill-point']}",
-                colour= discord.Colour(WHITE)
-                )
-            emb.add_field(
-                name= "Skill Stat",
-                value= f"> `Strength` : {mbr_data['PRIM-STAT']['STR']} / {self.MAXSKILL}\n"
-                    f"> `Endurance` : {mbr_data['PRIM-STAT']['END']} / {self.MAXSKILL}\n"
-                    f"> `Agility` : {mbr_data['PRIM-STAT']['AGI']} / {self.MAXSKILL}\n"
-                    f"> `Focus` : {mbr_data['PRIM-STAT']['FOC']} / {self.MAXSKILL}",
-                inline= True
-                )
-            emb.add_field(
-                name= "Substat",
-                value= f"> `HP` : {stat['HP']} | `DEF` : {stat['DEF']}\n"
-                    f"> `SPD` : {stat['SPD']} | `ATT` : {stat['MIN-ATT']}-{stat['MAX-ATT']}\n"
-                    f"> `Critical Chance` : {stat['CRIT']}%",
-                inline= True
-                )
-            emb.set_author(
-                name= ctx.author.nick if ctx.author.nick is not None else ctx.author.name,
-                icon_url= ctx.author.avatar_url
-                )
-            await ctx.send(embed= emb)
+        if "PRIM-STAT" in mbr_data:
+            async with ctx.typing():
+                image_name: str = self.generate_stat_image(person, mbr_data)
+                stat: Player = checkClassID(person)
+                emb = discord.Embed(
+                    title= mbr_data['title'],
+                    description= f"`CLASS` : {stat.ClassName}\n",
+                    colour= discord.Colour(WHITE)
+                    )
+                emb.add_field(
+                    name= "Skill Stat",
+                    value= f"`Strength` : {mbr_data['PRIM-STAT']['STR']} / {MAXSKILL}\n"
+                        f"`Endurance` : {mbr_data['PRIM-STAT']['END']} / {MAXSKILL}\n"
+                        f"`Agility` : {mbr_data['PRIM-STAT']['AGI']} / {MAXSKILL}\n"
+                        f"`Focus` : {mbr_data['PRIM-STAT']['FOC']} / {MAXSKILL}\n"
+                        f"`Intelligence` : {mbr_data['PRIM-STAT']['ITE']} / {MAXSKILL}\n"
+                        f"`Wise` : {mbr_data['PRIM-STAT']['WIS']} / {MAXSKILL}",
+                    inline= True
+                    )
+                emb.add_field(
+                    name= "Substat",
+                    value= f"`HP`: {stat.HP} | `Mana`: {stat.MANA}\n"
+                        f"`DEF`: {stat.DEF} | `Magic DEF`: {stat.MDEF}\n"
+                        f"`ATT`: {stat.ATT} | `Magic ATT`: {stat.MATT}\n"
+                        f"`SPD`: {stat.SPD}\n"
+                        f"`Critical Chance`: {stat.CRIT}%",
+                    inline= True
+                    )
+                emb.set_author(
+                    name= ctx.author.nick if ctx.author.nick is not None else ctx.author.name,
+                    icon_url= ctx.author.avatar_url
+                    )
+            with open(f"./{image_name}", 'rb') as f:
+                await ctx.send(embed= emb, file= discord.File(f, filename= image_name))
+                f.close()
+            if os.path.exists(image_name):
+                os.remove(image_name)
         else:
-            await ctx.send(f"__**You haven't start your character, type {get_prefix(ctx.guild.id)}start to begin.**__")
+            await ctx.send(f"__**{person.name}, You haven't start your character, type {get_prefix(ctx.guild.id)}start to begin.**__")
 
     @commands.command(name= "skilladd", aliases= ["addskill"], pass_context= True)
     async def _skill_add(self, ctx: commands.Context, *args):
@@ -118,10 +105,11 @@ class Experience(commands.Cog):
             if len(args) == 0:
                 await self.print_skill_add_help(ctx.channel)
             else:
-                amount: int = 1
+                amount: int = 1 # Skill Amount
                 get_skill: str = ""
                 which: str = ""
 
+                # Choose Ability
                 if args[0].lower() == "str" or args[0].lower() == "strength":
                     which = "Strength"
                     get_skill = "STR"
@@ -134,15 +122,21 @@ class Experience(commands.Cog):
                 elif args[0].lower() == "foc" or args[0].lower() == "focus":
                     which = "Focus"
                     get_skill = "FOC"
+                elif args[0].lower() == "ite" or args[0].lower() == "intelligence":
+                    which = "Intelligence"
+                    get_skill = "ITE"
+                elif args[0].lower() == "wis" or args[0].lower() == "wise":
+                    which = "Wise"
+                    get_skill = "WIS"
                 else:
                     return
 
                 skill_lvl: int = mbr_data["PRIM-STAT"][get_skill]
-                eff_skill: str = self.DATA_LVL[get_skill]["EFF"]
                 if len(args) >= 2:
-                    if self.is_number(args[1]) is True:
+                    if is_number(args[1]) is True:
                         amount = int(args[1])
 
+                # Check if Able to Upgrade
                 if mbr_data["skill-point"] < amount:
                     emb = discord.Embed(
                         title= "Not Enough Skillpoint",
@@ -150,70 +144,138 @@ class Experience(commands.Cog):
                         colour= discord.Colour(WHITE)
                         )
                     await ctx.send(embed= emb)
-                elif skill_lvl + amount > 25:
+                elif skill_lvl + amount > MAXSKILL:
                     emb = discord.Embed(
                         title= "Skill Max Exceeded",
-                        description= f"You can't upgrade your {which} to {skill_lvl} / {self.MAXSKILL}",
+                        description= f"You can't upgrade your {which} to {skill_lvl} / {MAXSKILL}",
                         colour= discord.Colour(WHITE)
                         )
                     await ctx.send(embed= emb)
+
+                # Upgrade Skill
                 else:
                     self.mdb.IncreaseItem({"member_id": mbr_data["member_id"]}, {
                         "skill-point": -amount,
                         f"PRIM-STAT.{get_skill}": amount,
-                        f"MAX-STAT.{eff_skill}": self.DATA_LVL[get_skill]['SUM'][skill_lvl + amount] - self.DATA_LVL[get_skill]['SUM'][skill_lvl]
                         })
                     emb = discord.Embed(
-                        title= f"You have upgraded your {which} to {skill_lvl + amount} / {self.MAXSKILL}",
+                        title= f"You have upgraded your {which} to {skill_lvl + amount} / {MAXSKILL}",
                         colour= discord.Colour(WHITE)
                         )
                     await ctx.send(embed= emb)
         else:
-            await ctx.send(f"__**You haven't start your character, type {get_prefix(ctx.guild.id)}start to begin.**__")
+            await ctx.send(f"__**{ctx.author.name}, You haven't start your character, type {get_prefix(ctx.guild.id)}start to begin.**__")
 
     @commands.command(name= "skillreset", aliases= ["skillres", "resetskill"], pass_context= True)
     async def _reset_skill(self, ctx: commands.Context):
         mbr_data: dict = checkin_member(ctx.author.id)
         if "PRIM-STAT" in mbr_data:
+            # Send Hint
+            menus: list = ["✅", "❌"]
             emb = discord.Embed(
                 title= "Reset your Skills?",
                 description= "Are you sure you want to reset your skills?\n"
-                    "> It will reset all your primary stat like Strength, Endurance, and etc to Zero. However it will refund all your skillpoint.",
+                        "> It will reset all your primary stat like Strength, Endurance, and etc to Zero. However it will refund all your skillpoint.",
                 colour= discord.Colour(WHITE)
                 )
             emb.set_footer(text= "React ✅ to continue or ❌ to abort")
             hm: discord.Message = await ctx.send(embed= emb)
-            await hm.add_reaction("✅")
-            await hm.add_reaction("❌")
+            for i in menus:
+                await hm.add_reaction(i)
+
             try:
+                # Waiting for Response
                 r: discord.Reaction
                 u: discord.User
                 r, u = await self.bot.wait_for(
                     event= "reaction_add",
-                    check= lambda reaction, user: True if (str(reaction.emoji) == "❌" or str(reaction.emoji) == "✅") and user == ctx.author else False,
+                    check= lambda reaction, user: True if str(reaction.emoji) in menus and user == ctx.author else False,
                     timeout= 30.0
                     )
                 await hm.delete()
+
+                # Proceed
                 if str(r.emoji) == "✅":
                     hm = await ctx.send("*Resetting your Stat, Wait for a moment.*")
                     skill_set: int = 0
                     for skill in mbr_data["PRIM-STAT"]:
                         temp_amo: int = mbr_data['PRIM-STAT'][skill]
                         skill_set += temp_amo
-                        self.mdb.IncreaseItem({"member_id": mbr_data['member_id']}, {f'MAX-STAT.{self.DATA_LVL[skill]["EFF"]}': -self.DATA_LVL[skill]["SUM"][temp_amo]})
                         self.mdb.SetObject({"member_id": mbr_data['member_id']}, {f'PRIM-STAT.{skill}': 0})
-                    self.mdb.IncreaseItem({"member_id": mbr_data['member_id']}, {"skill-point": skill_set})
+                    self.mdb.SetObject({"member_id": mbr_data['member_id']}, {"skill-point": mbr_data['LVL']})
                     await hm.delete()
                     await ctx.send(embed= discord.Embed(title= f"{ctx.author.name} has reset his/her Skills. Refunded {skill_set} Skillpoint(s)", colour= discord.Colour(WHITE)))
+
+                # Abort
                 else:
                     await ctx.send("*Aborted*")
+
             except asyncio.TimeoutError:
                 await hm.delete()
                 await ctx.send("*Request Timeout*")
         else:
-            await ctx.send(f"__**You haven't start your character, type {get_prefix(ctx.guild.id)}start to begin.**__")
+            await ctx.send(f"__**{ctx.author.name}, You haven't start your character, type {get_prefix(ctx.guild.id)}start to begin.**__")
+
+    # Generate Image
+
+    def generate_stat_image(self, person: discord.User, data: dict) -> str:
+        # Attribute
+        exp: int = data["EXP"]
+        lvl: int = data["LVL"]
+        max_value = (lvl+1) * PERLEVEL if lvl < MAXLEVEL else 1
+        description: str = f"LVL {lvl if lvl != MAXLEVEL else f'MAX'}   |   EXP : {exp}/{max_value}   |   SP : {data['skill-point']}"
+
+        stat_size = (640, 120)
+        min_point = (135, 65)
+        max_point = (560, 90)
+
+        # Download Temporary Image
+        url = person.avatar_url
+        img_data = requests.get(url).content
+        with open("./rawImgPerson.jpg", "wb") as h:
+            h.write(img_data)
+            h.close()
+
+        # Init
+        level_bar = Image.open("./Asset/barbgn.jpg")
+        pfp = Image.open("./rawImgPerson.jpg")
+        mask = Image.open("./Asset/pfpmask.png")
+        font = ImageFont.truetype("./Asset/EvilEmpire-4BBVK.ttf", 32)
+
+        # Make Image
+        draw = ImageDraw.Draw(level_bar)
+        draw.rectangle([(60, 10), (620, 110)], fill= (0, 0, 0, 100))
+        draw.text((135, 20), text= description, fill= 'white', font= font)
+
+        length_progress = (exp / max_value) * (max_point[0] - min_point[0]) + min_point[0]
+        draw.rectangle([min_point, (length_progress, max_point[1])], fill= 'white')
+        draw.rectangle([min_point, max_point], outline= (255, 255, 255), width= 2)
+
+        pfp = ImageOps.fit(pfp, mask.size)
+        level_bar.paste(pfp, (10, 10), mask= mask)
+        draw.ellipse([(10, 10), (110, 110)], outline= 'white', width= 2)
+
+        # Save File
+        imgid: str = self._generate_id()
+        level_bar.save(f"{imgid}.jpg")
+
+        # Delete Temporary Image
+        if os.path.exists(f"./rawImgPerson.jpg"):
+            os.remove(f"./rawImgPerson.jpg")
+        return imgid + ".jpg"
 
     # Others
+
+    @staticmethod
+    def _generate_id() -> str:
+        ids: str = "B"
+        while len(ids) < 9:
+            ids += random.choice([
+                chr(random.randint(48, 57)), 
+                chr(random.randint(65, 90)), 
+                chr(random.randint(97, 122))
+                ])
+        return ids
 
     @staticmethod
     async def print_skill_add_help(channel: discord.TextChannel):
@@ -221,7 +283,7 @@ class Experience(commands.Cog):
         emb = discord.Embed(
             title= "Add Skill | Help",
             description= "Use your Skillpoint to increase your primary stat.\n"
-                "These are the skill you can increase it : `Strength` `Endurance` `Agility` `Focus`",
+                    "These are the skill you can increase it : `Strength` `Endurance` `Agility` `Focus` `Intelligence` `Wise`",
             colour= discord.Colour(WHITE)
             )
         emb.add_field(
@@ -233,4 +295,4 @@ class Experience(commands.Cog):
         await channel.send(embed= emb)
 
 def setup(bot: commands.Bot):
-    bot.add_cog(Experience(bot, rpg_lvl_data))
+    bot.add_cog(Experience(bot))

@@ -3,9 +3,8 @@ import random
 import asyncio
 import threading
 from discord.ext import commands
-from Settings.MyUtility import checkin_member
+from Settings.MyUtility import get_prefix
 from Settings.StaticData import card_deck_dict, card_deck_list
-from Settings.MongoManager import MongoManager
 
 WHITE = 0xfffffe
 
@@ -13,7 +12,6 @@ class Cards(commands.Cog):
 
     def __init__(self, bot:commands.Bot):
         self.bot = bot
-        self.mongodbm = MongoManager(collection="members")
 
     # Listener Area
 
@@ -44,23 +42,34 @@ class Cards(commands.Cog):
         else:
             return on_hand
 
-    @staticmethod
-    def check_user_reply(channel: discord.TextChannel, person: discord.User, *, true_list: list = []):
-        def inner_check(message: discord.Message):
-            if channel == message.channel and person == message.author:
-                if len(true_list) == 0:
-                    return True
-                elif message.content in true_list:
+    def compare_current(self, b: list, p: list):
+        bc: int = sum(self.card_to_int("blackjack", b))
+        pc: int = sum(self.card_to_int("blackjack", p))
+        if bc > pc:
+            return False
+        elif bc < pc:
+            return True
+        else:
+            if max(bc) > max(pc):
+                return False
+            elif max(bc) < max(pc):
+                return True
+            else:
+                range_symbol: list = ["♢", "♧", "♡", "♤"]
+                max_p: int = 0
+                max_b: int = 0
+                for ib in b:
+                    symbol_index: int = range_symbol.index(ib[1])
+                    if max_b < symbol_index:
+                        max_b = symbol_index
+                for jp in p:
+                    symbol_index: int = range_symbol.index(ib[1])
+                    if max_b < symbol_index:
+                        max_b = symbol_index
+                if max_b <= max_p:
                     return True
                 else:
                     return False
-            else:
-                return False
-        return inner_check
-
-    @staticmethod
-    def check_user_money(person_id: int) -> int:
-        pass
 
     # Command Area
 
@@ -70,20 +79,20 @@ class Cards(commands.Cog):
             await self.blackjack_help(ctx.channel)
         else:
             # Help
-            if args[0].lower() == "-h":
+            if args[0].lower() == "-h" or args[0].lower() == "help":
                 await self.blackjack_help(ctx.channel)
 
             # Single player
-            elif args[0].lower() == "-p":
-                await self.challange_bot(ctx.channel, ctx.author)
+            elif args[0].lower() == "play" or args[0].lower() == "bot":
+                await self.blackjack_vs_bot(ctx.channel, ctx.author)
 
             # Challenge player
             elif len(args) == 1:
                 pass
             
-    # Others
+    # Gameplay
 
-    async def challange_bot(self, channel: discord.TextChannel, player: discord.User, *, bet: int = 10):
+    async def blackjack_vs_bot(self, channel: discord.TextChannel, player: discord.User):
         # Inner Function
         def description_maker(dh: list) -> str:
             desc_holder: str = "```"
@@ -93,35 +102,6 @@ class Cards(commands.Cog):
                 else:
                     desc_holder += f"{dh[x]} "
             return desc_holder + "```"
-
-        def compare_current(b: list, p: list):
-            bc: int = sum(self.card_to_int("blackjack", b))
-            pc: int = sum(self.card_to_int("blackjack", p))
-            if bc > pc:
-                return False
-            elif bc < pc:
-                return True
-            else:
-                if max(bc) > max(pc):
-                    return False
-                elif max(bc) < max(pc):
-                    return True
-                else:
-                    range_symbol: list = ["♢", "♧", "♡", "♤"]
-                    max_p: int = 0
-                    max_b: int = 0
-                    for ib in b:
-                        symbol_index: int = range_symbol.index(ib[1])
-                        if max_b < symbol_index:
-                            max_b = symbol_index
-                    for jp in p:
-                        symbol_index: int = range_symbol.index(ib[1])
-                        if max_b < symbol_index:
-                            max_b = symbol_index
-                    if max_b <= max_p:
-                        return True
-                    else:
-                        return False
 
         # Initialize Game
         current_deck: list = card_deck_list
@@ -143,7 +123,7 @@ class Cards(commands.Cog):
 
         desc: str = f"{self.bot.user.name} | __*Sum : Unk*__\n```{bot_hand[0]} XX```\n{player.name} | __*Sum : {str(sum(player_current))}*__\n{description_maker(player_hand)}"
         board_embed: discord.Embed = discord.Embed(
-            title= "🂡 Blackjack",
+            title= "🂡 Blackjack | VS Bot",
             description= desc,
             colour= discord.Colour(WHITE)
             )
@@ -152,11 +132,12 @@ class Cards(commands.Cog):
 
         # On Play
         try:
+            menus: list = ["DRAW", "draw", "SET", "set"]
             while sum(player_current) <= 21:
                 replied: discord.Message = await self.bot.wait_for(
-                    event="message",
-                    check=self.check_user_reply(channel, player, true_list=["DRAW", "draw", "SET", "set"]),
-                    timeout=30.0
+                    event= "message",
+                    check= lambda message: True if message.content in menus and player == message.author else False,
+                    timeout= 30.0
                     )
                 if replied.content.lower() == "draw":
                     get_card: str = random.choice(current_deck)
@@ -167,7 +148,7 @@ class Cards(commands.Cog):
                     player_current = self.card_to_int("blackjack", player_hand)
                     desc: str = f"{self.bot.user.name} | __*Sum : Unk*__\n```{bot_hand[0]} XX```\n{player.name} | __*Sum : {str(sum(player_current))}*__\n{description_maker(player_hand)}"
                     board_embed: discord.Embed = discord.Embed(
-                        title= "🂡 Blackjack",
+                        title= "🂡 Blackjack | VS Bot",
                         description= desc,
                         colour= discord.Colour(WHITE)
                         )
@@ -183,20 +164,18 @@ class Cards(commands.Cog):
             player_win: bool = compare_current(bot_hand, player_hand)
             desc: str = f"{self.bot.user.name} | __*Sum : {str(sum(bot_current))}*__\n{description_maker(bot_hand)}\n{player.name} | __*Sum : {str(sum(player_current))}*__\n{description_maker(player_hand)}"
             board_embed: discord.Embed = discord.Embed(
-                title = "🂡 Blackjack",
-                description = desc,
-                colour = discord.Colour(WHITE)
-            )
+                title= "🂡 Blackjack | VS Bot",
+                description= desc,
+                colour= discord.Colour(WHITE)
+                )
             if sum(player_current) > 21:
-                board_embed.set_footer(text=f"BUSTS! You Lose {bet} 💲! Better Luck Next Time.")
+                board_embed.set_footer(text=f"💥 BUSTS! Better Luck Next Time.")
                 await handler_msg.edit(embed = board_embed)
             elif player_win is True:
-                earned: int = bet * 2
-                board_embed.set_footer(text=f"You Win! You have earned {earned} 💲")
+                board_embed.set_footer(text=f"👍 You Win! Congratulation")
                 await handler_msg.edit(embed = board_embed)
-                # self.mongodbm.IncreaseItem({"member_id": str(player.id)}, {"money": earned})
             else:
-                board_embed.set_footer(text=f"You Lose {bet} 💲! Better Luck Next Time.")
+                board_embed.set_footer(text=f"👎 You Lose, Better Luck Next Time.")
                 await handler_msg.edit(embed = board_embed)
                 
         except asyncio.TimeoutError:
@@ -205,21 +184,33 @@ class Cards(commands.Cog):
                 colour = discord.Colour(WHITE)
             )
             await handler_msg.edit(embed = board_embed)
-            self.mongodbm.IncreaseItem({"member_id": str(player.id)}, {"money": bet})
 
-    @staticmethod
-    async def blackjack_manual(channel: discord.TextChannel):
+    async def blackjack_vs_player(self, channel: discord.TextChannel, p1: discord.User, p2: discord.User):
         pass
 
+    # Others
+
     @staticmethod
-    async def blackjack_help(channel: discord.TextChannel):
+    async def blackjack_help(self, channel: discord.TextChannel):
+        pref: str = get_prefix(channel.guild.id)
         emb = discord.Embed(
-            title = "🂡 Blackjack | Help",
-            description = open("./Help/blackjack.txt").read(),
-            colour = discord.Colour(WHITE)
-        )
-        emb.set_footer(text= "Example Command : g.blackjack -p @Gamern't Bot")
-        await channel.send(embed=emb)
+            title= "🂡 Blackjack | Help",
+            colour= discord.Colour(WHITE)
+            )
+        emb.add_field(
+            name= "Command :",
+            value= f"> `{pref}.blackjack <option>`",
+            inline= False
+            )
+        emb.add_field(
+            name= "Options :",
+            value= "`[@]` - Challange tagged person\n"
+                "`bot`|`play` - Challange bot\n"
+                "`-h`|`help` - This help menu",
+            inline= False
+            )
+        emb.set_footer(text= f"Example Command : {pref}blackjack play")
+        await channel.send(embed= emb)
 
 def setup(bot:commands.Bot):
     bot.add_cog(Cards(bot))

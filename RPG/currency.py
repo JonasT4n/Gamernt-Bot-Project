@@ -1,7 +1,9 @@
 import discord
 import re
+import datetime
+import random
 from discord.ext import commands
-from Settings.MyUtility import checkin_guild, get_prefix
+from Settings.MyUtility import checkin_guild, get_prefix, is_number
 from Settings.MongoManager import MongoManager
 
 WHITE = 0xfffffe
@@ -15,8 +17,20 @@ class Currency(commands.Cog):
     # Event Listener Area
 
     @commands.Cog.listener()
-    async def on_ready(self):
-        print("Currency Manager is Ready!")
+    async def on_message(self, message: discord.Message):
+        if not isinstance(message.channel, discord.DMChannel):
+            # Chat Money
+            pref: str = get_prefix(message.guild.id)
+            guild_data: dict = checkin_guild(message.guild.id)
+            if not str(message.author.id) in guild_data["member"]:
+                self.gdb.SetObject({"guild_id": str(message.guild.id)}, {
+                    f"member.{str(message.author.id)}.money": 0
+                    })
+            if not message.content.startswith(pref) and not message.author.bot:
+                get_money: int = random.randint(guild_data["currency"]["chat-min"], guild_data["currency"]["chat-max"])
+                self.gdb.IncreaseItem({"guild_id": str(message.guild.id)}, {
+                    f"member.{str(message.author.id)}.money": get_money
+                    }) 
 
     # Checker Area
 
@@ -32,21 +46,16 @@ class Currency(commands.Cog):
             else:
                 return None
 
-    @staticmethod
-    def is_number(string: str):
-        for word in string:
-            if not (48 <= ord(word) < 58):
-                return False
-        return True
-
     # Commands Area
 
     @commands.command(name= "leaderboard", aliases= ["lb"], pass_context = True)
     async def _lb(self, ctx: commands.Context):
-        mbrs_in_guild: dict = checkin_guild(ctx.guild.id)['member']
+        g_data: dict = checkin_guild(ctx.guild.id)
+        mbrs_in_guild: dict = g_data['member']
         lis: list = sorted(mbrs_in_guild.items(), key= lambda i: i[1]["money"], reverse= True)[0:5]
         pop_indexes: list = []
         mu: list = []
+        
         # Check if there is a User
         for i in range(len(lis)):
             user = self.bot.get_user(int(lis[i][0]))
@@ -56,9 +65,13 @@ class Currency(commands.Cog):
             else:
                 mu.append(user)
         pop_indexes.reverse()
+
+        # Delete Unknown ID
         for j in pop_indexes:
             lis.pop(j)
-        desc: list = [f"{k + 1}. `{mu[k].name}` | {lis[k][1]['money']}" for k in range(len(lis))]
+
+        # Create Description and Send Result
+        desc: list = [f"{k + 1}. `{mu[k].name}` | {lis[k][1]['money']} {g_data['currency']['type']}" for k in range(len(lis))]
         emb = discord.Embed(
             title= "📈 Leaderboard",
             colour= discord.Colour(WHITE)
@@ -78,6 +91,9 @@ class Currency(commands.Cog):
         else:
             guild_info: dict = checkin_guild(ctx.guild.id)
             cur_type: str = guild_info['currency']['type']
+            person: discord.User = ctx.author
+
+            # Change Server Currency Type
             if len(args) == 2 and args[0].lower() == "-t":
                 emoji = self.check_emoji(args[1])
                 if emoji:
@@ -101,8 +117,13 @@ class Currency(commands.Cog):
                             description= f"> Server {ctx.guild.name} Currency is now " + emoji,
                             colour= discord.Colour(WHITE)
                             )
+                    self.gdb.SetObject({"guild_id": str(ctx.guild.id)}, {
+                        "currency.modif-by": person.name,
+                        "currency.last-modified": datetime.datetime.now().strftime('%B %d %Y')
+                        })
                     await ctx.send(embed= emb)
 
+            # Get Info Currency in Server
             elif args[0].lower() == "-get":
                 emb = discord.Embed(
                     title= f"🏦 {ctx.guild.name}",
@@ -113,8 +134,9 @@ class Currency(commands.Cog):
                 emb.set_footer(text= f"Last Modified : {guild_info['currency']['last-modified']} | By : {guild_info['currency']['modif-by']}")
                 await ctx.send(embed= emb)
 
+            # Set Min Earn Money by Chatting
             elif len(args) == 2 and args[0].lower() == "-min":
-                isnum: bool = self.is_number(args[1])
+                isnum: bool = is_number(args[1])
                 if isnum is True:
                     min_in: int = int(args[1])
                     if guild_info["currency"]["chat-max"] < min_in:
@@ -130,10 +152,15 @@ class Currency(commands.Cog):
                         description= f"Chat Money Increament : {updated_guild_info['currency']['chat-min']}-{updated_guild_info['currency']['chat-max']}",
                         colour= discord.Colour(WHITE)
                         )
+                    self.gdb.SetObject({"guild_id": str(ctx.guild.id)}, {
+                        "currency.modif-by": person.name,
+                        "currency.last-modified": datetime.datetime.now().strftime('%B %d %Y')
+                        })
                     await ctx.send(embed= emb)
 
+            # Set Max Earn Money by Chatting
             elif len(args) == 2 and args[0].lower() == "-max":
-                isnum: bool = self.is_number(args[1])
+                isnum: bool = is_number(args[1])
                 if isnum is True:
                     max_in: int = int(args[1])
                     if guild_info["currency"]["chat-min"] > max_in:
@@ -149,6 +176,10 @@ class Currency(commands.Cog):
                         description= f"Chat Money Increament : {updated_guild_info['currency']['chat-min']}-{updated_guild_info['currency']['chat-max']}",
                         colour= discord.Colour(WHITE)
                         )
+                    self.gdb.SetObject({"guild_id": str(ctx.guild.id)}, {
+                        "currency.modif-by": person.name,
+                        "currency.last-modified": datetime.datetime.now().strftime('%B %d %Y')
+                        })
                     await ctx.send(embed= emb)
 
     # Others

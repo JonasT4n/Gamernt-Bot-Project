@@ -9,24 +9,19 @@ class Choose(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    # Event Listener Area
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print("Choosing System is Ready!")
-
     # Command Area
 
-    @commands.command()
-    async def choose(self, ctx, *obj):
+    @commands.command(name= "choose", pass_context= True)
+    async def choose(self, ctx: commands.Context, *obj):
         if len(obj) == 0:
             await ctx.send("You must Insert the Items.\nExample : `g.choose Blue Red Green`")
         else:
-            choosen: str = random.choice(obj)
-            emb = discord.Embed(
-                title= f"I Choose {choosen}!",
-                colour= discord.Colour(WHITE)
-                )
+            async with ctx.typing():
+                choosen: str = random.choice(obj)
+                emb = discord.Embed(
+                    title= f"I Choose {choosen}!",
+                    colour= discord.Colour(WHITE)
+                    )
             await ctx.send(embed= emb)
 
 def setup(bot: commands.Bot):

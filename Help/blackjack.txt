@@ -1,5 +1,0 @@
-*[prefix]blackjack <option>*
-```Options :
--p [bet] => Play with Bot.
--h       => This Help.
--how     => How to Play```

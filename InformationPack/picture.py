@@ -25,30 +25,26 @@ class Picture(commands.Cog):
 
     @commands.command(name= "picture", aliases= ["pict", "img"], pass_context= True)
     async def _pict(self, ctx: commands.Context, *args):
-        # Inner Function
-        def check_reaction(reaction: discord.Reaction, user: discord.User):
-            if (str(reaction.emoji) == "⬅️" or str(reaction.emoji) == "➡️" or str(reaction.emoji) == "⏮️" or str(reaction.emoji) == '⏹') and user == ctx.author:
-                return True
-            else:
-                return False
-
         if len(args) == 0:
             await ctx.send(content= f"**Insert your argument.**\nExample Command : {get_prefix(ctx.guild.id)}img Maldives")
         else:
-            search_term: str = " ".join(args)
-            response = self.srv.list(
-                q= search_term,
-                cx= CSE_ID,
-                searchType= "image",
-                num= 10,
-                fileType= 'jpg,jpeg,png',
-                safe= 'active'
-                ).execute()
-            index: int = 0
-            max_index = len(response["items"])
-            link_url: list = [i["link"] for i in response["items"]]
+            # Connect with Google Custom Search
+            async with ctx.typing():
+                search_term: str = " ".join(args)
+                response = self.srv.list(
+                    q= search_term,
+                    cx= CSE_ID,
+                    searchType= "image",
+                    num= 10,
+                    fileType= 'jpg,jpeg,png',
+                    safe= 'active'
+                    ).execute()
+                index: int = 0
+                max_index = len(response["items"])
+                link_url: list = [i["link"] for i in response["items"]]
 
             # Initiate Embed
+            menus: list = ["⏮️", "⬅️", "⏹", "➡️"]
             emb = discord.Embed(
                 title= f"Search Picture | Image : {index + 1}/{max_index}",
                 description= f"Searching for {search_term}, Result ({max_index} Entries) : ",
@@ -57,17 +53,15 @@ class Picture(commands.Cog):
             emb.set_image(url= link_url[index])
             emb.set_footer(text= f"Image : {index + 1}/{max_index} | Searched by {ctx.author.nick if ctx.author.nick is not None else ctx.author.name}")
             hm: discord.Message = await ctx.send(embed= emb)
-            await hm.add_reaction("⏮️")
-            await hm.add_reaction("⬅️")
-            await hm.add_reaction("⏹")
-            await hm.add_reaction("➡️")
+            for i in menus:
+                await hm.add_reaction(i)
             try:
                 r: discord.Reaction
                 u: discord.User
                 while True:
                     r, u = await self.bot.wait_for(
                         event= "reaction_add",
-                        check= check_reaction,
+                        check= lambda reaction, user: True if str(reaction.emoji) in menus and user == ctx.author else False,
                         timeout= 30.0
                         )
                     if str(r.emoji) == "⏮️":
@@ -93,10 +87,8 @@ class Picture(commands.Cog):
                             )
                         await r.remove(u)
                         await hm.edit(embed= emb)
-                        await hm.remove_reaction('⏮️', ctx.me)
-                        await hm.remove_reaction('⬅️', ctx.me)
-                        await hm.remove_reaction('⏹', ctx.me)
-                        await hm.remove_reaction('➡️', ctx.me)
+                        for j in menus:
+                            await hm.remove_reaction(j, ctx.me)
                         return
                     else:
                         if index < max_index - 1:
@@ -115,10 +107,8 @@ class Picture(commands.Cog):
             except asyncio.TimeoutError:
                 emb.set_footer(text= f"Searched by {ctx.author.nick if ctx.author.nick is not None else ctx.author.name} | Request Timeout")
                 await hm.edit(embed= emb)
-                await hm.remove_reaction('⏮️', ctx.me)
-                await hm.remove_reaction('⬅️', ctx.me)
-                await hm.remove_reaction('⏹', ctx.me)
-                await hm.remove_reaction('➡️', ctx.me)
+                for j in menus:
+                    await hm.remove_reaction(j, ctx.me)
 
 def setup(bot : commands.Bot):
     bot.add_cog(Picture(bot))

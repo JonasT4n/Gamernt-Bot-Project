@@ -1,6 +1,0 @@
-- Improving UI and Help Menus
-- Image Command can now be stopped with ⏹ button
-- Improving Search things
-- Fixed some Bugs
-- Added Limitation for Level in RPG
-- Added Category Games for Guessword Games

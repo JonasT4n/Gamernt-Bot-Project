@@ -1,13 +1,15 @@
 """
-
 @Copyright Gamern't RPG 2020
 ----------------------------
 This Script only use for this bot and cannot reuse it.
-
 """
 
 import math
 import random
+import discord
+import asyncio
+import PIL
+from PIL import Image, ImageDraw, ImageOps
 from Settings.MongoManager import MongoManager
 from Settings.StaticData import new_guild_data, new_member_data, start_rpg
 
@@ -71,9 +73,11 @@ def get_prefix(guild_id: int) -> str:
 
 def set_prefix(guild_id: int, new_prefix: str):
     """
-    
     Set Guild Prefix and Overwrite to Mongo Data.
-    
+
+    Args:
+        `guild_id` (int): ID from server Guild.
+        `new_prefix` (str): small string prefix for command.
     """
     db_for_gld.SetObject(
         {"guild_id":str(guild_id)}, 
@@ -104,73 +108,46 @@ def rpg_close(member_id: int):
         default_data
         )
 
-def convert_rpg_substat(stat: dict, *, return_value= False):
-    """
-    
-    Parameter
-    ---------
-    A built-in dictionary, the data should be Following\n
-    stat => { HP: 10000, DEF: 10000, SPD: 10000, ATT: 10000, CRIT: 10000 }\n
-    (Optional) return_value => will return tyhe value if True, default is false
+def circular_mask(name: str, size: list or tuple):
+    mask = Image.new("RGBA", size, color= (255, 255, 255, 0))
+    draw = ImageDraw.Draw(mask)
 
-    Return
-    ------
-    (None)
-    
-    """
-    stat["HP"] = math.ceil(stat["HP"] * (8) / 100)
-    stat["DEF"] = math.ceil(stat["DEF"] * (1) / 100)
-    stat["SPD"] = math.ceil(stat["SPD"] * (1/10) / 100)
-    stat["MIN-ATT"] = math.ceil(stat["ATT"] * (12/10) / 100)
-    stat["MAX-ATT"] = math.ceil(stat["ATT"] * (15/10) / 100)
-    stat.pop("ATT")
-    stat["CRIT"] = math.ceil(stat["CRIT"] * (5/100) / 100)
-    if return_value is True:
-        return stat
+    draw.ellipse([(0, 0), size], fill= (255, 255, 255))
+    mask.save(name)
+
+def background_init(filename: str, outputname: str, *, size= (540, 100), centering= (0.67, 0.67)):
+    bar_bg = Image.new("RGB", size)
+    bg = Image.open(filename)
+    output = ImageOps.fit(bg, bar_bg.size, centering= centering)
+    output.save(outputname)
+
+def is_number(num: str):
+    """Check if string contains only number."""
+    for word in num:
+        if not (48 <= ord(word) < 58):
+            return False
+    return True
 
 # Classes
 
-class Duelist:
+class Queue:
+    """
 
-    HP: int = 800
-    DEF: int = 100
-    SPD: int = 10
-    MIN_ATT: int = 120
-    MAX_ATT: int = 150
-    CRIT_CHANCE: int = 5
+    Queue Structure
+    ---------------
+    Asynchronous Queue in Data Structure.
 
-    def __init__(self, uid: int):
-        mbr_data: dict = checkin_member(uid)
-        if "MAX-STAT" in mbr_data:
-            stat: dict = convert_rpg_substat(mbr_data["MAX-STAT"], return_value= True)
-            self.HP = stat["HP"]
-            self.DEF = stat["DEF"]
-            self.SPD = stat["SPD"]
-            self.MIN_ATT = stat["MIN-ATT"]
-            self.MAX_ATT = stat["MAX-ATT"]
-            self.CRIT_CHANCE = stat["CRIT"]
+    This Class only for Sending the Image that has been made by Image Generator.
+    The Script is Reuseable.
 
-    def attack(self, target):
-        """
-        
-        Parameters
-        ---------
-        target (Duelist) : Target Attack
+    """
 
-        Returns
-        -------
-        (int) : Damage Dealt Information
-        
-        """
-        att_multi = 1.2
-        def_multi = 1
-        spd_luck = random.randint(1, 100)
-        if random.randint(1, 100) <= self.CRIT_CHANCE:
-            att_multi += 0.8
-        if spd_luck <= target.SPD:
-            att_multi -= 1
-        if spd_luck <= target.SPD // 3:
-            att_multi = 0
-        damage = math.ceil(random.randint(self.MIN_ATT, self.MAX_ATT) * att_multi * 100 / (100 + (target.DEF * def_multi)))
-        target.HP -= damage
-        return damage
+    # Attribute
+    entry: dict = {}
+
+    # Methods
+    def pop(self) -> dict:
+        pass
+
+    def push(self, data: dict):
+        pass

@@ -63,10 +63,13 @@ new_member_data: dict = {
     }
 }
 start_rpg: dict = {
-    "CHAR": "Neutral Warrior",
+    "CHARID": 1,
+    "CLASSID": 1,
     "TRP": 0,
     "LVL": 0,
     "EXP": 0,
+    "win-count": 0,
+    "lost-count": 0,
     "skill-point": 0,
     "equip": {},
     "MAX-ITEM-HOLD": 10,
@@ -75,38 +78,11 @@ start_rpg: dict = {
         "STR": 0,
         "END": 0,
         "AGI": 0,
-        "FOC": 0
+        "FOC": 0,
+        "ITE": 0,
+        "WIS": 0
     },
-    "MAX-STAT": {
-        "HP": 10000,
-        "DEF": 10000,
-        "SPD": 10000,
-        "ATT": 10000,
-        "CRIT": 10000
-    }
-}
-
-rpg_lvl_data: dict = {
-    "STR": {
-        "lvl1": 280,
-        "dec": 5,
-        "eff": "ATT"
-    },
-    "END": {
-        "lvl1": 350,
-        "dec": 8,
-        "eff": "HP"
-    },
-    "AGI": {
-        "lvl1": 800,
-        "dec": 12,
-        "eff": "SPD"
-    },
-    "FOC": {
-        "lvl1": 1000,
-        "dec": 25,
-        "eff": "CRIT"
-    }
+    "moves": {}
 }
 
 # Pickaxe Identity
@@ -131,14 +107,13 @@ pickaxe_identity: dict = {
             "Meteorite": 5
         }
     },
-
     1: {
         "requirement": {
-            "Copper": 15,
-            "Lead": 10,
-            "Tin": 8,
+            "Copper": 12,
+            "Lead": 8,
+            "Tin": 6,
             "Iron": 3,
-            "Cobalt": 2,
+            "Cobalt": 1,
             "Silver": 1
         },
         "balance": {
@@ -159,15 +134,14 @@ pickaxe_identity: dict = {
             "Meteorite": 6
         }
     },
-
     2: {
         "requirement": {
             "Copper": 12,
-            "Lead": 30,
-            "Coal": 20,
-            "Iron": 10,
-            "Silver": 3,
-            "Quartz": 5
+            "Lead": 25,
+            "Coal": 12,
+            "Iron": 5,
+            "Silver": 5,
+            "Quartz": 2
         },
         "balance": {
             "Copper": 3500,
@@ -187,15 +161,14 @@ pickaxe_identity: dict = {
             "Meteorite": 8
         }
     },
-
     3: {
         "requirement": {
-            "Copper" : 29,
-            "Lead": 12,
-            "Tin": 35,
-            "Iron": 15,
-            "Quartz": 10,
-            "Gold": 2
+            "Copper" : 25,
+            "Lead": 15,
+            "Tin": 20,
+            "Iron": 12,
+            "Quartz": 6,
+            "Gold": 3
         },
         "balance": {
             "Copper": 3750,
@@ -215,55 +188,86 @@ pickaxe_identity: dict = {
             "Meteorite": 10
         }
     },
-
     4: {
-        "requirement": None
+        "requirement": {
+            "Copper": 50,
+            "Tin": 10,
+            "Iron": 10,
+            "Quartz": 5,
+            "Gold": 5,
+            "Titanium": 1
+        },
+        "balance": {
+            "Copper": 4000,
+            "Lead": 2500,
+            "Tin": 2000,
+            "Coal": 1200,
+            "Iron": 1000,
+            "Cobalt": 550,
+            "Quartz": 500,
+            "Silver": 350,
+            "Gold": 250,
+            "Sapphire": 150,
+            "Ruby": 150,
+            "Diamond": 60,
+            "Emerald": 40,
+            "Titanium": 30,
+            "Meteorite": 12
+        }
+    },
+    5: {
+        "requirement": None,
+        "balance": {
+            "Copper": 4000,
+            "Lead": 2500,
+            "Tin": 2000,
+            "Coal": 1200,
+            "Iron": 1000,
+            "Cobalt": 550,
+            "Quartz": 500,
+            "Silver": 350,
+            "Gold": 250,
+            "Sapphire": 150,
+            "Ruby": 150,
+            "Diamond": 60,
+            "Emerald": 40,
+            "Titanium": 30,
+            "Meteorite": 12
+        }
     }
 }
 
 # Words
 words: dict = {
-    "country":
+    "Country":
     [
-        'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 
-        'Antigua', 'Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 
-        'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 
-        'Bosnia', 'Herzegovina', 'Botswana', 'Brazil', 'Brunei Darussalam', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 
-        'Cambodia', 'Cameroon', 'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 
-        'Colombia', 'Comoros', 'Congo', 'Cook Islands', 'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czechia', "Cote d'Ivoire",
-        'Congo', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt', 
-        'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 
-        'Eswatini', 'Ethiopia', 'Faroe Islands', 'Fiji', 'Finland', 'France', 'Gabon', 
-        'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea Bissau', 'Guyana', 'Haiti', 
-        'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 
-        'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Kuwait', 'Kyrgyzstan', 
-        "Laos", 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Lithuania', 'Luxembourg', 
-        'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 
-        'Mauritius', 'Mexico', 'Micronesia', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 
-        'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'Niue', 
-        'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Panama', 'Papua New Guinea', 
-        'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Qatar', 'South Korea', 'North Korea', 'Moldova', 'Romania', 
-        'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Samoa', 'San Marino', 
-        'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 
-        'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 
-        'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria', 'Tajikistan', 'Thailand', 
-        'Timor-Leste', 'Togo', 'Tokelau ', 'Tonga', 'Trinidad', 'Tobago', 'Tunisia', 'Turkey', 
-        'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'Great Britain', 
-        'Tanzania', 'United States America', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Venezuela', 'VietNam', 'Yemen', 'Zambia'
+        'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua', 'Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 
+        'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia', 'Herzegovina', 'Botswana', 'Brazil', 'Brunei Darussalam', 
+        'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia', 'Cameroon', 'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 
+        'Comoros', 'Congo', 'Cook Islands', 'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czechia', "Cote d'Ivoire",'Congo', 'Denmark', 'Djibouti', 'Dominica', 
+        'Dominican Republic', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 'Faroe Islands', 'Fiji', 
+        'Finland', 'France', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea Bissau', 'Guyana', 'Haiti', 
+        'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 
+        'Kiribati', 'Kuwait', 'Kyrgyzstan', "Laos", 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi', 'Malaysia', 
+        'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 
+        'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'Niue', 'North Macedonia', 'Norway', 'Oman', 'Pakistan', 
+        'Palau', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Qatar', 'South Korea', 'North Korea', 'Moldova', 'Romania', 
+        'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Samoa', 'San Marino', 'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 
+        'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria', 
+        'Tajikistan', 'Thailand', 'Timor-Leste', 'Togo', 'Tokelau ', 'Tonga', 'Trinidad', 'Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 
+        'United Arab Emirates', 'United Kingdom', 'Great Britain', 'Tanzania', 'United States America', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Venezuela', 'VietNam', 'Yemen', 
+        'Zambia'
     ],
-    "fruit":
+    "Fruit":
     [
-        'Apple', 'Apricots', 'Avocado', 'Banana', 'Blackberries', 'Blackcurrant', 'Blueberries', 
-        'Breadfruit', 'Cantaloupe', 'Carambola', 'Cherimoya', 'Cherries', 'Clementine', 
-        'Coconut', 'Cranberries', 'Custard Apple', 'Date Fruit', 'Dragonfruit', 'Durian', 'Elderberries', 
-        'Feijoa', 'Figs', 'Gooseberries', 'Grapefruit', 'Grapes', 'Guava', 'Honeydew Melon', 'Jackfruit', 'Java Plum', 
-        'Jujube Fruit', 'Kiwifruit', 'Kumquat', 'Lemon', 'Lime', 'Longan', 'Loquat', 'Lychee', 
-        'Mandarin', 'Mango', 'Mangosteen', 'Mulberries', 'Nectarine', 'Olives', 'Orange', 'Papaya', 'Passion Fruit', 
-        'Peaches', 'Pear', 'Pineapple', 'Pitanga', 'Plantain', 'Plums', 'Pomegranate', 'Prickly Pear', 
-        'Prunes', 'Pummelo', 'Quince', 'Raspberries', 'Rhubarb', 'Rose Apple', 'Sapodilla', 'Sapote Mamey', 
-        'Soursop', 'Strawberries', 'Sugar Apple', 'Tamarind', 'Tangerine', 'Watermelon'
+        'Apple', 'Apricots', 'Avocado', 'Banana', 'Blackberries', 'Blackcurrant', 'Blueberries', 'Breadfruit', 'Cantaloupe', 'Carambola', 'Cherimoya', 
+        'Cherries', 'Clementine', 'Coconut', 'Cranberries', 'Custard Apple', 'Date Fruit', 'Dragonfruit', 'Durian', 'Elderberries', 'Feijoa', 'Figs', 
+        'Gooseberries', 'Grapefruit', 'Grapes', 'Guava', 'Honeydew Melon', 'Jackfruit', 'Java Plum', 'Jujube Fruit', 'Kiwifruit', 'Kumquat', 'Lemon', 
+        'Lime', 'Longan', 'Loquat', 'Lychee', 'Mandarin', 'Mango', 'Mangosteen', 'Mulberries', 'Nectarine', 'Olives', 'Orange', 'Papaya', 'Passion Fruit', 
+        'Peaches', 'Pear', 'Pineapple', 'Pitanga', 'Plantain', 'Plums', 'Pomegranate', 'Prickly Pear', 'Prunes', 'Pummelo', 'Quince', 'Raspberries', 
+        'Rhubarb', 'Rose Apple', 'Sapodilla', 'Sapote Mamey', 'Soursop', 'Strawberries', 'Sugar Apple', 'Tamarind', 'Tangerine', 'Watermelon'
     ],
-    'animal':
+    'Animal':
     [
         'Albatross', 'Alligator', 'Arctic-Wolf', 'Badger', 'Bat', 'Bear', 'Bee', 'Blue-whale', 'Camel', 'Cat', 'Chicken', 'Chimpanzee', 'Cow', 
         'Coyote', 'Crab', 'Crocodile', 'Crow', 'Deer', 'Dog', 'Dolphin', 'Dove', 'Ducks', 'Eagle', 'Elephant', 'Elk', 'Fish', 'Flamingo', 'Fox', 
@@ -273,20 +277,24 @@ words: dict = {
         'Sheep', 'Shrimp', 'Snake', 'Sparrow', 'Squirrel', 'Starfish', 'Stork', 'Swallow', 'Swan', 'Tiger', 'Toad', 'Turkey', 'Turtle', 'Vulture', 
         'Walrus', 'Woodpecker'
     ],
-    'videogame':
+    'Videogame':
     [
         'Assassins Creed', 'Asteroids', 'BioShock', 'Bloodborne', 'Brawl Stars', 'Brawlhalla', 'Call of Duty', 'Castlevania', 'Chrono Trigger', 'Civilization', 
         'Clash Royale', 'Clash of Clan', 'Cuphead', 'Dark Souls', 'Dead Space', 'Diablo', 'Donkey Kong', 'Doom', 'Dota', 'Double Dragon', 'Dungeon Master', 
         'Fallout', 'Final Fantasy', 'Fire Emblem', 'Fortnite', 'Forza Horizon', 'Gears of War', 'God of War', 'Gone Home', 'Grand Theft Auto', 'Grim Fandango', 
         'Guitar Hero', 'Half Life', 'Halo Combat Evolved', 'Hay Day', 'Journey', 'Kingdom Hearts', 'Last Day on Earth', 'League of Legends', 'Left Four Dead', 
-        'Legend of Zelda', 'Limbo', 'Mario Kart', 'Mass Effect', 'Mega Man', 'Metal Gear Solid', 'Minecraft', 'Monopoly', 'Mortal Combat', 'Myst', 'Oregon Trail', 
+        'Legend of Zelda', 'Limbo', 'Mario Kart', 'Mass Effect', 'Mega Man', 'Metal Gear Solid', 'Minecraft', 'Monopoly', 'Mortal Combat', 'Myst', 'The Oregon Trail', 
         'Overwatch', 'Pac Man', 'Paladin', 'Pokemon', 'Portal', 'Resident Evil', 'Rocket League', 'Secret of Mana', 'Shadow of the Colossus', 'Silent Hill', 'SimCity', 
         'Skyrim', 'Sonic the Hedgehog', 'Soulcalibur', 'Spelunky', 'StarCraft', 'Stardew Valley', 'Street Fighter', 'Super Mario Bros', 'Super Mario Odyssey', 
         'Super Metroid', 'Super Smash Bros', 'Tecmo Super Bowl', 'Tekken', 'Tetris', 'The Last of Us', 'The Sims', 'The Witcher', 'Timesplitters', 'Tomb Raider', 
-        'Twisted Metal', 'Uncharted', 'Undertale', 'Wii Sports', 'World of Warcraft'
+        'Twisted Metal', 'Uncharted', 'Undertale', 'Wii Sports', 'World of Warcraft', 'Geometry Dash', 'Piano Tiles', 'OSU', 'Ori and The Will of The Wisps', 'Contra',
+        'Ori and The Blind Forest', 'Team Fortress', 'Candy Crush Saga', 'Public Unknown Battlegrounds', 'Mortal Kombat', 'Life is Strange', 'Devil May Cry', 'Super Mario Maker',
+        'The Outer Worlds', 'Death Stranding', 'Apex Legends', 'Bomberman', 'Street Fighter', 'Dynasty Warriors', 'Angry Birds', 'Gran Turismo', 'Pong', 'Red Dead Redemption',
+        'Wolfenstein', 'StarCraft', 'Zork', 'Space Invaders', 'Counter Strike', 'Quake', ''
     ]
 }
 
+# Card Game Cards
 card_deck_dict: dict = {
     "spade":["A♤", "2♤", "3♤", "4♤", "5♤", "6♤", "7♤", "8♤", "9♤", "10♤", "J♤", "Q♤", "K♤"],
     "heart":["A♡", "2♡", "3♡", "4♡", "5♡", "6♡", "7♡", "8♡", "9♡", "10♡", "J♡", "Q♡", "K♡"],

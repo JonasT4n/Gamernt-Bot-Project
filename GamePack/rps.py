@@ -37,7 +37,8 @@ class RPS(commands.Cog):
     @staticmethod
     def check_choosen(person: discord.User):
         def inner_check(message: discord.Message):
-            if (int(message.content) > 0 or int(message.content) < 4) and person == message.author and isinstance(message.channel, discord.DMChannel):
+            if (int(message.content) > 0 or int(message.content) < 4) \
+                    and person == message.author and isinstance(message.channel, discord.DMChannel):
                 return True
             else:
                 return False
@@ -70,9 +71,10 @@ class RPS(commands.Cog):
                 try:
                     reply = await self.bot.wait_for(
                         event = 'message', 
-                        check = lambda message : True if message.channel == ctx.channel and message.author == against and (message.content.lower() == 'y' or message.content.lower() == 'n') else False, 
+                        check = lambda message : True if message.channel == ctx.channel and message.author == against 
+                                and (message.content.lower() == 'y' or message.content.lower() == 'n') else False, 
                         timeout = 30
-                    )
+                        )
                     await hm.delete()
                     if reply.content.lower() == 'n':
                         await reply.delete()
@@ -106,7 +108,8 @@ class RPS(commands.Cog):
 
             if replied.content == bot_choose:
                 winner = "It's a DRAW"
-            elif (replied.content == '1' and bot_choose == '2') or (replied.content == '2' and bot_choose == '3') or (replied.content == '3' and bot_choose == '1'):
+            elif (replied.content == '1' and bot_choose == '2') or (replied.content == '2' and bot_choose == '3') \
+                    or (replied.content == '3' and bot_choose == '1'):
                 winner = "You Win!"
             else:
                 winner = "Better Luck Next Time."
@@ -147,14 +150,15 @@ class RPS(commands.Cog):
                 event= 'message', 
                 check= self.check_choosen(p2), 
                 timeout= 30
-            )
+                )
             await spmsg.delete()
 
             # Check either Player 1 or Player 2 Win
             winner: str = ""
             if reply_p1.content == reply_p2.content:
                 winner = "It's a DRAW"
-            elif (reply_p1.content == '1' and reply_p2.content == '2') or (reply_p1.content == '2' and reply_p2.content == '3') or (reply_p1.content == '3' and reply_p2.content == '1'):
+            elif (reply_p1.content == '1' and reply_p2.content == '2') or (reply_p1.content == '2' and reply_p2.content == '3') \
+                    or (reply_p1.content == '3' and reply_p2.content == '1'):
                 winner = f"{p1.name}, You Win!"
             else:
                 winner = f"{p2.name}, You WIn!"

@@ -25,14 +25,14 @@ class Adventure(commands.Cog):
     async def _start_rpg(self, ctx: commands.Context):
         mbr_data: dict = checkin_member(ctx.author.id)
         if "MAX-STAT" in mbr_data:
-            await ctx.send(f"__**You have already start your character, type {get_prefix(ctx.guild.id)}stat to see your current progress.**__")
+            await ctx.send(f"__**{ctx.author.name}, You have already start your character, type {get_prefix(ctx.guild.id)}stat to see your current progress.**__")
         else:
             hm: discord.Message = await ctx.send("*Building your character, this might take a seconds.*")
             rpg_init(ctx.author.id)
             emb = discord.Embed(
                 title= f"👱‍♂️ Character has been Created",
                 description= f"Welcome {ctx.author.name}! Check your stat in {get_prefix(ctx.author.id)}stat",
-                colour= discord.Colour(WHITE)
+                colour= WHITE
                 )
             await hm.delete()
             await ctx.send(embed= emb)
@@ -63,22 +63,25 @@ class Adventure(commands.Cog):
                 if str(r.emoji) == "✅":
                     hm = await ctx.send("*Deleting your progress, Wait for a moment.*")
                     rpg_close(ctx.author.id)
-                    await ctx.send(embed= discord.Embed(title= f"⚰️ RIP | {ctx.author.name}", colour= discord.Colour(WHITE)))
+                    emb = discord.Embed(
+                        title= f"⚰️ RIP | {ctx.author.name}", 
+                        colour= WHITE
+                        )
+                    emb.set_image(url= "https://trello-attachments.s3.amazonaws.com/5ee1ce52bb089c7be29e6b4f/5efc6fe38c338f1f7b4799a8/ef81e5b6732bcdc5cd6eebe093486a31/Coffin_Dance_GIF.gif")
+                    await ctx.send(embed= emb)
                 else:
                     await ctx.send("*Aborted*")
             except asyncio.TimeoutError:
                 await hm.delete()
                 await ctx.send("*Request Timeout*")
         else:
-            await ctx.send(f"__**You haven't start your character, type {get_prefix(ctx.guild.id)}start to begin.**__")
+            await ctx.send(f"__**{ctx.author.name}, You haven't start your character, type {get_prefix(ctx.guild.id)}start to begin.**__")
 
     @commands.command(name= "adventure", aliases= ["adv"], pass_context= True)
     async def _adv(self, ctx: commands.Context):
         pass
 
     # Others
-
-    
 
 def setup(bot: commands.Bot):
     bot.add_cog(Adventure(bot))

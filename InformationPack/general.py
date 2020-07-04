@@ -5,12 +5,13 @@ from Settings.MyUtility import checkin_guild, checkin_member, get_prefix, set_pr
 from Settings.MongoManager import MongoManager
 
 WHITE = 0xfffffe
-current_version: str = "Version 2.0.3a"
+current_version: str = "Version 2.1.0a"
 
 class General(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.mdb = MongoManager(collection= "members")
         self.report = MongoManager(collection= "report")
 
     # Commands Area
@@ -49,84 +50,12 @@ class General(commands.Cog):
         """
         emb = discord.Embed(
             title= "📰 Breaking News!", 
-            description= open("./Help/news.txt", 'r').read(), 
+            description= open("./news.txt", 'r').read(), 
             colour= discord.Colour(WHITE)
             )
         emb.set_thumbnail(url= self.bot.user.avatar_url)
         emb.set_footer(text= f"{current_version}")
         await ctx.send(embed= emb)
-
-    @commands.command(name= "help", aliases= ['h'])
-    async def _help(self, ctx: commands.Context, *args):
-        """
-        
-        Custom Help Command.
-        
-        """
-        pref: str = get_prefix(ctx.guild.id)
-        emb = discord.Embed(
-            title= "📝 Help | Menu",
-            description= "Type prefix followed by one of these command. (To make this public in server instead, add space followed by 'public' next to command)\n"
-                f"Example Command : **{pref}ping**",
-            colour= discord.Colour(WHITE)
-            )
-        emb.add_field(
-            name= "General Commands :",
-            value= "`ping` - PING. PONG!\n"
-                "`about`|`a` - Bot information\n"
-                "`news` - What's new?\n"
-                "`help`|`h` - This help command\n"
-                "`prefix`|`pfix` - Change prefix\n"
-                "`feedback`|`fb` - Send message to creator\n"
-                "`settitle`|`st` - Change profile title\n"
-                "`prof`|`user` - User profile\n"
-                "`img`|`pict` - Search picture",
-            inline= False
-            )
-        emb.add_field(
-            name= "Fun and Game Commands :",
-            value= "`ask` - Ask me anything\n"
-                "`chance` - Your chance of\n"
-                "`choose` - Random chooser machine\n"
-                "`duel` - Duel simulation\n"
-                "`dice` - Roll the dice\n"
-                "`dig`|`mine` - Mining is fun\n"
-                "`hangman`|`hang` - Hangman game\n"
-                "`ows` - One Word Story game\n"
-                "`pool` - 8Pool says\n"
-                "`rps` - Rock Paper Scissor\n"
-                "`scramble`|`scr` - Guess scramble word\n"
-                "`slot` - Slot machine",
-            inline= False
-            )
-        emb.add_field(
-            name= "RPG Commands :",
-            value= "`start` - Getting started with RPG\n"
-                "`adventure`|`adv` - Virtual adventure\n"
-                "`battle` - Battle multiplayer\n"
-                "`buy` - Buy something in shop\n"
-                "`close` - Close your progress\n"
-                "`cur` - Manage server currency\n"
-                "`equip` - Managing equipment\n"
-                "`item` - Managing item\n"
-                "`inv` - Your inventory\n"
-                "`leaderboard`|`lb` - Leaderboard currency\n"
-                "`learn` - Learn any moves in server\n"
-                "`moves` - See your current moves\n"
-                "`shop` - Server shop and menu\n"
-                "`skilladd` - Upgrade your primary stat\n"
-                "`skillres` - Reset your skill point\n"
-                "`stat` - Your detail in RPG",
-            inline= False
-            )
-        emb.set_thumbnail(url= self.bot.user.avatar_url)
-        emb.set_footer(text= current_version)
-        if len(args) >= 1:
-            if args[0].lower == 'public':
-                await ctx.send(embed= emb)
-                return
-        await ctx.message.add_reaction("👍")
-        await ctx.author.send(embed= emb)
 
     @commands.command(aliases= ['pfix'])
     async def prefix(self, ctx: commands.Context, new_prefix: str):
@@ -152,15 +81,10 @@ class General(commands.Cog):
             emb.set_footer(text= f"Type {new_prefix}ping to Test it Out!")
             await ctx.send(embed= emb)
 
-    @commands.command(aliases= ['fb', 'report'])
-    async def feedback(self, ctx: commands.Context, *, args: str):
-        """
-        
-        Feedback, Report and Bug Glitch Information direct from User.
-        
-        """
-        self.report.UpdateObject(
-            {"_n": 0}, 
+    @commands.command(name= "feedback", aliases= ['fb', 'report'], pass_context= True)
+    async def _feedback(self, ctx: commands.Context, *, args: str):
+        """Feedback, Report and Bug Glitch Information direct from User."""
+        self.report.UpdateObject({"_n": 0}, 
             {"$push": { "report": {
                 "user": ctx.author.name,
                 "id": str(ctx.author.id),
@@ -200,6 +124,19 @@ class General(commands.Cog):
         emb.add_field(name="Member Count", value=f"{members}")
         emb.add_field(name="Shard Count", value=f"{self.bot.shard_count}")
         await ctx.send(embed = emb)
+
+    @commands.command(name= "clearbotdataindb", pass_context= True)
+    @commands.is_owner()
+    async def _clearbotdataindb(self, ctx: commands.Context):
+        count: int = 0
+        for i in self.mdb.FindObject({}):
+            member_id: int = int(i['member_id'])
+            a: discord.User = self.bot.get_user(member_id)
+            if a:
+                if a.bot is True:
+                    self.mdb.DeleteOneObject({'member_id': str(member_id)})
+                    count += 1
+        await ctx.send(f"Removed {count} Data(s).")
 
 def setup(bot: commands.Bot):
     bot.add_cog(General(bot))

@@ -3,7 +3,7 @@ import asyncio
 import random
 from discord.ext import commands
 from Settings.MongoManager import MongoManager
-from Settings.MyUtility import checkin_member
+from Settings.MyUtility import checkin_member, get_prefix
 from Settings.StaticData import pickaxe_identity
 
 WHITE = 0xfffffe
@@ -69,11 +69,12 @@ class Mine(commands.Cog):
                 description= f"Yay {person.name}, You have got __**{ore}**__!", 
                 colour= discord.Colour(WHITE)
                 )
+            emb.set_footer(text= f"Check {get_prefix(ctx.guild.id)}ore to see your collection.")
             await queing.edit(embed= emb)
             self.mongodbm.IncreaseItem({"member_id":str(person.id)}, {f"backpack.ores.{ore}":1}) # Save Data
 
-    @commands.command()
-    async def pickaxeup(self, ctx: commands.Context):
+    @commands.command(name= "pickaxeup", pass_context= True)
+    async def _pickaxeup(self, ctx: commands.Context):
         # Initialize Things
         able_upgrade: bool = True
         user_data: dict = checkin_member(ctx.author.id)
@@ -88,43 +89,49 @@ class Mine(commands.Cog):
             if sack_of_ores[list_required[i]] < requirement[list_required[i]]:
                 able_upgrade = False
             if i == len(list_required) - 1:
-                req_text += "{:.<12}{}/{}".format(list_required[i], sack_of_ores[list_required[i]], requirement[list_required[i]])
+                req_text += f"> `{list_required[i]}`: {sack_of_ores[list_required[i]]}/{requirement[list_required[i]]}"
             else:
-                req_text += "{:.<12}{}/{}\n".format(list_required[i], sack_of_ores[list_required[i]], requirement[list_required[i]])
+                req_text += f"> `{list_required[i]}`: {sack_of_ores[list_required[i]]}/{requirement[list_required[i]]}\n"
         req_text += "```"
 
         # Print Out Requirements and Confirmation
         emb = discord.Embed(
-            title=f"Upgrade to Level {pick_level + 1} ⛏️?", 
-            description=f"**Requirements** : \n{req_text}",
-            colour = discord.Colour(WHITE)
+            title= f"Upgrade to Level {pick_level + 1} ⛏️?", 
+            description= f"**Requirements** : \n{req_text}",
+            colour= discord.Colour(WHITE)
             )
-        
         if not able_upgrade:
             emb.set_footer(text= "Sorry, Not Enough Materials.")
             await ctx.send(embed= emb)
         else:
+            menus: list = ["✅", "❌"]
             emb.set_footer(text= "Will you Upgrade it? add ✅ to proceed or ❌ to abort")
             hm: discord.Message = await ctx.send(embed= emb)
-            await hm.add_reaction("✅")
-            await hm.add_reaction("❌")
+            for i in menus:
+                await hm.add_reaction(i)
             try:
                 r: discord.Reaction
                 u: discord.User
                 r, u = await self.bot.wait_for(
                     event = "reaction_add", 
-                    check = lambda reaction, user: True if (str(reaction.emoji) == "✅" or str(reaction.emoji) == "❌") and user == ctx.author else False, 
+                    check = lambda reaction, user: True if str(reaction.emoji) in menus and user == ctx.author else False, 
                     timeout = 30.0
                     )
                 if str(r.emoji) == "✅":
                     await hm.delete()
                     emb = discord.Embed(
-                        title=f"Your ⛏️ has been Upgraded to level {pick_level + 1}", 
-                        description=f"See the Stat in g.inv",
-                        colour = discord.Colour(WHITE)
+                        title= f"Your ⛏️ has been Upgraded to level {pick_level + 1}", 
+                        description= f"See the Stat in g.inv",
+                        colour= discord.Colour(WHITE)
                         )
                     await ctx.send(embed = emb)
-                    self.mongodbm.IncreaseItem({"member_id": str(ctx.author.id)}, {"backpack.pickaxe-level": 1})
+                    self.mongodbm.IncreaseItem({"member_id": str(ctx.author.id)}, {
+                        "backpack.pickaxe-level": 1,
+                        })
+                    for ore in requirement:
+                        self.mongodbm.IncreaseItem({"member_id": str(ctx.author.id)}, {
+                            f"backpack.ores.{ore}": -requirement[ore],
+                            })
                 else:
                     emb.set_footer(text="Ok, Next Time!")
                     await hm.edit(embed = emb)

@@ -24,18 +24,19 @@ class Dice(commands.Cog):
         if amount <= 0 or dots <= 0 or amount > 100 or dots > 100:
             await dice_help(ctx.channel)
         else:
-            ld: list = [random.randint(1, dots) for i in range(amount)]
-            desc: str = "```"
-            for i in ld:
-                desc += f"{i} "
-            desc += "```"
-            emb = discord.Embed(
-                title= "🎲 Dice Rolled", 
-                description= f"{desc}\nSum of all Dice : **{sum(ld)}**", 
-                colour= discord.Colour(WHITE)
-                )
-            emb.set_footer(text= f"{amount} Dices, {dots} Faces")
-            await ctx.send(embed = emb)
+            async with ctx.typing():
+                ld: list = [random.randint(1, dots) for i in range(amount)]
+                desc: str = "```"
+                for i in ld:
+                    desc += f"{i} "
+                desc += "```"
+                emb = discord.Embed(
+                    title= "🎲 Dice Rolled", 
+                    description= f"{desc}\nSum of all Dice : **{sum(ld)}**", 
+                    colour= discord.Colour(WHITE)
+                    )
+                emb.set_footer(text= f"{amount} Dices, {dots} Faces")
+            await ctx.send(embed= emb)
 
     # Others
 

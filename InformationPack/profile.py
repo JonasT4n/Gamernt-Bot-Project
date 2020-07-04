@@ -1,5 +1,6 @@
 import discord
 import os
+import datetime
 import asyncio
 from discord.ext import commands
 from Settings.MyUtility import checkin_member
@@ -31,6 +32,14 @@ class Profile(commands.Cog):
 
     @commands.command(name= "profile", aliases= ["prof", "user"], pass_context= True)
     async def _profile(self, ctx: commands.Context, *args):
+        # Inner Function
+        def get_age(start: datetime.datetime, end: datetime.datetime) -> str:
+            days = (end - start).days
+            years = days // 365
+            months = (days - (years * 365)) // 30
+            days = days - (years * 365) - (months * 30)
+            return f"{years}Y {months}M {days}D"
+
         # Get Player ID
         person: discord.User
         if len(args) == 0:
@@ -44,27 +53,37 @@ class Profile(commands.Cog):
             return
 
         # Print Out Profile Information
-        user_title: str = checkin_member(person.id)["title"]
-        roles: list = [role for role in ctx.guild.roles if role in ctx.author.roles]
-        role_desc: str = " ".join([f"`{rm.name}`" for rm in roles])
-        emb = discord.Embed(
-            title = f"📜 Profile | {ctx.author.nick if ctx.author.nick is not None else person.name}", 
-            description = f"""> Title: __**{user_title}**__
-                        > Name: **{person.display_name}**
-                        > ID: `{person.id}`
-                        > Current Activity: `{ctx.author.activity}`\n
-                        > Created At: `{person.created_at.strftime("%B %d %Y")}`
-                        > Joined Server: `{person.joined_at.strftime("%B %d %Y")}`
-                        > Highest Role: `{person.top_role}`""",
-            colour = discord.Colour(WHITE)
-            )
-        emb.add_field(
-            name= "Roles :",
-            value= role_desc,
-            inline= False
-            )
-        emb.set_thumbnail(url=person.avatar_url)
-        await ctx.send(embed = emb)
+        async with ctx.typing():
+            user_title: str = checkin_member(person.id)["title"]
+            roles: list = [role for role in ctx.guild.roles if role in ctx.author.roles]
+            role_desc: str = " ".join([f"`{rm.name}`" for rm in roles])
+            emb = discord.Embed(
+                title = f"📜 Profile | {person.name}", 
+                colour = discord.Colour(WHITE)
+                )
+            emb.add_field(
+                name= "Identity :",
+                value= f"Title: __**{user_title}**__\n"
+                    f"Nick: **{ctx.author.nick if ctx.author.nick is not None else person.name}**\n"
+                    f"ID: `{person.id}`",
+                inline= False
+                )
+            emb.add_field(
+                name= "Information :",
+                value= f"Current Activity: `{ctx.author.activity}`\n"
+                    f"Created At: `{person.created_at.strftime('%B %d %Y')}`\n"
+                    f"Joined Server: `{person.joined_at.strftime('%B %d %Y')}`\n"
+                    f"Account Age: `{get_age(person.created_at, datetime.datetime.now())}`\n"
+                    f"Highest Role: `{person.top_role}`",
+                inline= False
+                )
+            emb.add_field(
+                name= "Roles :",
+                value= role_desc,
+                inline= False
+                )
+            emb.set_thumbnail(url= person.avatar_url)
+        await ctx.send(embed= emb)
 
     # Others
 

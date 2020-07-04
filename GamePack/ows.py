@@ -258,15 +258,16 @@ class OWS(commands.Cog):
             await channel.send(embed= e)
         else:
             try:
+                menus: list = ["⬅️", "➡️"]
                 hm: discord.Message = await channel.send(embed = emb_maker())
-                await hm.add_reaction("⬅️")
-                await hm.add_reaction("➡️")
+                for i in menus:
+                    await hm.add_reaction(i)
                 while True:
                     r: discord.Reaction
                     u: discord.User
                     r, u = await self.bot.wait_for(
                         event = "reaction_add",
-                        check = lambda reaction, user : True if user == person and (str(reaction.emoji) == "➡️" or str(reaction.emoji) == "⬅️") else False,
+                        check = lambda reaction, user : True if user == person and str(reaction.emoji) in menus else False,
                         timeout = 30.0
                     )
                     if str(r.emoji) == "➡️":

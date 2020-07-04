@@ -11,39 +11,23 @@ class Inventory(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    # Listener Area
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print("Inventory is Ready!")
-
-    # Checker Area
-
-    def user_check(self, person: discord.User):
-        def inner_check(message: discord.Message):
-            if person == message.author:
-                return True
-            else:
-                return False
-        return inner_check
-
     # Inventories
 
-    async def main_menu(self, message: discord.Message, person: discord.User) -> bool:
+    async def main_menu(self, message: discord.Message, person: discord.User):
         tud: dict = checkin_guild(message.guild.id)
         menu_emb = discord.Embed(
             title= f"{message.author.display_name}'s Inventory",
-            description= f"> 👛1. Money : {tud['member'][str(message.author.id)]['money']} {tud['currency']['type']}\n"
-                        "> ⛏️ 2. Ores \n"
-                        "> 🛡️ 3. Equipment\n"
-                        "> 🧳 4. Backpack Items",
+            description= f"👛 Money : {tud['member'][str(person.id)]['money']} {tud['currency']['type']}\n"
+                        "⛏️ Ores \n"
+                        "🛡️ Equipment\n"
+                        "🧳 Backpack Items\n"
+                        "🔙 Go Back to Menu",
             colour= discord.Colour(WHITE)
             )
-        menu_emb.set_footer(text= "Select by Number to see detail.")
-        await message.edit(embed= menu_emb)
-        return True
+        menu_emb.set_footer(text="Select Option Below to see the Detail")
+        await message.edit(embed=menu_emb)
 
-    async def ore_inventory(self, message: discord.Message, person: discord.User) -> bool:
+    async def ore_inventory(self, message: discord.Message, person: discord.User):
         """Only for Inventory."""
         # Get Member Data
         user_data: dict = checkin_member(person.id)
@@ -52,14 +36,13 @@ class Inventory(commands.Cog):
 
         # Get Detail Sack of Ores
         ore_keys: list = list(pickaxe_identity[pick_level]["balance"].keys())
-        description_bag: str = "```"
+        description_bag: str = ""
         for i in range(len(ore_keys)):
             ore_name: str = ore_keys[i]
             if i == len(ore_keys) - 1:
-                description_bag += "{:.<12}{} ({}%)".format(ore_name, user_sack[ore_name], pickaxe_identity[pick_level]["balance"][ore_name] / 100)
+                description_bag += f"`{ore_name}` : {user_sack[ore_name]} | **{pickaxe_identity[pick_level]['balance'][ore_name] / 100}%**"
             else:
-                description_bag += "{:.<12}{} ({}%)\n".format(ore_name, user_sack[ore_name], pickaxe_identity[pick_level]["balance"][ore_name] / 100)
-        description_bag += "```"
+                description_bag += f"`{ore_name}` : {user_sack[ore_name]} | **{pickaxe_identity[pick_level]['balance'][ore_name] / 100}%**\n"
 
         # Edit Menu with This Data Detail
         emb = discord.Embed(
@@ -69,51 +52,92 @@ class Inventory(commands.Cog):
             colour= discord.Colour(WHITE)
         )
         emb.set_thumbnail(url= "https://webstockreview.net/images/coal-clipart-bag-coal-6.png")
-        emb.set_footer(text= f"Press '0' to go back | You can upgrade your pickaxe by using {get_prefix(message.guild.id)}pickaxeup")
+        emb.set_footer(text= f"You can upgrade your pickaxe by using {get_prefix(message.guild.id)}pickaxeup")
         await message.edit(embed=emb)
-        return False
 
     async def equipment(self, message: discord.Message, person: discord.User):
-        return False
+        pass
 
     async def items(self, message: discord.Message, person: discord.User):
-        return False
+        pass
+
+    async def detail_money(self, message: discord.Message, person: discord.User):
+        gdata: dict = checkin_guild(message.guild.id)
+        emb = discord.Embed(
+            description= f"> 👛 Amount : {gdata['member'][str(person.id)]['money']} {gdata['currency']['type']}",
+            colour= discord.Colour(WHITE)
+            )
+        emb.set_author(
+            name= person.name,
+            icon_url= person.avatar_url,
+            )
+        await message.edit(embed= emb)
 
     # Commands Area
 
-    @commands.command(name= "inventory", aliases= ["inv"])
-    async def _inv(self, ctx: commands.Context, *args):
-        on_main_menu: bool = True
+    @commands.command(name= "inventory", aliases= ["inv"], pass_context= True)
+    async def _inv(self, ctx: commands.Context):
+        menus: list = ['👛', '⛏️', '🛡️', '🧳', '🔙']
+        state: str = '🔙'
         tud: dict = checkin_guild(ctx.guild.id)
         menu_emb = discord.Embed(
             title= f"{ctx.author.display_name}'s Inventory",
-            description= f"> 👛 1. Money : {tud['member'][str(ctx.author.id)]['money']} {tud['currency']['type']}\n"
-                        "> ⛏️ 2. Ores\n"
-                        "> 🛡️ 3. Equipment\n"
-                        "> 🧳 4. Backpack Items",
+            description= f"👛 Money : {tud['member'][str(ctx.author.id)]['money']} {tud['currency']['type']}\n"
+                        "⛏️ Sack of Ores\n"
+                        "🛡️ Equipped Equipments\n"
+                        "🧳 Backpack Items\n"
+                        "🔙 Go Back to Menu",
             colour= discord.Colour(WHITE)
             )
-        menu_emb.set_footer(text= "Select by Number to see detail.")
-        handler_message: discord.Message = await ctx.send(embed = menu_emb)
+        menu_emb.set_footer(text= "Select Option Below to see the Detail")
+        hm: discord.Message = await ctx.send(embed= menu_emb)
+        for i in menus:
+            await hm.add_reaction(i)
         try:
             while True:
-                answered: discord.Message = await self.bot.wait_for(event="message", check=self.user_check(ctx.author), timeout=30.0)
-                if answered.content == "2" and on_main_menu:
-                    await answered.delete()
-                    on_main_menu = await self.ore_inventory(handler_message, ctx.author)
-                elif answered.content == "0" and not on_main_menu:
-                    await answered.delete()
-                    on_main_menu = await self.main_menu(handler_message, ctx.author)
-                elif answered.content == "3" and on_main_menu:
-                    await answered.delete()
-                    on_main_menu = await self.equipment(handler_message, ctx.author)
-                elif answered.content == "4" and on_main_menu:
-                    await answered.delete()
-                    on_main_menu = await self.items(handler_message, ctx.author)
-                else:
-                    continue
+                r: discord.Reaction
+                u: discord.User
+                r, u = await self.bot.wait_for(
+                    event= "reaction_add", 
+                    check= lambda reaction, user: True if str(reaction.emoji) in menus and str(reaction.emoji) != state 
+                            and user == ctx.author else False, 
+                    timeout= 30.0
+                    )
+                # Detail Money
+                if str(r.emoji) == '👛':
+                    state = '👛'
+                    await self.detail_money(hm, ctx.author)
+                # Sack of Ores
+                elif str(r.emoji) == '⛏️':
+                    state = '⛏️'
+                    await self.ore_inventory(hm, ctx.author)
+                # Equipped Equipments
+                elif str(r.emoji) == '🛡️':
+                    state = '🛡️'
+                    await self.equipment(hm, ctx.author)
+                # Backpack Items
+                elif str(r.emoji) == '🧳':
+                    state = '🧳'
+                    await self.items(hm, ctx.author)
+                # Go Back to Main Menu
+                elif str(r.emoji) == '🔙':
+                    state = '🔙'
+                    await self.main_menu(hm, ctx.author)
+                await r.remove(u)
         except asyncio.TimeoutError:
             pass
+
+    @commands.command(name= "balance", aliases= ["bal"], pass_context= True)
+    async def _bal(self, ctx: commands.Context):
+        hm: discord.Message = await ctx.send(embed= discord.Embed(colour= discord.Colour(WHITE)))
+        async with ctx.typing():
+            await self.detail_money(hm, ctx.author)
+
+    @commands.command(name= "ores", aliases= ['ore'], pass_context= True)
+    async def _ore(self, ctx: commands.Context):
+        hm: discord.Message = await ctx.send(embed= discord.Embed(colour= discord.Colour(WHITE)))
+        async with ctx.typing():
+            await self.ore_inventory(hm, ctx.author)
 
     # Others
 

@@ -1,18 +1,16 @@
 import discord
+import asyncio
 from discord.ext import commands
 from Settings.MongoManager import MongoManager
 from Settings.MyUtility import checkin_guild
+
+WHITE = 0xfffffe
 
 class RPGManager(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
-    # Event Listener Area
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print("RPG Manager on Duty!")
+        self.mdb = MongoManager(collection= "members")
 
     # Commands Area
 
@@ -20,7 +18,7 @@ class RPGManager(commands.Cog):
     async def _item(self, ctx: commands.Context):
         pass
 
-    @commands.command(name= "create", pass_context= True)
+    @commands.command(name= "equip", pass_context= True)
     async def _equip(self, ctx: commands.Context):
         pass
 

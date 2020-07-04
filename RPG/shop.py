@@ -1,4 +1,5 @@
 import discord
+import asyncio
 from discord.ext import commands
 from Settings.MongoManager import MongoManager
 from Settings.MyUtility import checkin_guild, checkin_member

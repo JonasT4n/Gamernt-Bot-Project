@@ -1,0 +1,14 @@
+- Added Turnbase Hangman
+- Added Duration for Scramble Game before it starts
+- Balancing RPG Attributes
+- Added RPG Manual command (Temporary)
+- Fixed Bug and UI in Inventory Command
+- Improve Searching
+- Added Leaderboard Command, Check in help menu
+- Added Interesting Image for your current stat (Testing)
+- Added Battle Command (Only Normal Attack is Working and no effects)
+- Added Balance Command, Faster to see your Wallet
+- Bring Back Ore Command, Faster to see your Sack of Ore
+- Added Class Command, Change your current Class (Available : Warrior, Mage)
+- Added Nature Command, Change your current Nature (Available : Neutral, Aggresive)
+- Added Custom Word Prefix Game.

@@ -29,11 +29,11 @@ class SlotMachine(commands.Cog):
     async def slot_game(self, person: discord.User, channel: discord.TextChannel):
         # Initialize Slot Machine
         screen_emb: discord.Embed = discord.Embed(
-            title = "🎰 Slot Machine",
-            description = "> `X` `X` `X`",
-            colour = discord.Colour(WHITE)
+            title= "🎰 Slot Machine",
+            description= "> `X` `X` `X`",
+            colour= discord.Colour(WHITE)
             )
-        hm: discord.Message = await channel.send(embed = screen_emb)
+        hm: discord.Message = await channel.send(embed= screen_emb)
 
         # Animate Embed
         loop: int = 5 # Loop Embed Animation
