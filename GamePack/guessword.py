@@ -16,12 +16,6 @@ class GuessWord(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    # Listener Area
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print("Guess Word Games is all Ready!")
-
     # Command Area
 
     @commands.command(name= "scramble", aliases= ["scr"], pass_context= True)
@@ -194,6 +188,12 @@ class GuessWord(commands.Cog):
                     kword.append('_')
             return kword
 
+        def is_char(word: str):
+            w: list = len(word.split(' '))
+            if len(w) > 1:
+                return False
+            return True if len(w[0]) == 1 else False
+
         # Attribute
         hang_thumbnail: list = [
             "https://trello-attachments.s3.amazonaws.com/5ee1ce776c251b35623336e8/240x240/191e849e296dcd07972114b2facd43ad/Hangman_0.png",
@@ -211,31 +211,32 @@ class GuessWord(commands.Cog):
 
         # Gameplay
         emb = discord.Embed(
-            title= "웃 Hangman",
-            description= f"Category : **{category}**\n"
+            title="웃 Hangman",
+            description=f"Category : **{category}**\n"
                 f"`{''.join(hidden_answer)}`",
-            colour= WHITE
+            colour=WHITE
             )
         emb.add_field(
-            name= "List of unused word :",
-            value= f"> {'|'.join(alphabet)}",
-            inline= False
+            name="List of unused word :",
+            value=f"> {'|'.join(alphabet)}",
+            inline=False
             )
-        emb.set_thumbnail(url= hang_thumbnail[index])
-        emb.set_footer(text= "Send a single word until it revealed the answer")
+        emb.set_thumbnail(url=hang_thumbnail[index])
+        emb.set_footer(text="Send a single word until it revealed the answer")
         emb.set_author(
-            name= persons[0].name,
-            icon_url= persons[0].avatar_url
+            name=persons[0].name,
+            icon_url=persons[0].avatar_url
             )
-        hm: discord.Message = await channel.send(embed= emb)
+        hm: discord.Message = await channel.send(embed=emb)
         try:
             turn_index: int = 0
             turn: discord.User = persons[turn_index]
             while True:
                 reply: discord.Message = await self.bot.wait_for(
-                    event= "message",
-                    check= lambda message: True if message.channel == channel and message.author == turn and len(message.content.split(' ')[0]) == 1 else False,
-                    timeout= 30.0
+                    event="message",
+                    check=lambda message: True if message.channel == channel and message.author == turn 
+                        and is_char(message.content) else False,
+                    timeout=30.0
                     )
 
                 # Check Reply
@@ -254,37 +255,37 @@ class GuessWord(commands.Cog):
                 await reply.delete()
 
                 # Edit Current Hint
-                turn_index = 0 if turn_index + 1 >= len(persons) else turn_index + 1
+                turn_index = (turn_index+1) if turn_index < len(persons) - 1 else 0
                 emb = discord.Embed(
-                    title= "웃 Hangman",
-                    description= f"Category : **{category}**\n"
+                    title="웃 Hangman",
+                    description=f"Category : **{category}**\n"
                         f"`{''.join(hidden_answer)}`",
-                    colour= WHITE
+                    colour=WHITE
                     )
                 emb.add_field(
-                    name= "List of unused word :",
-                    value= f"> {'|'.join(alphabet)}",
-                    inline= False
+                    name="List of unused word :",
+                    value=f"> {'|'.join(alphabet)}",
+                    inline=False
                     )
                 emb.set_thumbnail(url= hang_thumbnail[index])
                 emb.set_author(
-                    name= persons[turn_index].name,
-                    icon_url= persons[turn_index].avatar_url
+                    name=persons[turn_index].name,
+                    icon_url=persons[turn_index].avatar_url
                     )
                 if ''.join(hidden_answer) == sw.upper():
-                    emb.set_footer(text= "You WIN! 👍")
-                    await hm.edit(embed= emb)
+                    emb.set_footer(text="You WIN! 👍")
+                    await hm.edit(embed=emb)
                     break
                 else:
                     if penalty is True:
                         if index == len(hang_thumbnail) - 1:
-                            emb.set_footer(text= "You Lose! 👎")
-                            await hm.edit(embed = emb)
+                            emb.set_footer(text="You Lose! 👎")
+                            await hm.edit(embed=emb)
                             break
-                        emb.set_footer(text= "Word not in the Secret Word")
+                        emb.set_footer(text="Word not in the Secret Word")
                     else:
-                        emb.set_footer(text= "Found one! Send more word")
-                    await hm.edit(embed= emb)
+                        emb.set_footer(text="Found one! Send more word")
+                    await hm.edit(embed=emb)
         except asyncio.TimeoutError:
             await hm.delete()
             await channel.send("*Game Timeout!*")
@@ -303,8 +304,8 @@ class GuessWord(commands.Cog):
                     "Unfortunate.",
                     "Come On, Men!"
                     ]
-                embed.set_footer(text= f"{random.choice(wrong)} | Last reply : {person_name}")
-                await question.edit(embed= embed)
+                embed.set_footer(text=f"{random.choice(wrong)} | Last reply : {person_name}")
+                await question.edit(embed=embed)
 
             def inner_check(message):
                 if message.channel == channel and message.content.lower() == answer.lower():
@@ -430,19 +431,19 @@ class GuessWord(commands.Cog):
             else:
                 desc += f"\n> {players[ppls].name} => *Not Send Yet*"
         emb = discord.Embed(
-            title= f"🧸 Word Prefix",
-            description= desc,
-            colour= WHITE
+            title=f"🧸 Word Prefix",
+            description=desc,
+            colour=WHITE
             )
         emb.set_footer(text= "Just send a single word message in this channel.")
-        hm: discord.Message = await channel.send(embed= emb)
+        hm: discord.Message = await channel.send(embed=emb)
 
         try:
             # Wait all Answer
             msg: discord.Message = await self.bot.wait_for(
-                event= "message",
-                check= check_reply(hm),
-                timeout= 30.0
+                event="message",
+                check=check_reply(hm),
+                timeout=30.0
                 )
             await hm.delete()
 
@@ -454,13 +455,12 @@ class GuessWord(commands.Cog):
                 else:
                     desc += f"> {guessed_player[res][0].name} => **{guessed_player[res][1]}**\n"
             emb = discord.Embed(
-                title= f"🧸 Word Prefix",
-                description= desc,
-                colour= WHITE
+                title=f"🧸 Word Prefix",
+                description=desc,
+                colour=WHITE
                 )
-            emb.set_footer(text= "All Player has given their word. Result!")
-            await hm.delete()
-            await channel.send(embed= emb)
+            emb.set_footer(text="All Player has given their word. Result!")
+            await channel.send(embed=emb)
         except asyncio.TimeoutError:
             # Result
             desc: str = f"Category: __{category}__ | Start With: **{_startwith}**\n"
@@ -476,12 +476,12 @@ class GuessWord(commands.Cog):
                 else:
                     desc += f"\n> {players[k].name} => *NULL*"
             emb = discord.Embed(
-                title= f"🧸 Word Prefix",
-                description= desc,
-                colour= WHITE
+                title=f"🧸 Word Prefix",
+                description=desc,
+                colour=WHITE
                 )
-            emb.set_footer(text= "Time is Up! Result!")
-            await hm.edit(embed= emb)
+            emb.set_footer(text="Time is Up! Result!")
+            await hm.edit(embed=emb)
 
 def setup(bot: commands.Bot):
     bot.add_cog(GuessWord(bot))
