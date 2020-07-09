@@ -1,29 +1,20 @@
 import discord
 import asyncio
 from discord.ext import commands
-from Settings.MongoManager import MongoManager
-from Settings.MyUtility import checkin_guild, checkin_member
+from Settings.MyUtility import checkin_guild, checkin_member, db_gld, db_mbr
 
 class Shop(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.gdb = MongoManager(collection= "guilds")
-        self.mdb = MongoManager(collection= "members")
-
-    # Event Listener Area
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print("Meta Shop is Ready!")
 
     # Commands Area
 
-    @commands.command(name= "shop", pass_context= True)
+    @commands.command(name="shop")
     async def _open_shop(self, ctx: commands.Context, *args):
         pass
 
-    @commands.command(name= "buy", pass_context= True)
+    @commands.command(name="buy")
     async def _buy(self, ctx: commands.Context, *args):
         pass
 

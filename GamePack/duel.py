@@ -3,7 +3,7 @@ import asyncio
 import random
 import discord
 from discord.ext import commands, tasks
-from Settings.MyUtility import get_prefix, checkin_member
+from Settings.MyUtility import get_prefix
 from RPGPackage.RPGCharacter import *
 
 WHITE = 0xfffffe
@@ -11,8 +11,7 @@ WHITE = 0xfffffe
 class Duel(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
-        self.bot = bot
-        self.empty_cooldown.start()
+        self.bot = bot    
 
     # Cooler Down
 
@@ -20,8 +19,6 @@ class Duel(commands.Cog):
 
     async def _battle_finish(self, ids: int):
         self.cooldown.remove(ids)
-
-    # Tasks Area
 
     @tasks.loop(minutes= 2)
     async def empty_cooldown(self):
@@ -33,6 +30,10 @@ class Duel(commands.Cog):
     # Event Listener Area
 
     @commands.Cog.listener()
+    async def on_ready(self):
+        self.empty_cooldown.start()
+
+    @commands.Cog.listener()
     async def on_disconnect(self):
         self.cooldown.clear()
         self.empty_cooldown.cancel()
@@ -41,11 +42,8 @@ class Duel(commands.Cog):
 
     async def fair_gameplay(self, channel: discord.TextChannel, p1: discord.User, p2: discord.User):
         # System Attribute
-        emb = discord.Embed(
-            title= "⚔️", 
-            colour= discord.Colour(WHITE)
-            )
-        hm: discord.Message = await channel.send(embed = emb)
+        emb = discord.Embed(title="⚔️", colour=WHITE)
+        hm: discord.Message = await channel.send(embed=emb)
         container_log: list = []
         c1, c2 = checkClassID(p1), checkClassID(p2)
         max_hp_p1, max_hp_p2 = c1.HP, c2.HP
@@ -75,46 +73,46 @@ class Duel(commands.Cog):
 
             # Sending an Information Duel
             emb = discord.Embed(
-                title = "⚔️ Duel | On the Ring", 
-                description = f"> **{p1.name}** ({c1.ClassName}) `HP: {c1.HP}/{c1.MAX_HP} | MN: {c1.MANA}/{c1.MAX_MANA}`\n"
+                title="⚔️ Duel | On the Ring", 
+                description=f"> **{p1.name}** ({c1.ClassName}) `HP: {c1.HP}/{c1.MAX_HP} | MN: {c1.MANA}/{c1.MAX_MANA}`\n"
                     f"> **{p2.name}** ({c2.ClassName}) `HP: {c2.HP}/{c2.MAX_HP} | MN: {c2.MANA}/{c2.MAX_MANA}`", 
-                colour = discord.Colour(WHITE)
+                colour=WHITE
                 )
             emb.add_field(
-                name = "Battle Log :", 
-                value = "\n".join(container_log), 
-                inline = False
+                name="Battle Log :", 
+                value="\n".join(container_log), 
+                inline=False
                 )
-            await hm.edit(embed = emb)
+            await hm.edit(embed=emb)
             await asyncio.sleep(1)
         
         # Duel final Result
         await asyncio.sleep(1)
         if c1.HP == 0:
             emb = discord.Embed(
-                title= "⚔️ Duel | Battle End", 
-                description= f"> **{p1.name}** : Died\n"
+                title="⚔️ Duel | Battle End", 
+                description=f"> **{p1.name}** : Died\n"
                     f"> **{p2.name}** : {c2.HP} HP left\n"
                     f"`🏆 Congratulation {p2.name}!`",
-                colour= discord.Colour(WHITE)
+                colour=WHITE
                 )
-            emb.set_thumbnail(url= p2.avatar_url)
+            emb.set_thumbnail(url=p2.avatar_url)
         else:
             emb = discord.Embed(
-                title= "⚔️ Duel | Battle End", 
-                description= f"> **{p1.name}**: {c1.HP} HP left\n"
+                title="⚔️ Duel | Battle End", 
+                description=f"> **{p1.name}**: {c1.HP} HP left\n"
                     f"> **{p2.name}**: Died\n"
                     f"`🏆 Congratulations {p1.name}!`", 
-                colour= discord.Colour(WHITE)
+                colour=WHITE
                 )
-            emb.set_thumbnail(url= p1.avatar_url)
-        emb.add_field(name= "Battle Log:", value="\n".join(container_log), inline = False)
-        await hm.edit(embed= emb)
+            emb.set_thumbnail(url=p1.avatar_url)
+        emb.add_field(name="Battle Log:", value="\n".join(container_log), inline = False)
+        await hm.edit(embed=emb)
         await self._battle_finish(channel.id)
 
     # Commands Area
         
-    @commands.command(name="duel", pass_context=True)
+    @commands.command(name="duel")
     async def _duel(self, ctx: commands.Context, *args):
         chnl: discord.TextChannel = ctx.channel
         if len(args) == 0:
@@ -189,33 +187,25 @@ class Duel(commands.Cog):
 
     @staticmethod
     async def print_help(channel: discord.TextChannel):
-        pref: str = get_prefix(channel.guild.id)
-        emb = discord.Embed(
-            title= "⚔️ Auto Fair Duel Fight", 
-            colour= discord.Colour(WHITE)
+        pref: str = get_prefix(channel.guild)
+        emb = discord.Embed(title="⚔️ Auto Fair Duel Fight", colour=WHITE)
+        emb.add_field(
+            name="Command :",
+            value=f"`{pref}duel <option>`",
+            inline=False
             )
         emb.add_field(
-            name= "Command :",
-            value= f"`{pref}duel <option>`",
-            inline= False
-            )
-        emb.add_field(
-            name= "Options :",
-            value= "`[name]` - Challange this person\n"
+            name="Options :",
+            value="`[name]` - Challange this person\n"
                 "`[@]` - Duel tagged person\n"
                 "`[@] [@]` - Duel between 2 tags\n"
                 "`-s`|`start` - Start fight you vs random person\n"
                 "`-r`|`random` - Random 2 person",
-            inline= False
+            inline=False
             )
-        emb.set_thumbnail(url= "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Crossed_swords.svg/512px-Crossed_swords.svg.png")
-        emb.set_footer(text= f"Example Command : {pref}duel @Gamern't Bot")
-        await channel.send(embed= emb)
-
-    # Unloader
-
-    def cog_unload(self):
-        self.empty_cooldown.cancel()
+        emb.set_thumbnail(url="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Crossed_swords.svg/512px-Crossed_swords.svg.png")
+        emb.set_footer(text=f"Example Command : {pref}duel @Gamern't Bot")
+        await channel.send(embed=emb)
 
 def setup(bot: commands.Bot):
     bot.add_cog(Duel(bot))

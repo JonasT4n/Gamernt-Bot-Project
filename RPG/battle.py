@@ -2,9 +2,8 @@ import discord
 import math
 import random
 import asyncio
-from discord.ext import commands
-from Settings.MongoManager import MongoManager
-from Settings.MyUtility import checkin_member, get_prefix, is_number
+from discord.ext import commands, tasks
+from Settings.MyUtility import checkin_member, checkin_guild, get_prefix, is_number, add_exp, add_money
 from RPGPackage.RPGCharacter import *
 
 WHITE = 0xfffffe
@@ -24,8 +23,6 @@ class Battle(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.mdb = MongoManager(collection="members")
-        self.gdb = MongoManager(collection="guilds")
 
     # Cooler Down
 
@@ -34,43 +31,58 @@ class Battle(commands.Cog):
     async def _cooling_down(self, ids: int):
         self.cooldown.remove(ids)
 
+    @tasks.loop(minutes=3)
+    async def _clear_cooldown(self):
+        if len(self.cooldown) == 0:
+            return
+        self.cooldown.clear()
+
+    # Event Listener Area
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self._clear_cooldown.start()
+
+    @commands.Cog.listener()
+    async def on_disconnect(self):
+        self._clear_cooldown.cancel()
+
     # Command Area
 
-    @commands.command(name= "battle", aliases= ['btl'], pass_context= True)
+    @commands.command(name="battle", aliases=['btl'])
     async def _battle(self, ctx: commands.Context, *args):
-        chnl: discord.TextChannel = ctx.channel
-        mbr_data: dict = checkin_member(ctx.author.id)
-        if "PRIM-STAT" in mbr_data:
-            if len(args) == 0:
-                await self.print_help(ctx.channel)
-            else:
-                if chnl.id in self.cooldown:
-                    hm: discord.Message = await ctx.send(f"*Battle in Progress in this Channel. ({chnl.name})*")
-                    await asyncio.sleep(3)
-                    await hm.delete()
-                    await ctx.message.delete()
+        mbr_data = checkin_member(ctx.author)
+        if mbr_data is not None:
+            if "PRIM-STAT" in mbr_data:
+                if len(args) == 0:
+                    await self.print_help(ctx.channel)
                 else:
-                    self.cooldown.append(chnl.id)
+                    if ctx.channel.id in self.cooldown:
+                        hm: discord.Message = await ctx.send(f"*Battle in Progress in this Channel. ({ctx.channel.name})*")
+                        await asyncio.sleep(3)
+                        await hm.delete()
+                        await ctx.message.delete()
+                    else:
+                        self.cooldown.append(ctx.channel.id)
 
-                    # 1 vs 1 Battle
-                    if args[0].lower() == "1v1":
-                        await self._queue(ctx, 2)
+                        # 1 vs 1 Battle
+                        if args[0].lower() == "1v1":
+                            await self._queue(ctx.channel, 2)
 
-                    # 2 vs 2 Battle
-                    elif args[0].lower() == "2v2":
-                        await self._queue(ctx, 4)
+                        # 2 vs 2 Battle
+                        elif args[0].lower() == "2v2":
+                            await self._queue(ctx.channel, 4)
 
-                    # 3 vs 3 Battle
-                    elif args[0].lower() == "3v3":
-                        await self._queue(ctx, 6)
-        else:
-            await ctx.send(f"__**{ctx.author.name}, You haven't start your character, type {get_prefix(ctx.guild.id)}start to begin.**__")
+                        # 3 vs 3 Battle
+                        elif args[0].lower() == "3v3":
+                            await self._queue(ctx.channel, 6)
+            else:
+                await ctx.send(f"__**{ctx.author.name}, You haven't start your character, type {get_prefix(ctx.guild.id)}start to begin.**__")
 
     # Queue
 
-    async def _queue(self, context: commands.Context, player_count: int):
+    async def _queue(self, channel: discord.TextChannel, player_count: int):
         # Send Hint
-        channel: discord.TextChannel = context.channel
         teams: list = ["🔴", "🔵"]
         async with channel.typing():
             team1, team2 = [], []
@@ -102,9 +114,9 @@ class Battle(commands.Cog):
                 r: discord.Reaction
                 u: discord.User
                 r, u = await self.bot.wait_for(
-                    event= "reaction_add",
-                    check= lambda reaction, user: True if str(reaction.emoji) in teams and user.bot is False else False,
-                    timeout= 60.0
+                    event="reaction_add",
+                    check=lambda reaction, user: True if str(reaction.emoji) in teams and user.bot is False else False,
+                    timeout=60.0
                     )
 
                 # On Join Check
@@ -152,35 +164,36 @@ class Battle(commands.Cog):
                     break
 
                 # Edit Hint Message
-                emb = discord.Embed(
-                    title= "⌛ Waiting for Other Player to Join...",
-                    description= f"{max_pcount}v{max_pcount} mode",
-                    colour= WHITE
-                    )
-                emb.add_field(
-                    name= "🔴 Red Team",
-                    value= "\n".join([f"> **{j.name}** ({j.ClassName})" for j in team1]) if len(team1) > 0 else "```Empty Room```",
-                    inline= False
-                    )
-                emb.add_field(
-                    name= "🔵 Blue Team",
-                    value= "\n".join([f"> **{j.name}** ({j.ClassName})" for j in team2]) if len(team2) > 0 else "```Empty Room```",
-                    inline= False
-                    )
-                emb.set_footer(text= footer_text)
-                await hm.edit(embed= emb)
+                async with channel.typing():
+                    emb = discord.Embed(
+                        title="⌛ Waiting for Other Player to Join...",
+                        description=f"{max_pcount}v{max_pcount} mode",
+                        colour=WHITE
+                        )
+                    emb.add_field(
+                        name="🔴 Red Team",
+                        value="\n".join([f"> **{j.name}** ({j.ClassName})" for j in team1]) if len(team1) > 0 else "```Empty Room```",
+                        inline=False
+                        )
+                    emb.add_field(
+                        name="🔵 Blue Team",
+                        value="\n".join([f"> **{j.name}** ({j.ClassName})" for j in team2]) if len(team2) > 0 else "```Empty Room```",
+                        inline=False
+                        )
+                    emb.set_footer(text=footer_text)
+                await hm.edit(embed=emb)
 
             # After it has been fulfiled, then let's Begin!
             await hm.delete()
-            await self._lets_battle(context, team1, team2)
+            await self._lets_battle(channel, team1, team2)
         except asyncio.TimeoutError:
-            await hm.delete(delay= 1)
+            await hm.delete(delay=1)
             await channel.send("*⚔️ Battle Canceled, Queue Timeout*")
             await self._cooling_down(channel.id)
 
     # Gameplay
 
-    async def _lets_battle(self, ctx: commands.Context, t1: list, t2: list):
+    async def _lets_battle(self, channel: discord.TextChannel, t1: list, t2: list):
         # Inner Functions
         def find_target(arg):
             if is_number(arg):
@@ -194,10 +207,7 @@ class Battle(commands.Cog):
                         return char_in[0]
 
         def make_emb():
-            emb = discord.Embed(
-                title="⚔️ Arena ⚔️",
-                colour=WHITE
-                )
+            emb = discord.Embed(title="⚔️ Arena ⚔️", colour=WHITE)
             emb.add_field(
                 name="🔴 Red Team",
                 value="\n".join([f"> {j + 1}. **{t1[j][0].name}** `HP: {t1[j][0].HP}/{t1[j][0].MAX_HP} | MANA: {t1[j][0].MANA}/{t1[j][0].MAX_MANA}`" for j in range(len(t1))]),
@@ -250,7 +260,7 @@ class Battle(commands.Cog):
         turns: list = []
         send_count: int = 0
         index: int = 0
-        async with ctx.typing():
+        async with channel.typing():
             # Initialize Turn
             for i in t1:
                 while index < len(turns):
@@ -272,7 +282,7 @@ class Battle(commands.Cog):
                 await k[0].person.send(embed=k[0].GetHint)
             t1 = [(turns[c1][0], c1, 1) for c1 in range(len(turns)) if turns[c1][1] == 1]
             t2 = [(turns[c2][0], c2, 2) for c2 in range(len(turns)) if turns[c2][1] == 2]
-            hm: discord.Message = await ctx.send(embed=make_emb())
+        hm: discord.Message = await channel.send(embed=make_emb())
 
         # Game ON!
         survivet1: int; survivet2: int; 
@@ -310,7 +320,7 @@ class Battle(commands.Cog):
                 else:
                     continue
 
-                async with ctx.typing():
+                async with channel.typing():
                     # Check Team Completion
                     survivet1 = 0; survivet2 = 0
                     for pt1 in t1:
@@ -328,7 +338,7 @@ class Battle(commands.Cog):
                     send_count = (send_count+1) if send_count < 2 else 0
                     if send_count == 0:
                         await hm.delete()
-                        hm = await ctx.send(embed=make_emb())
+                        hm = await channel.send(embed=make_emb())
                     else:
                         await hm.edit(embed=make_emb())
 
@@ -337,43 +347,78 @@ class Battle(commands.Cog):
                 for i in t2:
                     if i[0].MemberData is not None:
                         if "EXP" in i[0].MemberData:
-                            self.mdb.IncreaseItem({"member_id": str(i[0].id)}, {"EXP": RewardEXP})
-                            self.gdb.IncreaseItem({"guild_id": str(ctx.guild.id)}, {f"member.{str(i[0].id)}.money": RewardMoney})
+                            await add_exp(channel, i[0].person, RewardEXP)
+                            await add_money(channel.guild.id, i[0].person, RewardMoney)
+                for i in t1:
+                    if i[0].MemberData is not None:
+                        if "EXP" in i[0].MemberData:
+                            await add_exp(channel, i[0].person, RewardEXP - (RewardEXP * (80/100)))
+                            await add_money(channel.guild.id, i[0].person, RewardMoney - (RewardMoney * (80/100)))
+                emb = discord.Embed(
+                    title="🔵 Blue Team Wins!",
+                    description="\n".join([f"> {winner[0].name}" for winner in t2]),
+                    colour=WHITE
+                    )
+                emb.add_field(
+                    name="Reward :",
+                    value=f"EXP: {RewardEXP} | Money: {RewardMoney} {checkin_guild(channel.guild.id)['currency']['type']}",
+                    inline=False
+                    )
+                await channel.send(embed=emb)
             else:
                 for i in t1:
                     if i[0].MemberData is not None:
                         if "EXP" in i[0].MemberData:
-                            self.mdb.IncreaseItem({"member_id": str(i[0].id)}, {"EXP": RewardEXP})
-                            self.gdb.IncreaseItem({"guild_id": str(ctx.guild.id)}, {f"member.{str(i[0].id)}.money": RewardMoney})
+                            await add_exp(channel, i[0].person, RewardEXP)
+                            await add_money(channel.guild.id, i[0].person, RewardMoney)
+                for i in t2:
+                    if i[0].MemberData is not None:
+                        if "EXP" in i[0].MemberData:
+                            await add_exp(channel, i[0].person, RewardEXP - (RewardEXP * (80/100)))
+                            await add_money(channel.guild.id, i[0].person, RewardMoney - (RewardMoney * (80/100)))
+                emb = discord.Embed(
+                    title="🔴 Red Team Wins!",
+                    description="\n".join([f"> {winner[0].name}" for winner in t1]),
+                    colour=WHITE
+                    )
+                emb.add_field(
+                    name="Reward :",
+                    value=f"EXP: {RewardEXP} | Money: {RewardMoney} {checkin_guild(channel.guild.id)['currency']['type']}",
+                    inline=False
+                    )
+                await channel.send(embed=emb)
+
+            await self._cooling_down(channel.channel.id)
 
         except asyncio.TimeoutError:
             await hm.delete(delay=1)
-            await ctx.send(f"*Gameplay turn Timeout! {turns[index][0].name}, where have you been?*")
+            await channel.send(f"*Gameplay turn Timeout! {turns[index][0].name}, where have you been?*")
+            await self._cooling_down(channel.channel.id)
 
     # Others
 
     @staticmethod
     async def print_help(channel: discord.TextChannel):
-        pref: str = get_prefix(channel.guild.id)
+        pref: str = get_prefix(channel.guild)
         emb = discord.Embed(
-            title= "⚔️ Battlefield | Help",
-            description= f"A Turnbase RPG game, you will pay it manually, don't forget to {pref}.start to start your progress.",
-            colour= discord.Colour(WHITE)
+            title="⚔️ Battlefield | Help",
+            description=f"A Turnbase RPG game, you will pay it manually, don't forget to {pref}.start to start your progress.",
+            colour=WHITE
             )
         emb.add_field(
-            name= "Command :",
-            value= f"{pref}.battle <mode>",
-            inline= False
+            name="Command :",
+            value=f"{pref}.battle <mode>",
+            inline=False
             )
         emb.add_field(
-            name= "Mode :",
-            value= "`1v1` - 1 vs 1 Player\n"
+            name="Mode :",
+            value="`1v1` - 1 vs 1 Player\n"
                 "`2v2` - 2 vs 2 Player\n"
                 "`3v3` - 3 vs 3 Player",
-            inline= False
+            inline=False
             )
-        emb.set_footer(text= f"Example Command : {pref}.battle 1v1")
-        await channel.send(embed= emb)
+        emb.set_footer(text=f"Example Command : {pref}.battle 1v1")
+        await channel.send(embed=emb)
         
 def setup(bot: commands.Bot):
     bot.add_cog(Battle(bot))

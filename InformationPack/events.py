@@ -4,8 +4,7 @@ import shutil
 import random
 from itertools import cycle
 from discord.ext import commands, tasks
-from Settings.MongoManager import MongoManager
-from Settings.MyUtility import get_prefix, checkin_member, checkin_guild
+from Settings.MyUtility import get_prefix, checkin_member, checkin_guild, db_gld, db_mbr
 
 WHITE = 0xfffffe
 STATUS = cycle(["Tag Me for Prefix", "Not Game"])
@@ -14,14 +13,12 @@ class Events(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.guild_col = MongoManager(collection= "guilds")
-        self.member_col = MongoManager(collection= "members")
 
     # Task Section
 
     @tasks.loop(seconds= 3)
     async def change_status(self):
-        await self.bot.change_presence(activity= discord.Game(name= next(STATUS)))
+        await self.bot.change_presence(activity=discord.Game(name=next(STATUS)))
 
     @tasks.loop(hours= 3)
     async def clean_picture_cache(self):
@@ -37,6 +34,7 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        print("BOT IS READY!")
         self.change_status.start()
 
     @commands.Cog.listener()
@@ -46,14 +44,14 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         """Built-in Event Message."""
+        # Get Prefix by tagging Bot
         if not isinstance(message.channel, discord.DMChannel):
-            # Get Prefix by tagging Bot
-            pref: str = get_prefix(message.guild.id)
+            pref: str = get_prefix(message.guild)
             if str(self.bot.user.id) in message.content:
                 emb = discord.Embed(
-                    title= f"Your Server Prefix is {pref}\n"
-                        f"type {pref}help for commands.", 
-                    color= discord.Color(WHITE)
+                    description=f"Your Server Prefix is **{pref}**\n"
+                        f"type **{pref}**help for commands.", 
+                    color=WHITE
                     )
                 await message.channel.send(embed=emb)
 

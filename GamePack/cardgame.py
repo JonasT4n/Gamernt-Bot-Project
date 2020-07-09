@@ -13,12 +13,6 @@ class Cards(commands.Cog):
     def __init__(self, bot:commands.Bot):
         self.bot = bot
 
-    # Listener Area
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print("Card Game Ready!")
-
     # Checker Area
 
     @staticmethod
@@ -73,7 +67,7 @@ class Cards(commands.Cog):
 
     # Command Area
 
-    @commands.command(name= "blackjack", pass_context= True)
+    @commands.command(name="blackjack")
     async def _blackjack(self, ctx: commands.Context, *args):
         if len(args) == 0:
             await self.blackjack_help(ctx.channel)
@@ -123,21 +117,21 @@ class Cards(commands.Cog):
 
         desc: str = f"{self.bot.user.name} | __*Sum : Unk*__\n```{bot_hand[0]} XX```\n{player.name} | __*Sum : {str(sum(player_current))}*__\n{description_maker(player_hand)}"
         board_embed: discord.Embed = discord.Embed(
-            title= "🂡 Blackjack | VS Bot",
-            description= desc,
-            colour= discord.Colour(WHITE)
+            title="🂡 Blackjack | VS Bot",
+            description=desc,
+            colour=WHITE
             )
         board_embed.set_footer(text= "Send 'DRAW' or 'SET'")
-        handler_msg: discord.Message = await channel.send(embed= board_embed)
+        handler_msg: discord.Message = await channel.send(embed=board_embed)
 
         # On Play
         try:
             menus: list = ["DRAW", "draw", "SET", "set"]
             while sum(player_current) <= 21:
                 replied: discord.Message = await self.bot.wait_for(
-                    event= "message",
-                    check= lambda message: True if message.content in menus and player == message.author else False,
-                    timeout= 30.0
+                    event="message",
+                    check=lambda message: True if message.content in menus and player == message.author else False,
+                    timeout=30.0
                     )
                 if replied.content.lower() == "draw":
                     get_card: str = random.choice(current_deck)
@@ -148,13 +142,13 @@ class Cards(commands.Cog):
                     player_current = self.card_to_int("blackjack", player_hand)
                     desc: str = f"{self.bot.user.name} | __*Sum : Unk*__\n```{bot_hand[0]} XX```\n{player.name} | __*Sum : {str(sum(player_current))}*__\n{description_maker(player_hand)}"
                     board_embed: discord.Embed = discord.Embed(
-                        title= "🂡 Blackjack | VS Bot",
-                        description= desc,
-                        colour= discord.Colour(WHITE)
+                        title="🂡 Blackjack | VS Bot",
+                        description=desc,
+                        colour=WHITE
                         )
-                    board_embed.set_footer(text = "Send 'DRAW' or 'SET'")
+                    board_embed.set_footer(text="Send 'DRAW' or 'SET'")
                     await replied.delete()
-                    await handler_msg.edit(embed = board_embed)
+                    await handler_msg.edit(embed=board_embed)
 
                 elif replied.content.lower() == "set":
                     await replied.delete()
@@ -164,26 +158,26 @@ class Cards(commands.Cog):
             player_win: bool = compare_current(bot_hand, player_hand)
             desc: str = f"{self.bot.user.name} | __*Sum : {str(sum(bot_current))}*__\n{description_maker(bot_hand)}\n{player.name} | __*Sum : {str(sum(player_current))}*__\n{description_maker(player_hand)}"
             board_embed: discord.Embed = discord.Embed(
-                title= "🂡 Blackjack | VS Bot",
-                description= desc,
-                colour= discord.Colour(WHITE)
+                title="🂡 Blackjack | VS Bot",
+                description=desc,
+                colour=WHITE
                 )
             if sum(player_current) > 21:
                 board_embed.set_footer(text=f"💥 BUSTS! Better Luck Next Time.")
-                await handler_msg.edit(embed = board_embed)
+                await handler_msg.edit(embed=board_embed)
             elif player_win is True:
                 board_embed.set_footer(text=f"👍 You Win! Congratulation")
-                await handler_msg.edit(embed = board_embed)
+                await handler_msg.edit(embed=board_embed)
             else:
                 board_embed.set_footer(text=f"👎 You Lose, Better Luck Next Time.")
-                await handler_msg.edit(embed = board_embed)
+                await handler_msg.edit(embed=board_embed)
                 
         except asyncio.TimeoutError:
             board_embed = discord.Embed(
                 title="Game Forfeited, where have you been?",
-                colour = discord.Colour(WHITE)
+                colour=WHITE
             )
-            await handler_msg.edit(embed = board_embed)
+            await handler_msg.edit(embed=board_embed)
 
     async def blackjack_vs_player(self, channel: discord.TextChannel, p1: discord.User, p2: discord.User):
         pass
@@ -192,25 +186,22 @@ class Cards(commands.Cog):
 
     @staticmethod
     async def blackjack_help(self, channel: discord.TextChannel):
-        pref: str = get_prefix(channel.guild.id)
-        emb = discord.Embed(
-            title= "🂡 Blackjack | Help",
-            colour= discord.Colour(WHITE)
+        pref: str = get_prefix(channel.guild)
+        emb = discord.Embed(title="🂡 Blackjack | Help", colour=WHITE)
+        emb.add_field(
+            name="Command :",
+            value=f"> `{pref}.blackjack <option>`",
+            inline=False
             )
         emb.add_field(
-            name= "Command :",
-            value= f"> `{pref}.blackjack <option>`",
-            inline= False
-            )
-        emb.add_field(
-            name= "Options :",
-            value= "`[@]` - Challange tagged person\n"
+            name="Options :",
+            value="`[@]` - Challange tagged person\n"
                 "`bot`|`play` - Challange bot\n"
                 "`-h`|`help` - This help menu",
-            inline= False
+            inline=False
             )
-        emb.set_footer(text= f"Example Command : {pref}blackjack play")
-        await channel.send(embed= emb)
+        emb.set_footer(text=f"Example Command : {pref}blackjack play")
+        await channel.send(embed=emb)
 
 def setup(bot:commands.Bot):
     bot.add_cog(Cards(bot))

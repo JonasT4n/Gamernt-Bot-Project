@@ -19,7 +19,6 @@ new_guild_data: dict = {
     "guild_id": "0",
     "prefix": "g.",
     "stories": [],
-    "member": {},
     "currency": {
         "chat-min": 5,
         "chat-max": 10,
@@ -59,7 +58,8 @@ new_member_data: dict = {
             "Emerald": 0,
             "Titanium": 0,
             "Meteorite": 0
-        }
+        },
+        "money": {}
     }
 }
 start_rpg: dict = {

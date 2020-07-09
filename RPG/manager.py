@@ -1,8 +1,7 @@
 import discord
 import asyncio
 from discord.ext import commands
-from Settings.MongoManager import MongoManager
-from Settings.MyUtility import checkin_guild
+from Settings.MyUtility import checkin_guild, db_mbr
 
 WHITE = 0xfffffe
 
@@ -10,7 +9,6 @@ class RPGManager(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.mdb = MongoManager(collection= "members")
 
     # Commands Area
 
@@ -18,19 +16,19 @@ class RPGManager(commands.Cog):
     async def _item(self, ctx: commands.Context):
         pass
 
-    @commands.command(name= "equip", pass_context= True)
+    @commands.command(name="equip")
     async def _equip(self, ctx: commands.Context):
         pass
 
-    @commands.command(name= "moves", aliases= ["learned"], pass_context= True)
+    @commands.command(name="moves", aliases=["learned"])
     async def _learned_moves(self, ctx: commands.Context):
         pass
 
-    @commands.command(name= "learn", pass_context= True)
+    @commands.command(name="learn")
     async def _learn(self, ctx: commands.Context):
         pass
 
-    @commands.command(name= "make", pass_context= True)
+    @commands.command(name="make")
     async def _make_things(self, ctx: commands.Context, *args):
         pass
 

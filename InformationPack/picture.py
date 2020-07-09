@@ -13,17 +13,11 @@ class Picture(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.srv = build("customsearch", "v1", developerKey= GOOGLE_API).cse()
-
-    # Listener Area
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print("Picture Searcher is Ready!")
+        self.srv = build("customsearch", "v1", developerKey=GOOGLE_API).cse()
 
     # Command Area
 
-    @commands.command(name= "picture", aliases= ["pict", "img"], pass_context= True)
+    @commands.command(name="picture", aliases=["pict", "img"])
     async def _pict(self, ctx: commands.Context, *args):
         if len(args) == 0:
             await ctx.send(content= f"**Insert your argument.**\nExample Command : {get_prefix(ctx.guild.id)}img Maldives")
@@ -32,12 +26,12 @@ class Picture(commands.Cog):
             async with ctx.typing():
                 search_term: str = " ".join(args)
                 response = self.srv.list(
-                    q= search_term,
-                    cx= CSE_ID,
-                    searchType= "image",
-                    num= 10,
-                    fileType= 'jpg,jpeg,png',
-                    safe= 'active'
+                    q=search_term,
+                    cx=CSE_ID,
+                    searchType="image",
+                    num=10,
+                    fileType='jpg,jpeg,png',
+                    safe='active'
                     ).execute()
                 index: int = 0
                 max_index = len(response["items"])
@@ -46,13 +40,13 @@ class Picture(commands.Cog):
             # Initiate Embed
             menus: list = ["⏮️", "⬅️", "⏹", "➡️"]
             emb = discord.Embed(
-                title= f"Search Picture | Image : {index + 1}/{max_index}",
-                description= f"Searching for {search_term}, Result ({max_index} Entries) : ",
-                colour= discord.Colour(WHITE)
+                title=f"Search Picture | Image : {index + 1}/{max_index}",
+                description=f"Searching for {search_term}, Result ({max_index} Entries) : ",
+                colour=WHITE
                 )
-            emb.set_image(url= link_url[index])
-            emb.set_footer(text= f"Image : {index + 1}/{max_index} | Searched by {ctx.author.nick if ctx.author.nick is not None else ctx.author.name}")
-            hm: discord.Message = await ctx.send(embed= emb)
+            emb.set_image(url=link_url[index])
+            emb.set_footer(text=f"Image : {index + 1}/{max_index} | Searched by {ctx.author.nick if ctx.author.nick is not None else ctx.author.name}")
+            hm: discord.Message = await ctx.send(embed=emb)
             for i in menus:
                 await hm.add_reaction(i)
             try:
@@ -76,17 +70,17 @@ class Picture(commands.Cog):
                             continue
                     elif str(r.emoji) == "⏹":
                         emb = discord.Embed(
-                            title= f"Search Picture | Image : {index + 1}/{max_index}",
-                            description= f"Searching for {search_term}, Result ({max_index} Entries) : ",
-                            colour= discord.Colour(WHITE)
+                            title=f"Search Picture | Image : {index + 1}/{max_index}",
+                            description=f"Searching for {search_term}, Result ({max_index} Entries) : ",
+                            colour=WHITE
                             )
-                        emb.set_image(url= link_url[index])
+                        emb.set_image(url=link_url[index])
                         emb.set_author(
-                            name= ctx.author.name,
-                            icon_url= ctx.author.avatar_url
+                            name=ctx.author.name,
+                            icon_url=ctx.author.avatar_url
                             )
                         await r.remove(u)
-                        await hm.edit(embed= emb)
+                        await hm.edit(embed=emb)
                         for j in menus:
                             await hm.remove_reaction(j, ctx.me)
                         return
@@ -96,17 +90,17 @@ class Picture(commands.Cog):
                         else:
                             continue
                     emb = discord.Embed(
-                        title= f"Search Picture | Image : {index + 1}/{max_index}",
-                        description= f"Searching for {search_term}, Result ({max_index} Entries) : ",
-                        colour= discord.Colour(WHITE)
+                        title=f"Search Picture | Image : {index + 1}/{max_index}",
+                        description=f"Searching for {search_term}, Result ({max_index} Entries) : ",
+                        colour=WHITE
                         )
-                    emb.set_image(url= link_url[index])
-                    emb.set_footer(text= f"Searched by {ctx.author.nick if ctx.author.nick is not None else ctx.author.name}")
+                    emb.set_image(url=link_url[index])
+                    emb.set_footer(text=f"Searched by {ctx.author.nick if ctx.author.nick is not None else ctx.author.name}")
                     await r.remove(u)
-                    await hm.edit(embed= emb)
+                    await hm.edit(embed=emb)
             except asyncio.TimeoutError:
-                emb.set_footer(text= f"Searched by {ctx.author.nick if ctx.author.nick is not None else ctx.author.name} | Request Timeout")
-                await hm.edit(embed= emb)
+                emb.set_footer(text=f"Searched by {ctx.author.nick if ctx.author.nick is not None else ctx.author.name} | Request Timeout")
+                await hm.edit(embed=emb)
                 for j in menus:
                     await hm.remove_reaction(j, ctx.me)
 

@@ -9,62 +9,31 @@ import random
 import discord
 from Settings.MyUtility import checkin_member
 from RPGPackage.RPGMovement import *
+from RPGPackage.RPGAttribute import *
 
 WHITE = 0xfffffe
 
-DATA_LVL: dict = {}
-PERLEVEL: int = 50
-MAXLEVEL: int = 60
-MAXSKILL: int = 30
-
-LVL_INIT: dict = {
-    "STR": {
-        1: 324,
-        "dec": 8,
-        },
-    "END": {
-        1: 480,
-        "dec": 10,
-        "eff": "HP"
-        },
-    "AGI": {
-        1: 2000,
-        "dec": 25,
-        },
-    "FOC": {
-        1: 1200,
-        "dec": 20,
-        },
-    "ITE": {
-        1: 300,
-        "dec": 8,
-        },
-    "WIS": {
-        1: 320,
-        "dec": 8,
-        }
-    }
-
 def checkClassID(person: discord.User):
-    mbr_data: dict = {}
+    mbr_data = {}
     if person.bot is False:
-        mbr_data = checkin_member(person.id)
+        mbr_data = checkin_member(person)
 
     # If Member registered
     if 'CLASSID' in mbr_data:
         # Warrior
         if mbr_data["CLASSID"] == 1:
-            return Warrior(person, member_data= mbr_data)
+            return Warrior(person, member_data=mbr_data)
 
         # Mage
         elif mbr_data["CLASSID"] == 2:
-            return Mage(person, member_data= mbr_data)
+            return Mage(person, member_data=mbr_data)
 
     # If Member not Registered
     else:
         classes: list = [Warrior(person), Mage(person)]
         this_class = classes[random.randint(0, len(classes) - 1)]
-        del classes
+        for i in range(len(classes)):
+            del classes[i]
         return this_class
 
 class Character:

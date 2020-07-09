@@ -7,7 +7,6 @@ import threading
 import asyncio
 from discord.ext import commands
 from Settings.StaticData import words
-from Settings.MyUtility import get_prefix
 
 WHITE = 0xfffffe
 
@@ -18,7 +17,7 @@ class GuessWord(commands.Cog):
 
     # Command Area
 
-    @commands.command(name= "scramble", aliases= ["scr"], pass_context= True)
+    @commands.command(name="scramble", aliases=["scr"])
     async def _scramble(self, ctx: commands.Context, *, category: str = 'random'):
         list_of_word : list or tuple
         if category.lower() == 'random':
@@ -32,7 +31,7 @@ class GuessWord(commands.Cog):
         list_of_word = words[category.capitalize()]
         await self.scramble_start(ctx.channel, category, random.choice(list_of_word))
 
-    @commands.command(name= "hangman", aliases= ["hang"], pass_context= True)
+    @commands.command(name="hangman", aliases=["hang"])
     async def _hangman(self, ctx: commands.Context, *, category: str = 'random'):
         # Inner Check Function
         def check_reaction_user(message: discord.Message, list_of_joined: list):
@@ -103,7 +102,7 @@ class GuessWord(commands.Cog):
             await hm.delete(delay= 1)
             await self.hangman_start(ctx.channel, players, category, random.choice(list_of_word))
 
-    @commands.command(name= "wordpref", aliases= ['wop'], pass_context= True)
+    @commands.command(name="wordpref", aliases=['wop'])
     async def _wpref(self, ctx: commands.Context, *, category: str = "Everyword"):
         # Inner Check
         def check_queue(ppl: list):
@@ -234,8 +233,7 @@ class GuessWord(commands.Cog):
             while True:
                 reply: discord.Message = await self.bot.wait_for(
                     event="message",
-                    check=lambda message: True if message.channel == channel and message.author == turn 
-                        and is_char(message.content) else False,
+                    check=lambda message: True if message.channel == channel and message.author == turn and is_char(message.content) else False,
                     timeout=30.0
                     )
 

@@ -47,38 +47,30 @@ class Chance(commands.Cog):
             )
         await ctx.send(embed=emb)
 
-    @commands.command(name= "pool", pass_context= True)
+    @commands.command(name="pool")
     async def _pool(self, ctx: commands.Context, *, statement: str = ""):
         if len(statement) == 0:
-            await ctx.send(embed=discord.Embed(
-                title="*Insert Your Statement after the Command*",
-                description=f"Example : {get_prefix(ctx.guild.id)}pool Am I a good boy?",
-                colour=WHITE
-                ))
+            await ctx.send(embed=discord.Embed(title="*Insert Your Statement after the Command*",
+                            description=f"Example : {get_prefix(ctx.guild.id)}pool Am I a good boy?",
+                            colour=WHITE))
         else:
             async with ctx.typing():
-                emb = discord.Embed(
-                    title=f"🎱 8 Pool", 
-                    description=f"{ctx.message.author.name} : {statement}\n> Answer : __**{random.choice(self.pool_reply)}**__", 
-                    colour=WHITE
-                    )
+                emb = discord.Embed(title=f"🎱 8 Pool", 
+                                    description=f"{ctx.message.author.name} : {statement}\n> Answer : __**{random.choice(self.pool_reply)}**__", 
+                                    colour=WHITE)
             await ctx.send(embed=emb)
 
-    @commands.command(name= "ask", pass_context= True)
+    @commands.command(name="ask")
     async def _ask(self, ctx: commands.Context, *, question: str):
         if len(question) == 0:
-            await ctx.send(embed=discord.Embed(
-                title="*Insert Your Question after the Command*",
-                description=f"Example : {get_prefix(ctx.guild.id)}ask How's your Day?",
-                colour=WHITE
-                ))
+            await ctx.send(embed=discord.Embed(title="*Insert Your Question after the Command*",
+                            description=f"Example : {get_prefix(ctx.guild.id)}ask How's your Day?",
+                            colour=WHITE))
         else:
             async with ctx.typing():
-                emb = discord.Embed(
-                    title=f"🦉 Ask Bot", 
-                    description=f"{ctx.message.author.name} : {question}\n> Answer : __**{random.choice(self.ask_reply)}**__", 
-                    colour=WHITE
-                    )
+                emb = discord.Embed(title=f"🦉 Ask Bot", 
+                                    description=f"{ctx.message.author.name} : {question}\n> Answer : __**{random.choice(self.ask_reply)}**__", 
+                                    colour=WHITE)
             await ctx.send(embed=emb)
 
 def setup(bot: commands.Bot):

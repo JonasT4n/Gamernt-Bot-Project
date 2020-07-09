@@ -9,17 +9,12 @@ from discord.ext import commands
 from Settings.MongoManager import MongoManager
 from Settings.MyUtility import get_prefix
 from Settings.StaticData import TOKEN
-from RPGPackage.RPGCharacter import DATA_LVL, LVL_INIT, MAXSKILL
+from RPGPackage.RPGAttribute import DATA_LVL, LVL_INIT, MAXSKILL
 
 def check_guild_prefix(bot: commands.Bot, message: discord.Message):
-    """
-    
-    Check Current Guild Prefix in Command or Message.
-    
-    """
+    """Check Current Guild Prefix in Command or Message."""
     if not isinstance(message.channel, discord.DMChannel):
-        guild: discord.Guild = message.guild
-        pref: str = get_prefix(guild.id)
+        pref: str = get_prefix(message.guild)
         if message.content[0:len(pref)].lower() == pref.lower():
             return message.content[0:len(pref)]
         else:

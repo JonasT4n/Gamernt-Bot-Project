@@ -20,17 +20,11 @@ class RPS(commands.Cog):
             "> 2. Rock ✊\n"
             "> 3. Scissor ✌\n"
             "Send your Option here in this channel `[1-3]`\nSend a Message for example : `1`", 
-        colour=discord.Colour(WHITE)
+        colour=WHITE
     )
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
-    # Event Listener Area
-    
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print("Rock Paper Scissor is Ready!")
 
     # Checker Area
 
@@ -55,25 +49,25 @@ class RPS(commands.Cog):
 
     # Commands Area
 
-    @commands.command(aliases=['Rps', 'rPs', 'rpS', 'RPs', 'RpS', 'rPS', 'RPS'])
-    async def rps(self, ctx: commands.Context, *, against: discord.Member = None):
+    @commands.command(name="rps", aliases=['Rps', 'rPs', 'rpS', 'RPs', 'RpS', 'rPS', 'RPS'])
+    async def _rps(self, ctx: commands.Context, *, against: discord.Member = None):
         if against is None:
             await self.against_bot(ctx.author, ctx.channel)
         else:
             emb = discord.Embed(
-                title= "✊✋✌ Rock Paper Scissor", 
-                description= f"**{ctx.message.author.name}** wants to challange you, will you Accept?", 
-                colour= discord.Colour(WHITE)
+                title="✊✋✌ Rock Paper Scissor", 
+                description=f"**{ctx.message.author.name}** wants to challange you, will you Accept?", 
+                colour=WHITE
                 )
-            emb.set_footer(text= "Type 'Y' to accept or 'N' to abort.")
-            hm: discord.Message = await ctx.send(embed= emb)
+            emb.set_footer(text="Type 'Y' to accept or 'N' to abort.")
+            hm: discord.Message = await ctx.send(embed=emb)
             if not against.bot:
                 try:
                     reply = await self.bot.wait_for(
-                        event = 'message', 
-                        check = lambda message : True if message.channel == ctx.channel and message.author == against 
+                        event='message', 
+                        check=lambda message : True if message.channel == ctx.channel and message.author == against 
                                 and (message.content.lower() == 'y' or message.content.lower() == 'n') else False, 
-                        timeout = 30
+                        timeout=30.0
                         )
                     await hm.delete()
                     if reply.content.lower() == 'n':
@@ -91,13 +85,13 @@ class RPS(commands.Cog):
     # Others
 
     async def against_bot(self, person: discord.User, channel: discord.TextChannel):
-        msg: discord.Message = await channel.send(embed= self.block_option_embed)
+        msg: discord.Message = await channel.send(embed=self.block_option_embed)
         try:
             # Waiting for User Answer
             replied = await self.bot.wait_for(
-                event= 'message', 
-                check= self.check_choosen_against_bot(person, channel), 
-                timeout= 30
+                event='message', 
+                check=self.check_choosen_against_bot(person, channel), 
+                timeout=30
                 )
             await msg.delete()
             await replied.delete()
@@ -117,11 +111,11 @@ class RPS(commands.Cog):
             # Announce the Winner
             descript = f"```{person.name} : {self.rps_element[int(replied.content)]}\nMe : {self.rps_element[int(bot_choose)]}\n{winner}!```"
             emb = discord.Embed(
-                title= "✊✋✌ Rock Paper Scissor", 
-                description= descript, 
-                colour= discord.Colour(WHITE)
+                title="✊✋✌ Rock Paper Scissor", 
+                description=descript, 
+                colour=WHITE
                 )
-            await channel.send(embed= emb)
+            await channel.send(embed=emb)
 
         except asyncio.TimeoutError:
             await msg.delete()
@@ -133,11 +127,11 @@ class RPS(commands.Cog):
             hm: discord.Message = await channel.send(content= f"**Waiting for {p1.name} to choose.**")
 
             # Player 1 Answer
-            fpmsg: discord.Message = await p1.send(embed= self.block_option_embed)
+            fpmsg: discord.Message = await p1.send(embed=self.block_option_embed)
             reply_p1 = await self.bot.wait_for(
-                event= 'message',
-                check= self.check_choosen(p1), 
-                timeout= 30
+                event='message',
+                check=self.check_choosen(p1), 
+                timeout=30.0
                 )
             await fpmsg.delete()
 
@@ -145,11 +139,11 @@ class RPS(commands.Cog):
             await hm.edit(content=f"**Waiting for {p2.name} to choose.**")
 
             # Player 2 Answer
-            spmsg: discord.Message = await p2.send(embed= self.block_option_embed)
+            spmsg: discord.Message = await p2.send(embed=self.block_option_embed)
             reply_p2 = await self.bot.wait_for(
-                event= 'message', 
-                check= self.check_choosen(p2), 
-                timeout= 30
+                event='message', 
+                check=self.check_choosen(p2), 
+                timeout=30.0
                 )
             await spmsg.delete()
 
@@ -166,12 +160,12 @@ class RPS(commands.Cog):
             # Announce the Winner
             descript = f"```{p1.name} : {self.rps_element[int(reply_p1.content)]}\n{p2.name} : {self.rps_element[int(reply_p2.content)]}\n{winner}!```"
             emb = discord.Embed(
-                title= "✊✋✌ Rock Paper Scissor", 
-                description= descript, 
-                colour= discord.Colour(WHITE)
+                title="✊✋✌ Rock Paper Scissor", 
+                description=descript, 
+                colour=WHITE
                 )
             await hm.delete()
-            await channel.send(embed= emb)
+            await channel.send(embed=emb)
 
         except asyncio.TimeoutError:
             await channel.send(f"*Timeout, The Game has stopped. :v*")       
