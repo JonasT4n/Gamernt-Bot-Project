@@ -4,7 +4,8 @@ import random
 import discord
 from discord.ext import commands, tasks
 from Settings.MyUtility import get_prefix
-from RPGPackage.RPGCharacter import *
+from RPGPackage.RPGCharacter import checkClassID
+from RPGPackage.RPGAttribute import *
 
 WHITE = 0xfffffe
 
