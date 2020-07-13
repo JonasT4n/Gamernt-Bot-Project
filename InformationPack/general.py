@@ -4,7 +4,7 @@ from discord.ext import commands
 from Settings.MyUtility import checkin_guild, checkin_member, get_prefix, set_prefix, db_mbr, db_rpt
 
 WHITE = 0xfffffe
-current_version: str = "Version 2.1.1b"
+current_version: str = "Version 2.1.1c"
 
 class General(commands.Cog):
 

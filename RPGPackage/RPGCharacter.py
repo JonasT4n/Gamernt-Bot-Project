@@ -31,10 +31,7 @@ def checkClassID(person: discord.User):
     # If Member not Registered
     else:
         classes: list = [Warrior(person), Mage(person)]
-        this_class = classes[random.randint(0, len(classes) - 1)]
-        for i in range(len(classes)):
-            del classes[i]
-        return this_class
+        return random.choice(classes)
 
 class Character:
 
