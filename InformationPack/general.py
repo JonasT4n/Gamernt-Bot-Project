@@ -4,7 +4,7 @@ from discord.ext import commands
 from Settings.MyUtility import checkin_guild, checkin_member, get_prefix, set_prefix, db_mbr, db_rpt
 
 WHITE = 0xfffffe
-current_version: str = "Version 2.1.1c"
+current_version: str = "Version 2.2.0a"
 
 class General(commands.Cog):
 
@@ -21,11 +21,9 @@ class General(commands.Cog):
     @commands.command(name="about", aliases=['info', 'a'])
     async def _info(self, ctx: commands.Context):
         """Information About Gamern't RPG."""
-        emb = discord.Embed(
-            title="🎮 Gamern't Bot 🎮", 
+        emb = discord.Embed(title="🎮 Gamern't Bot 🎮", 
             description= "Gamern't RPG is a RPG Game with massive Battlefield to play Multiplayer. Make your own Move, Your own Items and even Your own Equipment. Chemistry your way in Battle Mode and be the Best Play Maker.", 
-            colour=WHITE
-            )
+            colour=WHITE)
         emb.set_thumbnail(url=self.bot.user.avatar_url)
         emb.set_footer(text=f"{current_version}")
         await ctx.send(embed=emb)
@@ -33,11 +31,9 @@ class General(commands.Cog):
     @commands.command(name="new", aliases=['news'])
     async def _news(self, ctx: commands.Context):
         """News about Current Bot Progress."""
-        emb = discord.Embed(
-            title="📰 Breaking News!", 
+        emb = discord.Embed(title="📰 Breaking News!", 
             description=open("./news.txt", 'r').read(), 
-            colour=WHITE
-            )
+            colour=WHITE)
         emb.set_thumbnail(url=self.bot.user.avatar_url)
         emb.set_footer(text=f"{current_version}")
         await ctx.send(embed=emb)
@@ -46,19 +42,15 @@ class General(commands.Cog):
     async def prefix(self, ctx: commands.Context, new_prefix: str):
         """A Command that can change the server prefix for Bot usage."""
         if len(new_prefix.split(' ')) > 1 or len(new_prefix) > 10 or " " in new_prefix:
-            emb = discord.Embed(
-                title="🔧 Bad Prefix!",
+            emb = discord.Embed(title="🔧 Bad Prefix!",
                 description="Your Prefix might too long or bad format, try Simpler!\nFor Example : `g.` `game!` `g!`",
-                colour=WHITE
-                )
+                colour=WHITE)
             await ctx.send(embed=emb)
         else:
             set_prefix(ctx.guild, new_prefix)
-            emb = discord.Embed(
-                title="🔧 New Prefix!",
+            emb = discord.Embed(title="🔧 New Prefix!",
                 description=f"Server new Prefix **{new_prefix}**",
-                colour=WHITE
-                )
+                colour=WHITE)
             emb.set_footer(text=f"Type {new_prefix}ping to Test it Out!")
             await ctx.send(embed=emb)
 
@@ -76,8 +68,7 @@ class General(commands.Cog):
         emb = discord.Embed(
             title="Your Feedback, Report or Suggestion has been Sent. Thank You :)",
             description=f"```{args}```",
-            colour=WHITE
-            )
+            colour=WHITE)
         await ctx.send(embed=emb)
 
     @commands.command(name="purgemsg")
@@ -94,12 +85,13 @@ class General(commands.Cog):
     @commands.command(name="globalinfo", aliases=["ginfo"])
     @commands.is_owner()
     async def _global_info(self, ctx: commands.Context):
-        members: int = 0
+        members: list = []
         for guild in self.bot.guilds:
-            members += len(guild.members)
+            members += guild.members
+        members = list(set(members))
         emb = discord.Embed(title="📈 Stats 📈", colour=WHITE)
         emb.add_field(name="Server Count", value=f"{len(self.bot.guilds)}")
-        emb.add_field(name="Member Count", value=f"{members}")
+        emb.add_field(name="Member Count", value=f"{len(members)}")
         emb.add_field(name="Shard Count", value=f"{self.bot.shard_count}")
         await ctx.send(embed=emb)
 
@@ -115,6 +107,10 @@ class General(commands.Cog):
                     db_mbr.DeleteOneObject({'member_id': str(member_id)})
                     count += 1
         await ctx.send(f"Removed {count} Data(s).")
+
+    @commands.command(name="getguildid")
+    async def _get_guild_id(self, ctx: commands.Context):
+        print(ctx.guild.id)
 
 def setup(bot: commands.Bot):
     bot.add_cog(General(bot))

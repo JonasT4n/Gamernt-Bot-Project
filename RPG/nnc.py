@@ -1,25 +1,18 @@
 import discord
 from discord.ext import commands
 from Settings.MyUtility import get_prefix, checkin_member, db_mbr, is_number
+from RPGPackage.RPGCharacter import CLASSES, NATURES
 
 WHITE = 0xfffffe
 
 class NNC(commands.Cog):
 
-    CLASSES: dict = {
-            1: "Warrior",
-            2: "Mage"
-        }
-    NATURES: dict = {
-            1: "Normal",
-            2: "Aggresive"
-        }
-
+    # Cog Constructor
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    # Commands
-
+    # Commands Area
+    # Change Character Class Command
     @commands.command(name="class")
     async def _rpg_class(self, ctx: commands.Context, *args):
         mbr_data = checkin_member(ctx.author)
@@ -42,11 +35,10 @@ class NNC(commands.Cog):
                             else:
                                 db_mbr.SetObject({"member_id": str(ctx.author.id)}, {'CLASSID': int(args[0])})
                                 await ctx.send(content= f"*You have changed from {self.CLASSES[mbr_data['CLASSID']]} to {self.CLASSES[int(args[0])]}.*")
-                    else:
-                        pass
             else:
-                await ctx.send(f"__**{ctx.author.name}, You haven't start your character, type {get_prefix(ctx.guild.id)}start to begin.**__")
+                await ctx.send(f"__**{ctx.author.name}, You haven't start your character, type {get_prefix(ctx.guild)}start to begin.**__")
 
+    # Change Character Nature Command
     @commands.command(name="nature")
     async def _rpg_nature(self, ctx: commands.Context, *args):
         mbr_data = checkin_member(ctx.author)
@@ -69,18 +61,14 @@ class NNC(commands.Cog):
                             else:
                                 db_mbr.SetObject({"member_id": str(ctx.author.id)}, {'CHARID': int(args[0])})
                                 await ctx.send(content= f"*You have changed from {self.NATURES[mbr_data['CHARID']]} to {self.NATURES[int(args[0])]}.*")
-                    else:
-                        pass
             else:
-                await ctx.send(f"__**{ctx.author.name}, You haven't start your character, type {get_prefix(ctx.guild.id)}start to begin.**__")
-
-    # Others
+                await ctx.send(f"__**{ctx.author.name}, You haven't start your character, type {get_prefix(ctx.guild)}start to begin.**__")
 
     @staticmethod
     async def _class_help(channel: discord.TextChannel):
         pref: str = get_prefix(channel.guild)
         emb = discord.Embed(
-            title="Classes | List",
+            title="🏫 Classes | List",
             description="Change your class, you can be :\n"
                 "> 1. `Warrior`\n"
                 "> 2. `Mage`\n",

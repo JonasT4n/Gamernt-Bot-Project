@@ -3,25 +3,26 @@ import asyncio
 import random
 import discord
 from discord.ext import commands, tasks
-from Settings.MyUtility import get_prefix
-from RPGPackage.RPGCharacter import checkClassID
+from Settings.MyUtility import get_prefix, checkClassID
 from RPGPackage.RPGAttribute import *
 
 WHITE = 0xfffffe
 
 class Duel(commands.Cog):
 
+    # Cog Constructor
     def __init__(self, bot: commands.Bot):
         self.bot = bot    
 
     # Cooler Down
-
+    # Cooldown list of channels or guilds
     cooldown: list = []
 
     async def _battle_finish(self, ids: int):
         self.cooldown.remove(ids)
 
-    @tasks.loop(minutes= 2)
+    # Any failed cooling down will be resetted in this task
+    @tasks.loop(minutes=2)
     async def empty_cooldown(self):
         if len(self.cooldown) == 0:
             pass
@@ -29,7 +30,6 @@ class Duel(commands.Cog):
             self.cooldown.clear()
 
     # Event Listener Area
-
     @commands.Cog.listener()
     async def on_ready(self):
         self.empty_cooldown.start()
@@ -40,79 +40,63 @@ class Duel(commands.Cog):
         self.empty_cooldown.cancel()
 
     # Gameplay Area
-
     async def fair_gameplay(self, channel: discord.TextChannel, p1: discord.User, p2: discord.User):
         # System Attribute
         emb = discord.Embed(title="⚔️", colour=WHITE)
         hm: discord.Message = await channel.send(embed=emb)
         container_log: list = []
         c1, c2 = checkClassID(p1), checkClassID(p2)
-        max_hp_p1, max_hp_p2 = c1.HP, c2.HP
         
         # Duel Begins
-        whos_first: int = 0 if c1.SPD > c2.SPD else (random.randint(0, 1) if c1.SPD == c2.SPD else 1)
+        whos_first: int = 0 if c1.SPD > c2.SPD else random.randint(0, 1) if c1.SPD == c2.SPD else 1
         while c1.HP > 0 and c2.HP > 0:
             # Player One Make Move
             if whos_first == 0: 
                 whos_first = 1
-                typeAtt, rawDmg = c1.NormalAttack()
-                dmg: int = c2.Defend(typeAtt, rawDmg)
-                container_log.append(f"`{p1.name}` Hit `{p2.name}`, dealt **{dmg}** dmg")
-                c2.HP = 0 if c2.HP <= 0 else c2.HP
+                c1.NormalAttack(c2)
+                container_log.append(f"`{p1.name}` Hit `{p2.name}`, dealt **{c2.LastDamageTaken}** dmg")
 
             # Player Two Make Move
             else: 
                 whos_first = 0
-                typeAtt, rawDmg = c2.NormalAttack()
-                dmg: int = c1.Defend(typeAtt, rawDmg)
-                container_log.append(f"`{p2.name}` Hit `{p1.name}`, dealt **{dmg}** dmg")
-                c1.HP = 0 if c1.HP <= 0 else c1.HP
+                c2.NormalAttack(c1)
+                container_log.append(f"`{p2.name}` Hit `{p1.name}`, dealt **{c1.LastDamageTaken}** dmg")
 
             # Deleting Logs
-            while len(container_log) > 3:
+            while len(container_log) > 4:
                 container_log.pop(0)
 
             # Sending an Information Duel
-            emb = discord.Embed(
-                title="⚔️ Duel | On the Ring", 
-                description=f"> **{p1.name}** ({c1.ClassName}) `HP: {c1.HP}/{c1.MAX_HP} | MN: {c1.MANA}/{c1.MAX_MANA}`\n"
-                    f"> **{p2.name}** ({c2.ClassName}) `HP: {c2.HP}/{c2.MAX_HP} | MN: {c2.MANA}/{c2.MAX_MANA}`", 
-                colour=WHITE
-                )
-            emb.add_field(
-                name="Battle Log :", 
+            emb = discord.Embed(title="⚔️ Duel | On the Ring", 
+                description=f"> **{c1.name}** ({c1.ClassName}) `HP: {c1.HP}/{c1.MAX_HP} | MN: {c1.MANA}/{c1.MAX_MANA}`\n"
+                    f"> **{c2.name}** ({c2.ClassName}) `HP: {c2.HP}/{c2.MAX_HP} | MN: {c2.MANA}/{c2.MAX_MANA}`", 
+                colour=WHITE)
+            emb.add_field(name="Battle Log :", 
                 value="\n".join(container_log), 
-                inline=False
-                )
+                inline=False)
             await hm.edit(embed=emb)
-            await asyncio.sleep(1)
+            await asyncio.sleep(1.2)
         
         # Duel final Result
-        await asyncio.sleep(1)
         if c1.HP == 0:
-            emb = discord.Embed(
-                title="⚔️ Duel | Battle End", 
+            emb = discord.Embed(title="⚔️ Duel | Battle End", 
                 description=f"> **{p1.name}** : Died\n"
                     f"> **{p2.name}** : {c2.HP} HP left\n"
                     f"`🏆 Congratulation {p2.name}!`",
-                colour=WHITE
-                )
+                colour=WHITE)
             emb.set_thumbnail(url=p2.avatar_url)
         else:
-            emb = discord.Embed(
-                title="⚔️ Duel | Battle End", 
+            emb = discord.Embed(title="⚔️ Duel | Battle End", 
                 description=f"> **{p1.name}**: {c1.HP} HP left\n"
                     f"> **{p2.name}**: Died\n"
                     f"`🏆 Congratulations {p1.name}!`", 
-                colour=WHITE
-                )
+                colour=WHITE)
             emb.set_thumbnail(url=p1.avatar_url)
-        emb.add_field(name="Battle Log:", value="\n".join(container_log), inline = False)
+        emb.add_field(name="Battle Log :", value="\n".join(container_log), inline = False)
         await hm.edit(embed=emb)
         await self._battle_finish(channel.id)
 
     # Commands Area
-        
     @commands.command(name="duel")
     async def _duel(self, ctx: commands.Context, *args):
         chnl: discord.TextChannel = ctx.channel
@@ -169,8 +153,6 @@ class Duel(commands.Cog):
                             person2 = self.search_user(ctx.guild)
 
                     await self.fair_gameplay(chnl, person1, person2)
-
-    # Others
 
     @staticmethod
     def search_user(guild: discord.Guild, *, name: str = None):

@@ -1,8 +1,7 @@
-"""
-@Copyright Gamen't RPG 2020
+"""@Copyright Gamen't RPG 2020
 ---------------------------
+Main dish.
 """
-
 import discord
 import os
 from discord.ext import commands

@@ -1,27 +1,18 @@
-"""
-
-@Copyright Joenastan ProD 2020
+"""@Copyright Joenastan ProD 2020
 ------------------------------
 An API that helps develop app and implement MongoDB in it. This Script can be reuseable.
-
 """
-
 import pymongo
 from pymongo.errors import *
 from Settings.StaticData import DB_NAME, MONGO_ADDRESS
 
 class MongoManager:
-
-    """
-    
-    Attributes
-    ----------
+    """## Attributes
+    -------------
     connect_collection: `MongoClient[DatabaseName][Collection]`
     
     name_database: `DatabaseName`
-    
     """
-
     _connected_collection = None
     _database_name: str = None
 
@@ -65,16 +56,17 @@ class MongoManager:
         self.db.create_collection(name)
         self._connected_collection = self.db[name]
 
+    def GetCollectionNames(self):
+        pass
+
     def CheckCollection(self, *args) -> list:
-        """
-        
-        Iterately Check the Collection if it is Exist in Current Database.
-
-            Parameters :
-                args (str) => argument of strings
-            Returns :
-                List of (bool)
-
+        """Iterately Check the Collection if it is Exist in Current Database.
+        ## Parameter
+        ------------
+        `args`(str): argument of strings
+        ## Return
+        ---------
+        (list): List of booleans
         """
         list_collection = self.db.list_collection_names()
 

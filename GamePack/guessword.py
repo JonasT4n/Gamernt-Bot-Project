@@ -58,32 +58,22 @@ class GuessWord(commands.Cog):
         list_of_word = words[category.capitalize()]
 
         # Queue section
-        hm: discord.Message
+        emb = discord.Embed(title="Waiting for Player to Join | 1/5 Slot",
+                            description=f"> {players[0].name} (Host)", colour=WHITE)
+        emb.set_footer(text="React 👋 to join, and ⏭️ to skip to game if you are a host.")
+        hm: discord.Message = await ctx.send(embed=emb)
+        await hm.add_reaction("👋")
+        await hm.add_reaction("⏭️")
         try:
-            emb = discord.Embed(
-                title= "Waiting for Player to Join | 1/5 Slot",
-                description= f"> {players[0].name} (Host)",
-                colour= discord.Colour(WHITE)
-                )
-            emb.set_footer(text= "React 👋 to join, and ⏭️ to skip to game if you are a host.")
-            hm = await ctx.send(embed= emb)
-            await hm.add_reaction("👋")
-            await hm.add_reaction("⏭️")
             while True:
-                r: discord.Reaction
-                u: discord.Message
-                r, u = await self.bot.wait_for(
-                    event= "reaction_add",
-                    check= check_reaction_user(hm, players),
-                    timeout= 30.0
-                    )
+                r, u = await self.bot.wait_for(event="reaction_add", check=check_reaction_user(hm, players), timeout=30.0)
                 if str(r.emoji) == "⏭️":
                     raise asyncio.TimeoutError
                 else:
                     players.append(u)
                     if len(players) == 5:
                         raise asyncio.TimeoutError
-
+                await r.remove(u)
                 # Update Joined Player
                 desc: list = []
                 for j in range(len(players)):
@@ -91,15 +81,12 @@ class GuessWord(commands.Cog):
                         desc.append(f"> {players[j].name} (Host)")
                     else:
                         desc.append(f"> {players[j].name}")
-                emb = discord.Embed(
-                    title= f"Waiting for Player to Join | {len(players)}/5 Slot",
-                    description= "\n".join(desc),
-                    colour= WHITE
-                    )
-                emb.set_footer(text= "React 👋 to join, and ⏭️ to skip to game if you are a host.")
-                await hm.edit(embed= emb)
+                emb = discord.Embed(title=f"Waiting for Player to Join | {len(players)}/5 Slot",
+                                    description="\n".join(desc), colour= WHITE)
+                emb.set_footer(text="React 👋 to join, and ⏭️ to skip to game if you are a host.")
+                await hm.edit(embed=emb)
         except asyncio.TimeoutError:
-            await hm.delete(delay= 1)
+            await hm.delete(delay=1)
             await self.hangman_start(ctx.channel, players, category, random.choice(list_of_word))
 
     @commands.command(name="wordpref", aliases=['wop'])
@@ -115,31 +102,21 @@ class GuessWord(commands.Cog):
                     return False 
             return inner_check
 
-        # Send Hint
+        # Send hint to users
         menus: list = ["👋", "⏭️"]
         players: list = [ctx.author]
-        emb = discord.Embed(
-            title= "🧸 Word Prefix | Queue",
-            description= f"You need at least 2 players to play this game. Category : __**{category}**__\n"
-                f"> {players[0].name} (Host)",
-            colour= WHITE
-            )
-        emb.set_footer(text= "React 👋 to enter, and ⏭️ to play game if you are a host.")
-        hm: discord.Message = await ctx.send(embed= emb)
+        emb = discord.Embed(title="🧸 Word Prefix | Queue", colour= WHITE, 
+                            description=f"You need at least 2 players to play this game. Category : __**{category}**__\n"
+                                        f"> {players[0].name} (Host)")
+        emb.set_footer(text="React 👋 to enter, and ⏭️ to play game if you are a host.")
+        hm: discord.Message = await ctx.send(embed=emb)
         for i in menus:
             await hm.add_reaction(i)
 
         # Wait for Reactions
         try:
             while True:
-                r: discord.Reaction
-                u: discord.User
-                r, u = await self.bot.wait_for(
-                    event= "reaction_add",
-                    check= check_queue(players),
-                    timeout= 30.0
-                    )
-
+                r, u = await self.bot.wait_for(event="reaction_add", check=check_queue(players), timeout=30.0)
                 # Check Reaction
                 if str(r.emoji) == "⏭️":
                     break
@@ -147,7 +124,6 @@ class GuessWord(commands.Cog):
                     players.append(u)
                     if len(players) >= 10:
                         break
-
                 # Edit Hint
                 desc: str = f"You need at least 2 players to play this game. Category : __{category}__\n"
                 for j in range(len(players)):
@@ -157,27 +133,20 @@ class GuessWord(commands.Cog):
                         desc += f"> {players[j].name}"
                     else:
                         desc += f"> {players[j].name}\n"
-                emb = discord.Embed(
-                    title= "🧸 Word Prefix | Queue",
-                    description= desc,
-                    colour= WHITE
-                    )
-                emb.set_footer(text= "React 👋 to enter, and ⏭️ to play game if you are a host.")
+                emb = discord.Embed(title="🧸 Word Prefix | Queue", description=desc, colour=WHITE)
+                emb.set_footer(text="React 👋 to enter, and ⏭️ to play game if you are a host.")
                 await r.remove(u)
-                await hm.edit(embed= emb)
-            
-            # Start
+                await hm.edit(embed=emb)
             await hm.delete()
             await self.wpref_start(ctx.channel, category, players)
-
         except asyncio.TimeoutError:
-            await hm.delete(delay= 1)
+            await hm.delete(delay=1)
             await ctx.send("*Request Timeout. Game Aborted!*")
 
     # Games Start
 
     async def hangman_start(self, channel: discord.TextChannel, persons: list, category: str, sw: str):
-        # inner function
+        # Inner function
         def hide(word: str) -> list:
             kword: list = []
             for k in word:
@@ -188,55 +157,39 @@ class GuessWord(commands.Cog):
             return kword
 
         def is_char(word: str):
-            w: list = len(word.split(' '))
-            if len(w) > 1:
-                return False
-            return True if len(w[0]) == 1 else False
+            if len(word) == 1:
+                return True
+            return False
 
         # Attribute
-        hang_thumbnail: list = [
-            "https://trello-attachments.s3.amazonaws.com/5ee1ce776c251b35623336e8/240x240/191e849e296dcd07972114b2facd43ad/Hangman_0.png",
+        hang_thumbnail: list = ["https://trello-attachments.s3.amazonaws.com/5ee1ce776c251b35623336e8/240x240/191e849e296dcd07972114b2facd43ad/Hangman_0.png",
             "https://trello-attachments.s3.amazonaws.com/5ee1ce776c251b35623336e8/240x240/30777b2d67002187ff97ac8097435823/Hangman_1.png",
             "https://trello-attachments.s3.amazonaws.com/5ee1ce776c251b35623336e8/240x240/88b6abb14e76fe3e8e87ae6509e10d94/Hangman_2.png",
             "https://trello-attachments.s3.amazonaws.com/5ee1ce776c251b35623336e8/240x240/0f732133f671cbbe803ffc76637bb3fd/Hangman_3.png",
             "https://trello-attachments.s3.amazonaws.com/5ee1ce776c251b35623336e8/240x240/2b4ca13e066435b2bc9429aaf9f4f9c0/Hangman_4.png",
             "https://trello-attachments.s3.amazonaws.com/5ee1ce776c251b35623336e8/240x240/e0d64e4631bc7d262457439896f9ca22/Hangman_5.png",
-            "https://trello-attachments.s3.amazonaws.com/5ee1ce776c251b35623336e8/240x240/f86523f7d448f8d1d88d81c8e41cf15a/Hangman_6.png"
-            ]
+            "https://trello-attachments.s3.amazonaws.com/5ee1ce776c251b35623336e8/240x240/f86523f7d448f8d1d88d81c8e41cf15a/Hangman_6.png"]
         hidden_answer: list = hide(sw.upper())
         alphabet: list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
         index: int = 0
         penalty: bool
 
         # Gameplay
-        emb = discord.Embed(
-            title="웃 Hangman",
-            description=f"Category : **{category}**\n"
-                f"`{''.join(hidden_answer)}`",
-            colour=WHITE
-            )
-        emb.add_field(
-            name="List of unused word :",
-            value=f"> {'|'.join(alphabet)}",
-            inline=False
-            )
+        emb = discord.Embed(title="웃 Hangman", colour=WHITE, 
+                            description=f"Category : **{category}**\n"
+                                        f"`{''.join(hidden_answer)}`")
+        emb.add_field(name="List of unused word :", value=f"> {'|'.join(alphabet)}", inline=False)
         emb.set_thumbnail(url=hang_thumbnail[index])
         emb.set_footer(text="Send a single word until it revealed the answer")
-        emb.set_author(
-            name=persons[0].name,
-            icon_url=persons[0].avatar_url
-            )
+        emb.set_author(name=persons[0].name, icon_url=persons[0].avatar_url)
         hm: discord.Message = await channel.send(embed=emb)
         try:
             turn_index: int = 0
-            turn: discord.User = persons[turn_index]
             while True:
-                reply: discord.Message = await self.bot.wait_for(
-                    event="message",
-                    check=lambda message: True if message.channel == channel and message.author == turn and is_char(message.content) else False,
-                    timeout=30.0
-                    )
-
+                turn: discord.User = persons[turn_index]
+                reply: discord.Message = await self.bot.wait_for(event="message", timeout=30.0, 
+                                                                 check=lambda message: True if message.channel == channel and message.author == turn \
+                                                                     and is_char(message.content) else False)
                 # Check Reply
                 penalty = True
                 char_rep: str = reply.content.upper()
@@ -254,22 +207,12 @@ class GuessWord(commands.Cog):
 
                 # Edit Current Hint
                 turn_index = (turn_index+1) if turn_index < len(persons) - 1 else 0
-                emb = discord.Embed(
-                    title="웃 Hangman",
-                    description=f"Category : **{category}**\n"
-                        f"`{''.join(hidden_answer)}`",
-                    colour=WHITE
-                    )
-                emb.add_field(
-                    name="List of unused word :",
-                    value=f"> {'|'.join(alphabet)}",
-                    inline=False
-                    )
+                emb = discord.Embed(title="웃 Hangman", colour=WHITE, 
+                                    description=f"Category : **{category}**\n"
+                                    f"`{''.join(hidden_answer)}`")
+                emb.add_field(name="List of unused word :", value=f"> {'|'.join(alphabet)}", inline=False)
                 emb.set_thumbnail(url= hang_thumbnail[index])
-                emb.set_author(
-                    name=persons[turn_index].name,
-                    icon_url=persons[turn_index].avatar_url
-                    )
+                emb.set_author(name=persons[turn_index].name, icon_url=persons[turn_index].avatar_url)
                 if ''.join(hidden_answer) == sw.upper():
                     emb.set_footer(text="You WIN! 👍")
                     await hm.edit(embed=emb)

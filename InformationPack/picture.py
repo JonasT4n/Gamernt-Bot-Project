@@ -42,8 +42,7 @@ class Picture(commands.Cog):
             emb = discord.Embed(
                 title=f"Search Picture | Image : {index + 1}/{max_index}",
                 description=f"Searching for {search_term}, Result ({max_index} Entries) : ",
-                colour=WHITE
-                )
+                colour=WHITE)
             emb.set_image(url=link_url[index])
             emb.set_footer(text=f"Image : {index + 1}/{max_index} | Searched by {ctx.author.nick if ctx.author.nick is not None else ctx.author.name}")
             hm: discord.Message = await ctx.send(embed=emb)
@@ -53,11 +52,8 @@ class Picture(commands.Cog):
                 r: discord.Reaction
                 u: discord.User
                 while True:
-                    r, u = await self.bot.wait_for(
-                        event= "reaction_add",
-                        check= lambda reaction, user: True if str(reaction.emoji) in menus and user == ctx.author else False,
-                        timeout= 30.0
-                        )
+                    r, u = await self.bot.wait_for(event= "reaction_add", timeout= 30.0,
+                        check= lambda reaction, user: True if str(reaction.emoji) in menus and user == ctx.author else False)
                     if str(r.emoji) == "⏮️":
                         if index == 0:
                             continue
@@ -69,16 +65,11 @@ class Picture(commands.Cog):
                         else:
                             continue
                     elif str(r.emoji) == "⏹":
-                        emb = discord.Embed(
-                            title=f"Search Picture | Image : {index + 1}/{max_index}",
+                        emb = discord.Embed(title=f"Search Picture | Image : {index + 1}/{max_index}",
                             description=f"Searching for {search_term}, Result ({max_index} Entries) : ",
-                            colour=WHITE
-                            )
+                            colour=WHITE)
                         emb.set_image(url=link_url[index])
-                        emb.set_author(
-                            name=ctx.author.name,
-                            icon_url=ctx.author.avatar_url
-                            )
+                        emb.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
                         await r.remove(u)
                         await hm.edit(embed=emb)
                         for j in menus:
@@ -92,8 +83,7 @@ class Picture(commands.Cog):
                     emb = discord.Embed(
                         title=f"Search Picture | Image : {index + 1}/{max_index}",
                         description=f"Searching for {search_term}, Result ({max_index} Entries) : ",
-                        colour=WHITE
-                        )
+                        colour=WHITE)
                     emb.set_image(url=link_url[index])
                     emb.set_footer(text=f"Searched by {ctx.author.nick if ctx.author.nick is not None else ctx.author.name}")
                     await r.remove(u)

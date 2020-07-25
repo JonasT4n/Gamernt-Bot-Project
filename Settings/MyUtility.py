@@ -10,9 +10,9 @@ import discord
 import asyncio
 import PIL
 from PIL import Image, ImageDraw, ImageOps
-from Settings.MongoManager import MongoManager
-from Settings.StaticData import new_guild_data, new_member_data, start_rpg
-from RPGPackage.RPGAttribute import *
+from .MongoManager import MongoManager
+from .StaticData import new_guild_data, new_member_data
+from RPGPackage.RPGModule import *
 
 # Attributes
 
@@ -94,52 +94,92 @@ def background_init(filename: str, outputname: str, *, size=(540, 100), centerin
 
 def is_number(num: str):
     """Check if string contains only number."""
-    for word in num:
-        if not (48 <= ord(word) < 58):
+    for word in range(len(num)):
+        if word == 0 and num[word] == "-":
+            continue
+        if not (48 <= ord(num[word]) < 58):
             return False
     return True
 
-# Asyncronous Function
+def checkClassID(person: discord.User):
+    """Check class ID from Discord User."""
+    mbr_data = checkin_member(person)
+    if mbr_data is not None:
+        # If Member registered
+        if 'CLASSID' in mbr_data:
+            # Character Warrior
+            if mbr_data["CLASSID"] == 1:
+                return Warrior(person.id, person.name, _data=mbr_data)
+            # Character Mage
+            elif mbr_data["CLASSID"] == 2:
+                return Mage(person.id, person.name, _data=mbr_data)
+    classes: list = [Warrior(person.id, person.name), Mage(person.id, person.name)]
+    return random.choice(classes)
 
+# Asyncronous Functions
 async def add_exp(channel: discord.TextChannel, user: discord.User, amount: int):
+    """## Parameter
+    ------------
+    `channel`(discord.TextChannel): broadcast channel.
+    `user`(discord.User): user account.
+    `amount`(int): amount of Exp.
+    """
     mbr_data = checkin_member(user)
     if mbr_data is not None:
         max_exp_on: int = PERLEVEL * (mbr_data["LVL"] + 1)
+        # Level Up Announcement
         if max_exp_on <= mbr_data["EXP"] + amount:
             db_mbr.SetObject({"member_id": str(user.id)}, {"EXP": (mbr_data["EXP"] + amount) - max_exp_on})
             db_mbr.IncreaseItem({"member_id": str(user.id)}, {"LVL": 1, "skill-point": 1})
-            # Announcement
-            emb = discord.Embed(
-                title="LEVEL UP!",
-                description=f"{user.name}, you are now level **{mbr_data['LVL'] + 1}**!",
-                colour=0xfffffe
-                )
+            emb = discord.Embed(title="LEVEL UP!", colour=0xfffffe, 
+                                description=f"{user.name}, you are now level **{mbr_data['LVL'] + 1}**!",)
             emb.set_thumbnail(url=user.avatar_url)
             await channel.send(embed=emb)
         else:
             db_mbr.IncreaseItem({"member_id": str(user.id)}, {"EXP": amount})
 
 async def add_money(guild_id: int, user: discord.User, amount: int):
+    """## Parameter
+    ------------
+    `guild_id`(discord.TextChannel): guild id to identify guild currency.
+    `user`(discord.User): user account.
+    `amount`(int): amount of Money.
+    """
     mbr_data = checkin_member(user)
     if mbr_data is not None:
         if str(guild_id) not in mbr_data['backpack']['money']:
             db_mbr.SetObject({'member_id': mbr_data['member_id']}, {f'backpack.money.{str(guild_id)}': 0})
         db_mbr.IncreaseItem({'member_id': mbr_data['member_id']}, {f'backpack.money.{str(guild_id)}': amount})
 
+async def send_batte_hint(user: discord.User, user_char: Character):
+    emb = discord.Embed(title="⚔️ Battle Hint", colour=0xfffffe, 
+                        description=f"Send these messages to do some actions in battlefield.\n"
+                        f"> `use normal <target>` - Use a normal character attack on target.\n"
+                        f"> `use <custom> <target>` - Use a custom moves you have learned on target.\n"
+                        f"> `use <item> <target>` - Use an item at target.")
+    custom_moves_description: str = ""
+    if len(user_char._custom_moves) == 0:
+        custom_moves_description = "```You haven't learned any custom move.```"
+    else:
+        for move in range(len(user_char._custom_moves)):
+            if move == len(user_char._custom_moves) - 1:
+                custom_moves_description += f"> {move + 1}. {user_char._custom_moves[move].Name}"
+            else:
+                custom_moves_description += f"> {move + 1}. {user_char._custom_moves[move].Name}\n"
+    emb.add_field(name="Your Custom Moves", value=custom_moves_description, inline=False)
+    emb.set_author(name=f"{user_char.name} the {user_char.ClassName}", 
+                   icon_url=user.avatar_url)
+    await user.send(embed=emb)
+
 # Classes
-
 class Queue:
-    """
-
-    Queue Structure
-    ---------------
+    """## Queue Structure
+    ------------------
     Asynchronous Queue in Data Structure.
 
     This Class only for Sending the Image that has been made by Image Generator.
     The Script is Reuseable.
-
     """
-
     # Attribute
     entry: dict = {}
 

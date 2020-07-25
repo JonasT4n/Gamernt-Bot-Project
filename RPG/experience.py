@@ -6,9 +6,8 @@ import os
 import random
 from PIL import Image, ImageDraw, ImageOps, ImageFont
 from discord.ext import commands
-from Settings.MyUtility import checkin_member, get_prefix, is_number, db_mbr, add_exp
+from Settings.MyUtility import checkin_member, checkin_guild, get_prefix, is_number, db_mbr, add_exp, checkClassID
 from RPGPackage.RPGAttribute import *
-from RPGPackage.RPGCharacter import checkClassID
 
 WHITE = 0xfffffe
 
@@ -18,10 +17,19 @@ class Experience(commands.Cog):
         self.bot = bot
 
     # Event Listener Area
-
+    # On Message Event, including adding experiences when chatting in server.
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        await add_exp(message.channel, message.author, 1)
+        # Ignore DM Channel
+        if isinstance(message.channel, discord.DMChannel):
+            return
+        
+        gld_data = checkin_guild(message.guild)
+        if gld_data["event-channel"] is not None:
+            channel: discord.TextChannel = self.bot.get_channel(int(gld_data["event-channel"]))
+            await add_exp(channel, message.author, 1)
+        else:
+            await add_exp(message.channel, message.author, 1)
 
     # Commands Area
 

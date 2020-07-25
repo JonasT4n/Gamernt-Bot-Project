@@ -16,11 +16,11 @@ class Events(commands.Cog):
 
     # Task Section
 
-    @tasks.loop(seconds= 3)
+    @tasks.loop(seconds=3)
     async def change_status(self):
         await self.bot.change_presence(activity=discord.Game(name=next(STATUS)))
 
-    @tasks.loop(hours= 3)
+    @tasks.loop(hours=3)
     async def clean_picture_cache(self):
         for i in os.listdir('.'):
             if i.endswith(".jpg"):
@@ -64,6 +64,15 @@ class Events(commands.Cog):
         if isinstance(error, commands.CommandOnCooldown):
             return
         raise error
+
+    # Set Event Channel in server
+    # Use this as user if there's annoying event stuff appears
+    # Set it by channel tag
+    @commands.command(name="setevent", aliases=["set-event-channel"])
+    async def _envent_channel(self, ctx: commands.Context, channel: discord.TextChannel):
+        gld_data = checkin_guild(ctx.guild)
+        db_gld.SetObject({"guild_id": str(ctx.guild.id)}, {"event-channel": str(channel.id)})
+        await ctx.send(f"Events has been set in channel `{channel.name}`.")
 
 def setup(bot: commands.Bot):
     bot.add_cog(Events(bot))

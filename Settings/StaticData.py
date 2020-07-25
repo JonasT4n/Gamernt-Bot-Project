@@ -1,3 +1,4 @@
+"""Static Data."""
 import os
 
 try:
@@ -25,18 +26,19 @@ new_guild_data: dict = {
         "type": "💸",
         "last-modified": None,
         "modif-by": None 
-    },
+        },
     "max-misc": {
-        "max-items": 20,
-        "max-equip": 20,
-        "max-move": 20
-    },
+        "item": 10,
+        "equip": 10,
+        "move": 10
+        },
     "shop": {
-        "items": {},
-        "equipments": {},
-        "movement": {}
+        "items": [],
+        "equipments": [],
+        "movements": []
+        },
+    "event-channel": None
     }
-}
 new_member_data: dict = {
     "member_id": None,
     "title": "The Man",
@@ -58,32 +60,10 @@ new_member_data: dict = {
             "Emerald": 0,
             "Titanium": 0,
             "Meteorite": 0
-        },
+            },
         "money": {}
+        }
     }
-}
-start_rpg: dict = {
-    "CHARID": 1,
-    "CLASSID": 1,
-    "TRP": 0,
-    "LVL": 0,
-    "EXP": 0,
-    "win-count": 0,
-    "lost-count": 0,
-    "skill-point": 0,
-    "equip": {},
-    "MAX-ITEM-HOLD": 10,
-    "backpack.item": {},
-    "PRIM-STAT": {
-        "STR": 0,
-        "END": 0,
-        "AGI": 0,
-        "FOC": 0,
-        "ITE": 0,
-        "WIS": 0
-    },
-    "moves": {}
-}
 
 # Pickaxe Identity
 pickaxe_identity: dict = {
@@ -105,8 +85,8 @@ pickaxe_identity: dict = {
             "Emerald": 20,
             "Titanium": 10,
             "Meteorite": 5
-        }
-    },
+            }
+        },
     1: {
         "requirement": {
             "Copper": 12,
@@ -132,8 +112,8 @@ pickaxe_identity: dict = {
             "Emerald": 20,
             "Titanium": 10,
             "Meteorite": 6
-        }
-    },
+            }
+        },
     2: {
         "requirement": {
             "Copper": 12,
@@ -159,8 +139,8 @@ pickaxe_identity: dict = {
             "Emerald": 30,
             "Titanium": 18,
             "Meteorite": 8
-        }
-    },
+            }
+        },
     3: {
         "requirement": {
             "Copper" : 25,
@@ -186,8 +166,8 @@ pickaxe_identity: dict = {
             "Emerald": 35,
             "Titanium": 25,
             "Meteorite": 10
-        }
-    },
+            }
+        },
     4: {
         "requirement": {
             "Copper": 50,
@@ -213,8 +193,8 @@ pickaxe_identity: dict = {
             "Emerald": 40,
             "Titanium": 30,
             "Meteorite": 12
-        }
-    },
+            }
+        },
     5: {
         "requirement": None,
         "balance": {
@@ -233,14 +213,13 @@ pickaxe_identity: dict = {
             "Emerald": 40,
             "Titanium": 30,
             "Meteorite": 12
+            }
         }
     }
-}
 
-# Words
+# Words Asset
 words: dict = {
-    "Country":
-    [
+    "Country": [
         'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua', 'Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 
         'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia', 'Herzegovina', 'Botswana', 'Brazil', 'Brunei Darussalam', 
         'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia', 'Cameroon', 'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 
@@ -257,18 +236,16 @@ words: dict = {
         'Tajikistan', 'Thailand', 'Timor-Leste', 'Togo', 'Tokelau ', 'Tonga', 'Trinidad', 'Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 
         'United Arab Emirates', 'United Kingdom', 'Great Britain', 'Tanzania', 'United States America', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Venezuela', 'VietNam', 'Yemen', 
         'Zambia'
-    ],
-    "Fruit":
-    [
+        ],
+    "Fruit": [
         'Apple', 'Apricots', 'Avocado', 'Banana', 'Blackberries', 'Blackcurrant', 'Blueberries', 'Breadfruit', 'Cantaloupe', 'Carambola', 'Cherimoya', 
         'Cherries', 'Clementine', 'Coconut', 'Cranberries', 'Custard Apple', 'Date Fruit', 'Dragonfruit', 'Durian', 'Elderberries', 'Feijoa', 'Figs', 
         'Gooseberries', 'Grapefruit', 'Grapes', 'Guava', 'Honeydew Melon', 'Jackfruit', 'Java Plum', 'Jujube Fruit', 'Kiwifruit', 'Kumquat', 'Lemon', 
         'Lime', 'Longan', 'Loquat', 'Lychee', 'Mandarin', 'Mango', 'Mangosteen', 'Mulberries', 'Nectarine', 'Olives', 'Orange', 'Papaya', 'Passion Fruit', 
         'Peaches', 'Pear', 'Pineapple', 'Pitanga', 'Plantain', 'Plums', 'Pomegranate', 'Prickly Pear', 'Prunes', 'Pummelo', 'Quince', 'Raspberries', 
         'Rhubarb', 'Rose Apple', 'Sapodilla', 'Sapote Mamey', 'Soursop', 'Strawberries', 'Sugar Apple', 'Tamarind', 'Tangerine', 'Watermelon'
-    ],
-    'Animal':
-    [
+        ],
+    'Animal': [
         'Albatross', 'Alligator', 'Arctic-Wolf', 'Badger', 'Bat', 'Bear', 'Bee', 'Blue-whale', 'Camel', 'Cat', 'Chicken', 'Chimpanzee', 'Cow', 
         'Coyote', 'Crab', 'Crocodile', 'Crow', 'Deer', 'Dog', 'Dolphin', 'Dove', 'Ducks', 'Eagle', 'Elephant', 'Elk', 'Fish', 'Flamingo', 'Fox', 
         'Frog', 'Giraffe', 'Goat', 'Goldfish', 'Goose', 'Gorilla', 'Hamster', 'Hare', 'Hawk', 'Hedgehog', 'Hedgehong', 'Hippopotamus', 'Horse', 
@@ -276,9 +253,8 @@ words: dict = {
         'Panda', 'Parrot', 'Peacock', 'Penguin', 'Pig', 'Pigeon', 'Puppy', 'Rabbit', 'Raccoon', 'Rat', 'Raven', 'Reindeer', 'Robin', 'Seagull', 
         'Sheep', 'Shrimp', 'Snake', 'Sparrow', 'Squirrel', 'Starfish', 'Stork', 'Swallow', 'Swan', 'Tiger', 'Toad', 'Turkey', 'Turtle', 'Vulture', 
         'Walrus', 'Woodpecker'
-    ],
-    'Videogame':
-    [
+        ],
+    'Videogame': [
         'Assassins Creed', 'Asteroids', 'BioShock', 'Bloodborne', 'Brawl Stars', 'Brawlhalla', 'Call of Duty', 'Castlevania', 'Chrono Trigger', 'Civilization', 
         'Clash Royale', 'Clash of Clan', 'Cuphead', 'Dark Souls', 'Dead Space', 'Diablo', 'Donkey Kong', 'Doom', 'Dota', 'Double Dragon', 'Dungeon Master', 
         'Fallout', 'Final Fantasy', 'Fire Emblem', 'Fortnite', 'Forza Horizon', 'Gears of War', 'God of War', 'Gone Home', 'Grand Theft Auto', 'Grim Fandango', 
@@ -291,20 +267,19 @@ words: dict = {
         'Ori and The Blind Forest', 'Team Fortress', 'Candy Crush Saga', 'Public Unknown Battlegrounds', 'Mortal Kombat', 'Life is Strange', 'Devil May Cry', 'Super Mario Maker',
         'The Outer Worlds', 'Death Stranding', 'Apex Legends', 'Bomberman', 'Street Fighter', 'Dynasty Warriors', 'Angry Birds', 'Gran Turismo', 'Pong', 'Red Dead Redemption',
         'Wolfenstein', 'StarCraft', 'Zork', 'Space Invaders', 'Counter Strike', 'Quake', ''
-    ]
-}
+        ]
+    }
 
-# Card Game Cards
+# Card Game Asset
 card_deck_dict: dict = {
     "spade":["A♤", "2♤", "3♤", "4♤", "5♤", "6♤", "7♤", "8♤", "9♤", "10♤", "J♤", "Q♤", "K♤"],
     "heart":["A♡", "2♡", "3♡", "4♡", "5♡", "6♡", "7♡", "8♡", "9♡", "10♡", "J♡", "Q♡", "K♡"],
     "club":["A♧", "2♧", "3♧", "4♧", "5♧", "6♧", "7♧", "8♧", "9♧", "10♧", "J♧", "Q♧", "K♧"],
     "diamond":["A♢", "2♢", "3♢", "4♢", "5♢", "6♢", "7♢", "8♢", "9♢", "10♢", "J♢", "Q♢", "K♢"]
-}
-
+    }
 card_deck_list: list = [
     "A♤", "2♤", "3♤", "4♤", "5♤", "6♤", "7♤", "8♤", "9♤", "10♤", "J♤", "Q♤", "K♤", 
     "A♡", "2♡", "3♡", "4♡", "5♡", "6♡", "7♡", "8♡", "9♡", "10♡", "J♡", "Q♡", "K♡", 
     "A♧", "2♧", "3♧", "4♧", "5♧", "6♧", "7♧", "8♧", "9♧", "10♧", "J♧", "Q♧", "K♧",
     "A♢", "2♢", "3♢", "4♢", "5♢", "6♢", "7♢", "8♢", "9♢", "10♢", "J♢", "Q♢", "K♢"
-]
+    ]
