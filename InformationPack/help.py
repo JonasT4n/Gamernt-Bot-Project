@@ -22,7 +22,7 @@ class HelpCommand(commands.Cog):
             colour=WHITE
             )
         emb.add_field(
-            name="General Commands :",
+            name="General Commands :", inline=False, 
             value="`ping` - PING. PONG!\n"
                 "`about`|`a` - Bot information\n"
                 "`news` - What's new?\n"
@@ -31,11 +31,10 @@ class HelpCommand(commands.Cog):
                 "`feedback`|`fb` - Send message to creator\n"
                 "`settitle`|`st` - Change profile title\n"
                 "`prof`|`user` - User profile\n"
-                "`img`|`pict` - Search picture",
-            inline=False
-            )
+                "`img`|`pict` - Search picture\n"
+                "`setevent <channel>` - Set all event into channel")
         emb.add_field(
-            name="Fun and Game Commands :",
+            name="Fun and Game Commands :", inline=False, 
             value="`ask` - Ask me anything\n"
                 "`chance` - Your chance of\n"
                 "`choose` - Random chooser machine\n"
@@ -48,11 +47,9 @@ class HelpCommand(commands.Cog):
                 "`rps` - Rock Paper Scissor\n"
                 "`scramble`|`scr` - Guess scramble word\n"
                 "`slot` - Slot machine\n"
-                "`wordpref`|`wop` - Custom Word Prefix Game",
-            inline=False
-            )
+                "`wordpref`|`wop` - Custom Word Prefix Game")
         emb.add_field(
-            name="RPG Commands :",
+            name="RPG Commands :", inline=False, 
             value="`start` - Getting started with RPG\n"
                 "`adventure`|`adv` - Virtual adventure\n"
                 "`battle`|`btl` - Battle multiplayer\n"
@@ -60,26 +57,23 @@ class HelpCommand(commands.Cog):
                 "`equip` - Managing equipment\n"
                 "`item` - Managing item\n"
                 "`learn` - Learn any moves in server\n"
-                "`moves` - See your current moves\n"
+                "`mymoves` - See your current moves\n"
                 "`manual` - Manual all about this RPG\n"
                 "`class` - Check classes available\n"
                 "`nature` - Check Nature available\n"
                 "`skilladd` - Upgrade your primary stat\n"
                 "`skillres` - Reset your skill point\n"
-                "`stat` - Your detail in RPG",
-            inline=False
-            )
+                "`stat` - Your detail in RPG\n"
+                "`create` - Create a custom thing")
         emb.add_field(
-            name="Meta and Misc Commands :",
+            name="Meta and Misc Commands :", inline=False, 
             value="`balance`|`bal` - Check yo money\n"
                 "`buy` - Buy something in the shop\n"
                 "`cur` - Manage server currency\n"
                 "`inv` - Your inventory\n"
                 "`leaderboard`|`lb` - Leaderboard in currency and RPG\n"
                 "`ores`|`ore` - See your ore collection\n"
-                "`shop` - Server shop and menu",
-            inline=False
-            )
+                "`shop` - Server shop and menu")
         emb.set_thumbnail(url=self.bot.user.avatar_url)
         emb.set_footer(text=f"Example Command : {pref}ping")
         if len(args) >= 1:

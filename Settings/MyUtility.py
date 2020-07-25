@@ -126,17 +126,18 @@ async def add_exp(channel: discord.TextChannel, user: discord.User, amount: int)
     """
     mbr_data = checkin_member(user)
     if mbr_data is not None:
-        max_exp_on: int = PERLEVEL * (mbr_data["LVL"] + 1)
-        # Level Up Announcement
-        if max_exp_on <= mbr_data["EXP"] + amount:
-            db_mbr.SetObject({"member_id": str(user.id)}, {"EXP": (mbr_data["EXP"] + amount) - max_exp_on})
-            db_mbr.IncreaseItem({"member_id": str(user.id)}, {"LVL": 1, "skill-point": 1})
-            emb = discord.Embed(title="LEVEL UP!", colour=0xfffffe, 
-                                description=f"{user.name}, you are now level **{mbr_data['LVL'] + 1}**!",)
-            emb.set_thumbnail(url=user.avatar_url)
-            await channel.send(embed=emb)
-        else:
-            db_mbr.IncreaseItem({"member_id": str(user.id)}, {"EXP": amount})
+        if "LVL" in mbr_data:
+            max_exp_on: int = PERLEVEL * (mbr_data["LVL"] + 1)
+            # Level Up Announcement
+            if max_exp_on <= mbr_data["EXP"] + amount:
+                db_mbr.SetObject({"member_id": str(user.id)}, {"EXP": (mbr_data["EXP"] + amount) - max_exp_on})
+                db_mbr.IncreaseItem({"member_id": str(user.id)}, {"LVL": 1, "skill-point": 1})
+                emb = discord.Embed(title="LEVEL UP!", colour=0xfffffe, 
+                                    description=f"{user.name}, you are now level **{mbr_data['LVL'] + 1}**!",)
+                emb.set_thumbnail(url=user.avatar_url)
+                await channel.send(embed=emb)
+            else:
+                db_mbr.IncreaseItem({"member_id": str(user.id)}, {"EXP": amount})
 
 async def add_money(guild_id: int, user: discord.User, amount: int):
     """## Parameter
